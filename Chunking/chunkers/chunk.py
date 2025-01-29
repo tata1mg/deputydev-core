@@ -686,8 +686,8 @@ def chunk_source(
                 final_chunks.append(new_chunk_info)
                 already_visited_chunk.add(new_chunk_info.denotation)
         return final_chunks
-    except Exception:
-        print(f"Error chunking file: {path}")
+    except Exception as e:
+        print(f"Error chunking file: {path} with error {str(e)}")
         return []
 
 
