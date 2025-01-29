@@ -150,7 +150,7 @@ def get_local_repo(repo_path) -> BaseLocalRepo:
 
 
 async def run_main():
-    auth_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZWFtX2lkIjoxLCJhZHZvY2FjeV9pZCI6Mn0.FzE9fn0MI__H_-H-zRiGqp0btNi7-3SAloU8RxUAtI0"
+    auth_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.FzE9fn0MI__H_-H-zRiGqp0btNi7-3SAloU8RxUAtI0"
     parser = argparse.ArgumentParser(description="Example script with arguments.")
     parser.add_argument("--repo_path", required=True, help="Repo Path")
     # parser.add_argument("--auth_token", required=True, help="Auth Token")
