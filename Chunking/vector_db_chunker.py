@@ -150,12 +150,13 @@ def get_local_repo(repo_path) -> BaseLocalRepo:
 
 
 async def run_main():
-    # Auth token is wrong update it before running
-    auth_token = "***REMOVED***"
     parser = argparse.ArgumentParser(description="Example script with arguments.")
     parser.add_argument("--repo_path", required=True, help="Repo Path")
+    parser.add_argument("--auth_token", required=True, help="Repo Path")
     args = parser.parse_args()
     weaviate_client = await InitializationManager().initialize_vector_db()
+    # await weaviate_client.async_client.collections.delete_all()
+    # return
     one_dev_client = OneDevClient(ConfigManager.configs["HOST_AND_TIMEOUT"])
     local_repo = get_local_repo(args.repo_path)
     chunkable_files_and_hashes = await local_repo.get_chunkable_files_and_commit_hashes()
@@ -163,7 +164,7 @@ async def run_main():
         final_chunks, chunks_docs = await VectorDBChunker(
             local_repo=local_repo,
             weaviate_client=weaviate_client,
-            embedding_manager=OneDevEmbeddingManager(auth_token=auth_token, one_dev_client=one_dev_client),
+            embedding_manager=OneDevEmbeddingManager(auth_token=args.auth_token, one_dev_client=one_dev_client),
             process_executor=executor,
             usage_hash=get_usage_hash(args.repo_path),
             chunkable_files_and_hashes=chunkable_files_and_hashes,
