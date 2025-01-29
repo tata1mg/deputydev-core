@@ -3,7 +3,7 @@ from concurrent.futures import ProcessPoolExecutor
 from typing import Dict, List, Optional, Tuple
 import time
 import argparse
-
+import multiprocessing
 from managers.one_dev_embedding_manager import OneDevEmbeddingManager
 from models.chunk_info import ChunkInfo, ChunkSourceDetails
 from chunkers.base_chunker import BaseChunker
@@ -150,12 +150,11 @@ def get_local_repo(repo_path) -> BaseLocalRepo:
 
 
 async def run_main():
+    # Auth token is wrong update it before running
     auth_token = "***REMOVED***"
     parser = argparse.ArgumentParser(description="Example script with arguments.")
     parser.add_argument("--repo_path", required=True, help="Repo Path")
-    # parser.add_argument("--auth_token", required=True, help="Auth Token")
     args = parser.parse_args()
-    # repo_path = '/Users/sachendra/Desktop/Code/genai'
     weaviate_client = await InitializationManager().initialize_vector_db()
     one_dev_client = OneDevClient(ConfigManager.configs["HOST_AND_TIMEOUT"])
     local_repo = get_local_repo(args.repo_path)
@@ -188,6 +187,7 @@ def get_usage_hash(repo_path):
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     start_time = time.time()  # Record start time
     asyncio.run(run_main())  # Run the async function
     end_time = time.time()  # Record end time
