@@ -5,6 +5,7 @@ from weaviate import WeaviateAsyncClient, WeaviateClient
 from weaviate.connect import ConnectionParams, ProtocolParams
 from weaviate.embedded import EmbeddedOptions
 
+from utils.base_local_repo import BaseLocalRepo
 from models.weaviate.base import Base as WeaviateBaseDAO
 from models.weaviate.chunk_files import ChunkFiles
 from models.weaviate.chunks import Chunks
@@ -13,6 +14,9 @@ from repository.dataclasses.main import WeaviateSyncAndAsyncClients
 from clients.one_dev_client import OneDevClient
 from managers.one_dev_embedding_manager import OneDevEmbeddingManager
 from utils.config_manager import ConfigManager
+from repo.local_repo.factory import LocalRepoFactory
+import xxhash
+from datetime import datetime
 
 class InitializationManager:
     def __init__(
@@ -29,6 +33,10 @@ class InitializationManager:
         self.embedding_manager = OneDevEmbeddingManager(auth_token=auth_token, one_dev_client=one_dev_client)
         self.process_executor = process_executor
         self.chunk_cleanup_task = None
+
+    def get_local_repo(self) -> BaseLocalRepo:
+        self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path)
+        return self.local_repo
 
     async def __check_and_initialize_collection(self, collection: Type[WeaviateBaseDAO]) -> None:
         if not self.weaviate_client:
@@ -131,3 +139,49 @@ class InitializationManager:
             raise ValueError("Connect to vector store failed")
 
         return self.weaviate_client
+
+    async def prefill_vector_store(
+            self, chunkable_files_and_hashes: Dict[str, str], progressbar = None
+    ) -> str:
+        if not self.local_repo:
+            raise ValueError("Local repo is not initialized")
+
+        if not self.weaviate_client:
+            raise ValueError("Connect to vector store")
+
+        usage_hash = xxhash.xxh64(
+            str(
+                {
+                    "repo_path": self.repo_path,
+                    "current_day_start_time": datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+                }
+            )
+        ).hexdigest()
+
+        all_chunks, _all_docs = await V(
+            local_repo=self.local_repo,
+            weaviate_client=self.weaviate_client,
+            embedding_manager=self.embedding_manager,
+            process_executor=self.process_executor,
+            usage_hash=usage_hash,
+            progress_bar=progressbar,
+            chunkable_files_and_hashes=chunkable_files_and_hashes,
+        ).create_chunks_and_docs()
+
+        # start chunk cleanup
+        self.chunk_cleanup_task = asyncio.create_task(
+            ChunkVectorStoreCleaneupManager(
+                exclusion_chunk_hashes=[chunk.content_hash for chunk in all_chunks],
+                weaviate_client=self.weaviate_client,
+                usage_hash=usage_hash,
+            ).start_cleanup_for_chunk_and_hashes()
+        )
+
+        return usage_hash
+
+    async def cleanup(self):
+        if self.chunk_cleanup_task:
+            self.chunk_cleanup_task.cancel()
+        if self.weaviate_client:
+            self.weaviate_client.sync_client.close()
+            await self.weaviate_client.async_client.close()

@@ -1,3 +1,4 @@
+LARGE_NO_OF_CHUNKS = 60
 JAVASCRIPT_EXTENSIONS = {
     "js": "javascript",
     "jsx": "javascript",
