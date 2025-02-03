@@ -1,7 +1,5 @@
-import asyncio
 from concurrent.futures import ProcessPoolExecutor
 from typing import Dict, List, Optional, Tuple
-import time
 import argparse
 import multiprocessing
 from managers.one_dev_embedding_manager import OneDevEmbeddingManager
@@ -149,30 +147,32 @@ def get_local_repo(repo_path) -> BaseLocalRepo:
     return local_repo
 
 
-async def run_main():
-    parser = argparse.ArgumentParser(description="Example script with arguments.")
-    parser.add_argument("--repo_path", required=True, help="Repo Path")
-    parser.add_argument("--auth_token", required=True, help="Repo Path")
-    args = parser.parse_args()
-    weaviate_client = await InitializationManager().initialize_vector_db()
+async def run_main(args):
+    multiprocessing.freeze_support()
+    initialization_manager = InitializationManager()
+    weaviate_client = await initialization_manager.initialize_vector_db()
     # await weaviate_client.async_client.collections.delete_all()
     # return
+    auth_token = args.auth_token
+    repo_path = args.repo_path
     one_dev_client = OneDevClient(ConfigManager.configs["HOST_AND_TIMEOUT"])
-    local_repo = get_local_repo(args.repo_path)
+    local_repo = get_local_repo(repo_path)
     chunkable_files_and_hashes = await local_repo.get_chunkable_files_and_commit_hashes()
     with ProcessPoolExecutor(max_workers=ConfigManager.configs["NUMBER_OF_WORKERS"]) as executor:
+        await initialization_manager.pr
         final_chunks, chunks_docs = await VectorDBChunker(
             local_repo=local_repo,
             weaviate_client=weaviate_client,
-            embedding_manager=OneDevEmbeddingManager(auth_token=args.auth_token, one_dev_client=one_dev_client),
+            embedding_manager=OneDevEmbeddingManager(auth_token=auth_token, one_dev_client=one_dev_client),
             process_executor=executor,
-            usage_hash=get_usage_hash(args.repo_path),
+            usage_hash=get_usage_hash(repo_path),
             chunkable_files_and_hashes=chunkable_files_and_hashes,
         ).create_chunks_and_docs()
     print(f"Number of received chunks: {len(chunks_docs)}")
 
     weaviate_client.sync_client.close()
     await weaviate_client.async_client.close()
+    return "Everything is working fine"
 
 
 def get_usage_hash(repo_path):
@@ -187,10 +187,17 @@ def get_usage_hash(repo_path):
     return usage_hash
 
 
-if __name__ == "__main__":
-    multiprocessing.freeze_support()
-    start_time = time.time()  # Record start time
-    asyncio.run(run_main())  # Run the async function
-    end_time = time.time()  # Record end time
-    elapsed_time = end_time - start_time  # Calculate elapsed time
-    print(f"Execution time: {elapsed_time:.4f} seconds")
+async def get_args_and_run_main():
+    parser = argparse.ArgumentParser(description="Example script with arguments.")
+    parser.add_argument("--repo_path", required=True, help="Repo Path")
+    parser.add_argument("--auth_token", required=True, help="Repo Path")
+    args = parser.parse_args()
+    await run_main(args)
+
+# if __name__ == "__main__":
+#     multiprocessing.freeze_support()
+#     start_time = time.time()  # Record start time
+#     asyncio.run(get_args_and_run_main())  # Run the async function
+#     end_time = time.time()  # Record end time
+#     elapsed_time = end_time - start_time  # Calculate elapsed time
+#     print(f"Execution time: {elapsed_time:.4f} seconds")
