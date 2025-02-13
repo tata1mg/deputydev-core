@@ -1,0 +1,16 @@
+from setuptools import find_packages, setup
+
+with open("requirements/base.txt") as f:
+    base_requirements = f.read().splitlines()
+
+dependency_links = []
+
+setup(
+    name="deputydev-core",
+    version="0.0.2",
+    author="1mg",
+    author_email="devops@1mg.com",
+    description="Core logic of deputydev",
+    packages=find_packages(exclude=("examples", "requirements")),
+    install_requires=base_requirements,
+)
