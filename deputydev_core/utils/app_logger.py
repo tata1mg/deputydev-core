@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict
 
-from common.utils.context_vars import get_context_value, set_context_values
+from deputydev_core.utils.context_vars import get_context_value, set_context_values
 
 logger = logging.getLogger()
 
