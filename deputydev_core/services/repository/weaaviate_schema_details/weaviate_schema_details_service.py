@@ -4,9 +4,9 @@ from typing import Optional
 from weaviate.classes.query import Filter
 from weaviate.util import generate_uuid5
 
-from app.common.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
-from app.common.utils.app_logger import AppLogger
-from app.main.blueprints.deputydev_cli.models.weaviate.weaviate_schema_details import (
+from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
+from deputydev_core.utils.app_logger import AppLogger
+from deputydev_core.models.dao.weaviate.weaviate_schema_details import (
     WeaviateSchemaDetails,
 )
 

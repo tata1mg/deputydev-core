@@ -1,8 +1,8 @@
 from typing import Any, Dict, Optional
-from common.clients.http.adapters.http_response_adapter import (
+from deputydev_core.clients.http.adapters.http_response_adapter import (
     AiohttpToRequestsAdapter,
 )
-from common.clients.http.base_http_session_manager import SessionManager
+from deputydev_core.clients.http.base_http_session_manager import SessionManager
 
 
 class BaseHTTPClient:

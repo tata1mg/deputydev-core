@@ -1,12 +1,9 @@
 import os
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Tuple
-
-from sanic.log import logger
 from xxhash import xxh64
-
-from common.services.chunking.config.chunk_config import ChunkConfig
-from common.utils.app_logger import AppLogger
+from deputydev_core.services.chunking.config.chunk_config import ChunkConfig
+from deputydev_core.utils.app_logger import AppLogger
 
 
 class BaseLocalRepo(ABC):
@@ -69,7 +66,7 @@ class BaseLocalRepo(ABC):
                 with open(abs_file_path, "r") as file_obj:
                     content = file_obj.readlines()
             except FileNotFoundError:
-                logger.info(f"File not found: {abs_file_path}, a new file will be created")
+                AppLogger.log_info(f"File not found: {abs_file_path}, a new file will be created")
 
             # List to store the modified content
             modified_content = self._apply_diff_in_file_content(content=content, chunks=chunks)
