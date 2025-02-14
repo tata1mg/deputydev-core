@@ -1,6 +1,6 @@
 import tiktoken
 
-from constants.constants import LLMModelNames
+from deputydev_core.utils.constants import LLMModelNames
 from deputydev_core.utils.config_manager import ConfigManager
 
 EMBEDDING_TOKEN_LIMIT = ConfigManager.configs["EMBEDDING"]["TOKEN_LIMIT"]
