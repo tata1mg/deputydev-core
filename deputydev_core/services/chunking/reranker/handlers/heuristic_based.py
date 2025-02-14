@@ -1,7 +1,9 @@
 from typing import Dict, List
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
-from deputydev_core.services.chunking.reranker.base_chunk_reranker import BaseChunkReranker
+from deputydev_core.services.chunking.reranker.base_chunk_reranker import (
+    BaseChunkReranker,
+)
 
 
 class HeuristicBasedChunkReranker(BaseChunkReranker):

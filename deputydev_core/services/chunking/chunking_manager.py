@@ -2,21 +2,32 @@ import copy
 import os
 from concurrent.futures import ProcessPoolExecutor
 from typing import Dict, List, Optional, Tuple
+
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
 from deputydev_core.services.chunking.chunker.base_chunker import BaseChunker
-from deputydev_core.services.chunking.reranker.base_chunk_reranker import BaseChunkReranker
-from deputydev_core.services.embedding.base_embedding_manager import BaseEmbeddingManager
-from deputydev_core.services.repo.local_repo.base_local_repo_service import BaseLocalRepo
-from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
+from deputydev_core.services.chunking.reranker.base_chunk_reranker import (
+    BaseChunkReranker,
+)
+from deputydev_core.services.embedding.base_embedding_manager import (
+    BaseEmbeddingManager,
+)
+from deputydev_core.services.repo.local_repo.base_local_repo_service import (
+    BaseLocalRepo,
+)
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
+)
 from deputydev_core.services.search.dataclasses.main import SearchTypes
 from deputydev_core.services.search.search import perform_search
-from deputydev_core.utils.file_utils import read_file
 from deputydev_core.utils.app_logger import AppLogger
+from deputydev_core.utils.file_utils import read_file
 
 
 class ChunkingManger:
     @classmethod
-    def build_focus_query(cls, user_query: str, custom_context_code_chunks: List[ChunkInfo]):
+    def build_focus_query(
+        cls, user_query: str, custom_context_code_chunks: List[ChunkInfo]
+    ):
         if not custom_context_code_chunks:
             return user_query
 
@@ -73,7 +84,10 @@ class ChunkingManger:
                 ChunkInfo(
                     content=file_content,
                     source_details=ChunkSourceDetails(
-                        file_path=filepath, file_hash="", start_line=int(lines[0]), end_line=int(lines[1])
+                        file_path=filepath,
+                        file_hash="",
+                        start_line=int(lines[0]),
+                        end_line=int(lines[1]),
                     ),
                 )
             )
@@ -202,19 +216,29 @@ class ChunkingManger:
             weaviate_client=weaviate_client,
             chunking_handler=chunking_handler,
         )
-        reranked_chunks = await cls.rerank_related_chunks(query, relevant_chunks, reranker, focus_chunks_details)
+        reranked_chunks = await cls.rerank_related_chunks(
+            query, relevant_chunks, reranker, focus_chunks_details
+        )
         return reranked_chunks, input_tokens, focus_chunks_details
 
     @classmethod
     def exclude_focused_chunks(cls, related_chunk, focus_chunks_details):
         related_chunk = [
-            chunk for chunk in related_chunk if chunk.content not in [chunk.content for chunk in focus_chunks_details]
+            chunk
+            for chunk in related_chunk
+            if chunk.content not in [chunk.content for chunk in focus_chunks_details]
         ]
         return related_chunk
 
     @classmethod
-    async def rerank_related_chunks(cls, query, related_chunks, reranker, focus_chunks_details):
-        related_chunks = cls.exclude_focused_chunks(related_chunks, focus_chunks_details)
+    async def rerank_related_chunks(
+        cls, query, related_chunks, reranker, focus_chunks_details
+    ):
+        related_chunks = cls.exclude_focused_chunks(
+            related_chunks, focus_chunks_details
+        )
         if reranker:
-            related_chunks = await reranker.rerank(focus_chunks_details, related_chunks, query)
+            related_chunks = await reranker.rerank(
+                focus_chunks_details, related_chunks, query
+            )
         return related_chunks

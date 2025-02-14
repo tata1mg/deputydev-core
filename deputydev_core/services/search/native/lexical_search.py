@@ -4,10 +4,9 @@ from concurrent.futures import ProcessPoolExecutor
 from math import log
 from typing import Any, Dict, List
 
-from deputydev_core.utils.app_logger import AppLogger
-
 from deputydev_core.services.chunking.document import Document
 from deputydev_core.services.tokenizer import ContentTokenizer, compute_document_tokens
+from deputydev_core.utils.app_logger import AppLogger
 
 
 class LexicalSearch:
@@ -64,10 +63,21 @@ class LexicalSearch:
             float: The BM25 score.
         """
         num_docs = len(self.doc_lengths)
-        idf = log(((num_docs - len(self.inverted_index[term])) + 0.5) / (len(self.inverted_index[term]) + 0.5) + 1.0)
+        idf = log(
+            ((num_docs - len(self.inverted_index[term])) + 0.5)
+            / (len(self.inverted_index[term]) + 0.5)
+            + 1.0
+        )
         doc_length = self.doc_lengths[doc_id]
         tf = ((self.k1 + 1) * term_freq) / (
-            term_freq + self.k1 * (1 - self.b + self.b * (doc_length / (self.total_doc_length / len(self.doc_lengths))))
+            term_freq
+            + self.k1
+            * (
+                1
+                - self.b
+                + self.b
+                * (doc_length / (self.total_doc_length / len(self.doc_lengths)))
+            )
         )
         return idf * tf
 
@@ -88,7 +98,8 @@ class LexicalSearch:
         sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         # Attach metadata to the results
         results_with_metadata = [
-            (self.metadata[doc_id], score, self.metadata.get(doc_id, {})) for doc_id, score in sorted_scores
+            (self.metadata[doc_id], score, self.metadata.get(doc_id, {}))
+            for doc_id, score in sorted_scores
         ]
         return results_with_metadata
 
@@ -180,7 +191,9 @@ def perform_lexical_search(query: str, index: LexicalSearch) -> Dict[int, float]
     return content_to_lexical_score_list
 
 
-async def create_tokens(all_docs: List[Document], process_executor: ProcessPoolExecutor) -> LexicalSearch:
+async def create_tokens(
+    all_docs: List[Document], process_executor: ProcessPoolExecutor
+) -> LexicalSearch:
     """
     Asynchronously creates lexical search tokens from a list of documents.
 
@@ -196,12 +209,16 @@ async def create_tokens(all_docs: List[Document], process_executor: ProcessPoolE
     # Instantiate an event loop object for main thread
     loop = asyncio.get_event_loop()
 
-    index = await loop.run_in_executor(process_executor, create_lexical_search_tokens, all_docs)
+    index = await loop.run_in_executor(
+        process_executor, create_lexical_search_tokens, all_docs
+    )
 
     return index
 
 
-async def lexical_search(query: str, all_docs, process_executor: ProcessPoolExecutor) -> List[Dict[str, Any]]:
+async def lexical_search(
+    query: str, all_docs, process_executor: ProcessPoolExecutor
+) -> List[Dict[str, Any]]:
     """
     Asynchronously performs a lexical search on the provided index using the given query.
 
@@ -222,5 +239,7 @@ async def lexical_search(query: str, all_docs, process_executor: ProcessPoolExec
     # Instantiate an event loop object for main thread
     loop = asyncio.get_event_loop()
 
-    content_to_lexical_score_list = await loop.run_in_executor(process_executor, perform_lexical_search, query, index)
+    content_to_lexical_score_list = await loop.run_in_executor(
+        process_executor, perform_lexical_search, query, index
+    )
     return content_to_lexical_score_list

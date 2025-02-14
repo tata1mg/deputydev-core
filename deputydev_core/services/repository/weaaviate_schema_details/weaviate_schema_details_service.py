@@ -4,18 +4,24 @@ from typing import Optional
 from weaviate.classes.query import Filter
 from weaviate.util import generate_uuid5
 
-from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
-from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.models.dao.weaviate.weaviate_schema_details import (
     WeaviateSchemaDetails,
 )
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
+)
+from deputydev_core.utils.app_logger import AppLogger
 
 
 class WeaviateSchemaDetailsService:
     def __init__(self, weaviate_client: WeaviateSyncAndAsyncClients):
         self.weaviate_client = weaviate_client
-        self.async_collection = weaviate_client.async_client.collections.get(WeaviateSchemaDetails.collection_name)
-        self.sync_collection = weaviate_client.sync_client.collections.get(WeaviateSchemaDetails.collection_name)
+        self.async_collection = weaviate_client.async_client.collections.get(
+            WeaviateSchemaDetails.collection_name
+        )
+        self.sync_collection = weaviate_client.sync_client.collections.get(
+            WeaviateSchemaDetails.collection_name
+        )
         self.CONSTANT_HASH = "weaviate_schema_details"
 
     def get_schema_version(self) -> Optional[int]:

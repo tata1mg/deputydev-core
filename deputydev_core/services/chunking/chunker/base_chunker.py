@@ -3,9 +3,12 @@ import os
 from abc import ABC, abstractmethod
 from concurrent.futures import ProcessPoolExecutor
 from typing import Dict, List, Mapping, Optional
+
 from deputydev_core.services.chunking.chunk import chunk_source
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
-from deputydev_core.services.repo.local_repo.base_local_repo_service import BaseLocalRepo
+from deputydev_core.services.repo.local_repo.base_local_repo_service import (
+    BaseLocalRepo,
+)
 from deputydev_core.utils.file_utils import read_file
 
 
@@ -13,7 +16,10 @@ from deputydev_core.utils.file_utils import read_file
 class FileChunkCreator:
     @staticmethod
     def create_chunks(
-            file_path: str, root_dir: str, file_hash: Optional[str] = None, use_new_chunking: bool = False
+        file_path: str,
+        root_dir: str,
+        file_hash: Optional[str] = None,
+        use_new_chunking: bool = False,
     ) -> list[ChunkInfo]:
         """
         Converts the content of a file into chunks of code.
@@ -27,16 +33,20 @@ class FileChunkCreator:
         """
         file_contents = read_file(os.path.join(root_dir, file_path))
         chunks = chunk_source(
-            file_contents, path=file_path, file_hash=file_hash, nl_desc=False, use_new_chunking=use_new_chunking
+            file_contents,
+            path=file_path,
+            file_hash=file_hash,
+            nl_desc=False,
+            use_new_chunking=use_new_chunking,
         )
         return chunks
 
     @staticmethod
     async def create_and_get_file_wise_chunks(
-            file_paths_and_hashes: Mapping[str, Optional[str]],
-            root_dir: str,
-            use_new_chunking: bool = False,
-            process_executor: Optional[ProcessPoolExecutor] = None,
+        file_paths_and_hashes: Mapping[str, Optional[str]],
+        root_dir: str,
+        use_new_chunking: bool = False,
+        process_executor: Optional[ProcessPoolExecutor] = None,
     ) -> Dict[str, List[ChunkInfo]]:
         """
         Converts the content of a list of files into chunks of code.
@@ -54,10 +64,17 @@ class FileChunkCreator:
         for file, file_hash in file_paths_and_hashes.items():
             chunks_from_file: List[ChunkInfo] = []
             if process_executor is None:
-                chunks_from_file = FileChunkCreator.create_chunks(file, root_dir, file_hash, use_new_chunking)
+                chunks_from_file = FileChunkCreator.create_chunks(
+                    file, root_dir, file_hash, use_new_chunking
+                )
             else:
                 chunks_from_file = await loop.run_in_executor(
-                    process_executor, FileChunkCreator.create_chunks, file, root_dir, file_hash, use_new_chunking
+                    process_executor,
+                    FileChunkCreator.create_chunks,
+                    file,
+                    root_dir,
+                    file_hash,
+                    use_new_chunking,
                 )
             file_wise_chunks[file] = chunks_from_file
 
@@ -65,11 +82,15 @@ class FileChunkCreator:
 
 
 class BaseChunker(ABC):
-    def __init__(self, local_repo: BaseLocalRepo, process_executor: ProcessPoolExecutor) -> None:
+    def __init__(
+        self, local_repo: BaseLocalRepo, process_executor: ProcessPoolExecutor
+    ) -> None:
         self.local_repo = local_repo
         self.process_executor = process_executor
         self.file_chunk_creator = FileChunkCreator
 
     @abstractmethod
     async def create_chunks_and_docs(self) -> List[ChunkInfo]:
-        raise NotImplementedError("create_chunks method must be implemented in the child class")
+        raise NotImplementedError(
+            "create_chunks method must be implemented in the child class"
+        )

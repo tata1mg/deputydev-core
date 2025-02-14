@@ -1,7 +1,9 @@
 import os
 from typing import Dict, List
 
-from deputydev_core.services.repo.local_repo.base_local_repo_service import BaseLocalRepo
+from deputydev_core.services.repo.local_repo.base_local_repo_service import (
+    BaseLocalRepo,
+)
 
 
 class NonVCSRepo(BaseLocalRepo):
@@ -16,7 +18,9 @@ class NonVCSRepo(BaseLocalRepo):
             dirnames[:] = [d for d in dirnames if d not in ignore_dirs]
             for file in filenames:
                 # append relative path to the file
-                all_files.append(os.path.relpath(os.path.join(dirpath, file), self.repo_path))
+                all_files.append(
+                    os.path.relpath(os.path.join(dirpath, file), self.repo_path)
+                )
         return all_files
 
     async def get_chunkable_files_and_commit_hashes(self) -> Dict[str, str]:

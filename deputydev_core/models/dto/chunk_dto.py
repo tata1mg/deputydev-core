@@ -15,3 +15,8 @@ class ChunkDTO(BaseModel):
 class ChunkDTOWithVector(BaseModel):
     vector: List[float]
     dto: ChunkDTO
+
+
+class ChunkDTOWithScore(BaseModel):
+    score: float
+    chunk: ChunkDTO
