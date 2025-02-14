@@ -20,8 +20,6 @@ from deputydev_core.utils.config_manager import ConfigManager
 from deputydev_core.services.tiktoken import TikToken
 from .chunk_info import ChunkInfo, ChunkSourceDetails
 
-CHARACTER_SIZE = ConfigManager.configs["CHUNKING"]["CHARACTER_SIZE"]
-
 
 def get_parser(language: str) -> Parser:
     """
@@ -614,7 +612,7 @@ def dechunk(chunks: List[NeoSpan], coalesce: int, source_code: bytes) -> list[Ne
 
 
 def chunk_code_with_metadata(
-        tree, source_code: bytes, language: str, MAX_CHARS=CHARACTER_SIZE, coalesce=100
+        tree, source_code: bytes, language: str, MAX_CHARS=None, coalesce=100
 ) -> list[NeoSpan]:
     """
     Chunk the AST tree based on maximum characters and coalesce size.
@@ -628,6 +626,8 @@ def chunk_code_with_metadata(
     Returns:
         list[Span]: List of chunks.
     """
+    if not MAX_CHARS:
+        MAX_CHARS = ConfigManager.configs["CHUNKING"]["CHARACTER_SIZE"]
     # Create initial chunks with metadata
     all_classes: List[str] = []
     all_functions: List[str] = []
@@ -651,7 +651,7 @@ def chunk_code_with_metadata(
 def chunk_code(
         tree,
         source_code: bytes,
-        MAX_CHARS=CHARACTER_SIZE,
+        MAX_CHARS=None,
         coalesce=100,
 ) -> List[Span]:
     """
@@ -666,6 +666,8 @@ def chunk_code(
     Returns:
         list[Span]: List of chunks.
     """
+    if not MAX_CHARS:
+        MAX_CHARS = ConfigManager.configs["CHUNKING"]["CHARACTER_SIZE"]
 
     # 1. Recursively form chunks
     def chunk_node(node: Node) -> list[Span]:
@@ -774,7 +776,7 @@ def chunk_source(
         content: str,
         path: str,
         file_hash: Optional[str] = None,
-        MAX_CHARS=CHARACTER_SIZE,
+        MAX_CHARS=None,
         coalesce=80,
         nl_desc=False,
         use_new_chunking=False,
@@ -792,6 +794,8 @@ def chunk_source(
     Returns:
         List[ChunkInfo]: A list of ChunkInfo objects representing the chunks of content.
     """
+    if not MAX_CHARS:
+        MAX_CHARS = ConfigManager.configs["CHUNKING"]["CHARACTER_SIZE"]
     ext = path.split(".")[-1]
     if ext in ALL_EXTENSIONS:
         language = ALL_EXTENSIONS[ext]
