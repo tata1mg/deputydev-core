@@ -3,8 +3,6 @@ import tiktoken
 from deputydev_core.utils.constants import LLMModelNames
 from deputydev_core.utils.config_manager import ConfigManager
 
-EMBEDDING_TOKEN_LIMIT = ConfigManager.configs["EMBEDDING"]["TOKEN_LIMIT"]
-
 
 class TikToken:
     """
@@ -31,7 +29,7 @@ class TikToken:
         """
         return len(self.llm_models[model].encode(text, disallowed_special=()))
 
-    def truncate_string(self, text: str, model: str = "gpt-4", max_tokens: int = EMBEDDING_TOKEN_LIMIT) -> str:
+    def truncate_string(self, text: str, model: str = "gpt-4", max_tokens: int = None) -> str:
         """
         Truncate the input text to a specified maximum number of tokens using the specified language model.
 
@@ -43,10 +41,12 @@ class TikToken:
         Returns:
             str: The truncated text.
         """
+        if not max_tokens:
+            max_tokens = ConfigManager.configs["EMBEDDING"]["TOKEN_LIMIT"]
         tokens = self.llm_models[model].encode(text)[:max_tokens]
         return self.llm_models[model].decode(tokens)
 
-    def split_text_by_tokens(self, text: str, model: str = "gpt-4", max_tokens: int = EMBEDDING_TOKEN_LIMIT) -> list:
+    def split_text_by_tokens(self, text: str, model: str = "gpt-4", max_tokens: int = None) -> list:
         """
         Split the input text into a list of strings, each adhering to the specified maximum number of tokens using the specified language model.
 
@@ -58,10 +58,12 @@ class TikToken:
         Returns:
             list: A list of strings, each within the token limit.
         """
+        if not max_tokens:
+            max_tokens = ConfigManager.configs["EMBEDDING"]["TOKEN_LIMIT"]
         tokens = self.llm_models[model].encode(text)
         split_texts = []
 
         for i in range(0, len(tokens), max_tokens):
-            segment_tokens = tokens[i : i + max_tokens]
+            segment_tokens = tokens[i: i + max_tokens]
             split_texts.append(self.llm_models[model].decode(segment_tokens))
         return split_texts
