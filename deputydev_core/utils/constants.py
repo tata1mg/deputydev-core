@@ -11,7 +11,13 @@ JAVASCRIPT_EXTENSIONS = {
     "es": "javascript",
     "es6": "javascript",
 }
-EXTENSION_TO_LANGUAGE = {"py": "python", "html": "html", "kt": "kotlin", "go": "go", "json": "json"}
+EXTENSION_TO_LANGUAGE = {
+    "py": "python",
+    "html": "html",
+    "kt": "kotlin",
+    "go": "go",
+    "json": "json",
+}
 TSX_EXTENSIONS = {"tsx": "tsx"}
 JAVA_EXTENSIONS = {"java": "java"}
 TYPESCRIPT_EXTENSIONS = {

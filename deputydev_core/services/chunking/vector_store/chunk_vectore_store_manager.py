@@ -9,23 +9,29 @@ from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDe
 from deputydev_core.services.chunking.vector_store.dataclasses.refresh_config import (
     RefreshConfig,
 )
-from deputydev_core.services.repo.local_repo.base_local_repo_service import BaseLocalRepo
-from deputydev_core.services.repository.chunk_service import ChunkService
+from deputydev_core.services.repo.local_repo.base_local_repo_service import (
+    BaseLocalRepo,
+)
 from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
-from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
+from deputydev_core.services.repository.chunk_service import ChunkService
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
+)
 from deputydev_core.utils.app_logger import AppLogger
 
 
 class ChunkVectorStoreManager:
-    def __init__(self, local_repo: BaseLocalRepo, weaviate_client: WeaviateSyncAndAsyncClients):
+    def __init__(
+        self, local_repo: BaseLocalRepo, weaviate_client: WeaviateSyncAndAsyncClients
+    ):
         self.local_repo = local_repo
         self.weaviate_client = weaviate_client
 
     async def add_differential_chunks_to_store(
-            self,
-            file_wise_chunks: Dict[str, List[ChunkInfo]],
-            custom_create_timestamp: Optional[datetime] = None,
-            custom_update_timestamp: Optional[datetime] = None,
+        self,
+        file_wise_chunks: Dict[str, List[ChunkInfo]],
+        custom_create_timestamp: Optional[datetime] = None,
+        custom_update_timestamp: Optional[datetime] = None,
     ) -> None:
         """
         Add differential chunks to the vector store.
@@ -38,7 +44,9 @@ class ChunkVectorStoreManager:
         for chunks in file_wise_chunks.values():
             for chunk in chunks:
                 if chunk.embedding is None or not chunk.source_details.file_hash:
-                    raise ValueError(f"Chunk {chunk.content_hash} does not have an embedding")
+                    raise ValueError(
+                        f"Chunk {chunk.content_hash} does not have an embedding"
+                    )
 
                 now_time = datetime.now().replace(tzinfo=timezone.utc)
                 all_chunks_to_store.append(
@@ -46,8 +54,16 @@ class ChunkVectorStoreManager:
                         dto=ChunkDTO(
                             chunk_hash=chunk.content_hash,
                             text=chunk.content,
-                            created_at=custom_create_timestamp if custom_create_timestamp else now_time,
-                            updated_at=custom_update_timestamp if custom_update_timestamp else now_time,
+                            created_at=(
+                                custom_create_timestamp
+                                if custom_create_timestamp
+                                else now_time
+                            ),
+                            updated_at=(
+                                custom_update_timestamp
+                                if custom_update_timestamp
+                                else now_time
+                            ),
                         ),
                         vector=chunk.embedding,
                     ),
@@ -59,15 +75,25 @@ class ChunkVectorStoreManager:
                         file_hash=chunk.source_details.file_hash,
                         start_line=chunk.source_details.start_line,
                         end_line=chunk.source_details.end_line,
-                        created_at=custom_create_timestamp if custom_create_timestamp else now_time,
-                        updated_at=custom_update_timestamp if custom_update_timestamp else now_time,
+                        created_at=(
+                            custom_create_timestamp
+                            if custom_create_timestamp
+                            else now_time
+                        ),
+                        updated_at=(
+                            custom_update_timestamp
+                            if custom_update_timestamp
+                            else now_time
+                        ),
                         total_chunks=len(chunks),
                     )
                 )
 
         time_start = time.perf_counter()
         await asyncio.gather(
-            ChunkService(weaviate_client=self.weaviate_client).bulk_insert(all_chunks_to_store),
+            ChunkService(weaviate_client=self.weaviate_client).bulk_insert(
+                all_chunks_to_store
+            ),
             ChunkFilesService(weaviate_client=self.weaviate_client).bulk_insert(
                 all_chunk_files_to_store,
             ),
@@ -78,8 +104,8 @@ class ChunkVectorStoreManager:
         )
 
     async def _get_file_wise_stored_chunk_files_chunks_and_vectors(
-            self,
-            file_path_commit_hash_map: Dict[str, str],
+        self,
+        file_path_commit_hash_map: Dict[str, str],
     ) -> Dict[str, List[Tuple[ChunkFileDTO, ChunkDTO, List[float]]]]:
         """
         Get the stored chunk files, chunks, and vectors based on the file path and commit hash map.
@@ -88,23 +114,34 @@ class ChunkVectorStoreManager:
         """
         chunk_files_in_db = await ChunkFilesService(
             weaviate_client=self.weaviate_client
-        ).get_chunk_files_by_commit_hashes(file_to_commit_hashes=file_path_commit_hash_map)
+        ).get_chunk_files_by_commit_hashes(
+            file_to_commit_hashes=file_path_commit_hash_map
+        )
 
         if not chunk_files_in_db:
             return {}
 
-        stored_chunks_and_vectors = await ChunkService(weaviate_client=self.weaviate_client).get_chunks_by_chunk_hashes(
-            chunk_hashes=list({chunk_file.chunk_hash for chunk_file in chunk_files_in_db}),
+        stored_chunks_and_vectors = await ChunkService(
+            weaviate_client=self.weaviate_client
+        ).get_chunks_by_chunk_hashes(
+            chunk_hashes=list(
+                {chunk_file.chunk_hash for chunk_file in chunk_files_in_db}
+            ),
         )
 
         stored_chunks_and_vectors_chunk_dict = {
-            chunk_and_vector[0].chunk_hash: chunk_and_vector for chunk_and_vector in stored_chunks_and_vectors
+            chunk_and_vector[0].chunk_hash: chunk_and_vector
+            for chunk_and_vector in stored_chunks_and_vectors
         }
 
-        file_wise_stored_chunk_files_and_chunks: Dict[str, List[Tuple[ChunkFileDTO, ChunkDTO, List[float]]]] = {}
+        file_wise_stored_chunk_files_and_chunks: Dict[
+            str, List[Tuple[ChunkFileDTO, ChunkDTO, List[float]]]
+        ] = {}
         for chunk_file in chunk_files_in_db:
             if chunk_file.chunk_hash in stored_chunks_and_vectors_chunk_dict:
-                file_wise_stored_chunk_files_and_chunks.setdefault(chunk_file.file_path, []).append(
+                file_wise_stored_chunk_files_and_chunks.setdefault(
+                    chunk_file.file_path, []
+                ).append(
                     (
                         chunk_file,
                         stored_chunks_and_vectors_chunk_dict[chunk_file.chunk_hash][0],
@@ -115,7 +152,10 @@ class ChunkVectorStoreManager:
         return file_wise_stored_chunk_files_and_chunks
 
     def _filter_out_invalid_files(
-            self, file_wise_chunk_files_chunks_and_vectors: Dict[str, List[Tuple[ChunkFileDTO, ChunkDTO, List[float]]]]
+        self,
+        file_wise_chunk_files_chunks_and_vectors: Dict[
+            str, List[Tuple[ChunkFileDTO, ChunkDTO, List[float]]]
+        ],
     ) -> Dict[str, List[Tuple[ChunkFileDTO, ChunkDTO, List[float]]]]:
         """
         Filter out invalid files from the dictionary of file wise chunk files, chunks, and vectors.
@@ -126,18 +166,28 @@ class ChunkVectorStoreManager:
         filtered_file_wise_chunk_files_chunks_and_vectors: Dict[
             str, List[Tuple[ChunkFileDTO, ChunkDTO, List[float]]]
         ] = {}
-        for file_path, chunk_files_chunks_and_vectors in list(file_wise_chunk_files_chunks_and_vectors.items()):
+        for file_path, chunk_files_chunks_and_vectors in list(
+            file_wise_chunk_files_chunks_and_vectors.items()
+        ):
             if not chunk_files_chunks_and_vectors:
                 continue
-            if len(chunk_files_chunks_and_vectors) != chunk_files_chunks_and_vectors[0][0].total_chunks:
+            if (
+                len(chunk_files_chunks_and_vectors)
+                != chunk_files_chunks_and_vectors[0][0].total_chunks
+            ):
                 AppLogger.log_debug(f"File {file_path} has missing chunks")
                 continue
-            filtered_file_wise_chunk_files_chunks_and_vectors[file_path] = chunk_files_chunks_and_vectors
+            filtered_file_wise_chunk_files_chunks_and_vectors[file_path] = (
+                chunk_files_chunks_and_vectors
+            )
 
         return filtered_file_wise_chunk_files_chunks_and_vectors
 
     def _get_file_wise_chunk_info_objects_from_chunk_files_chunks_and_vectors(
-            self, file_wise_chunk_files_chunks_and_vectors: Dict[str, List[Tuple[ChunkFileDTO, ChunkDTO, List[float]]]]
+        self,
+        file_wise_chunk_files_chunks_and_vectors: Dict[
+            str, List[Tuple[ChunkFileDTO, ChunkDTO, List[float]]]
+        ],
     ) -> Dict[str, List[ChunkInfo]]:
         """
         Get the file wise ChunkInfo objects from the chunk files, chunks, and vectors.
@@ -162,9 +212,9 @@ class ChunkVectorStoreManager:
         }
 
     async def _refresh_chunk_files_and_chunks(
-            self,
-            file_wise_chunks: Dict[str, List[ChunkInfo]],
-            chunk_refresh_config: Optional[RefreshConfig] = None,
+        self,
+        file_wise_chunks: Dict[str, List[ChunkInfo]],
+        chunk_refresh_config: Optional[RefreshConfig] = None,
     ) -> Optional[asyncio.Task[None]]:
         """
         Refresh the chunk files and chunks based on the refresh config.
@@ -191,9 +241,9 @@ class ChunkVectorStoreManager:
         return refresh_task
 
     async def _remove_embeddings_after_refresh(
-            self,
-            refresh_task: Optional[asyncio.Task[None]],
-            file_wise_chunks: Dict[str, List[ChunkInfo]],
+        self,
+        refresh_task: Optional[asyncio.Task[None]],
+        file_wise_chunks: Dict[str, List[ChunkInfo]],
     ) -> None:
         """
         Remove the embeddings from the chunks after the refresh.
@@ -209,10 +259,10 @@ class ChunkVectorStoreManager:
                 chunk.embedding = None
 
     async def get_valid_file_wise_stored_chunks(
-            self,
-            file_path_commit_hash_map: Dict[str, str],
-            with_vector: bool,
-            chunk_refresh_config: Optional[RefreshConfig] = None,
+        self,
+        file_path_commit_hash_map: Dict[str, str],
+        with_vector: bool,
+        chunk_refresh_config: Optional[RefreshConfig] = None,
     ) -> Dict[str, List[ChunkInfo]]:
         """
         Get the stored chunks based on the file path and commit hash map.
@@ -229,16 +279,18 @@ class ChunkVectorStoreManager:
 
         for i in range(0, len(file_path_commit_hash_map), batch_size):
             # determine the batch
-            batch = list(file_path_commit_hash_map.items())[i: i + batch_size]
+            batch = list(file_path_commit_hash_map.items())[i : i + batch_size]
 
             # get the stored chunk files, chunks, and vectors
-            file_wise_chunk_files_chunks_and_vectors = await self._get_file_wise_stored_chunk_files_chunks_and_vectors(
-                dict(batch),
+            file_wise_chunk_files_chunks_and_vectors = (
+                await self._get_file_wise_stored_chunk_files_chunks_and_vectors(
+                    dict(batch),
+                )
             )
 
             # filter out invalid files
-            valid_file_wise_chunk_files_chunks_and_vectors = self._filter_out_invalid_files(
-                file_wise_chunk_files_chunks_and_vectors
+            valid_file_wise_chunk_files_chunks_and_vectors = (
+                self._filter_out_invalid_files(file_wise_chunk_files_chunks_and_vectors)
             )
 
             # create ChunkInfo objects from the chunk files, chunks, and vectors
@@ -255,7 +307,8 @@ class ChunkVectorStoreManager:
             if not with_vector:
                 asyncio.create_task(
                     self._remove_embeddings_after_refresh(
-                        refresh_task=refresh_task, file_wise_chunks=file_wise_chunk_info_objects
+                        refresh_task=refresh_task,
+                        file_wise_chunks=file_wise_chunk_info_objects,
                     )
                 )
 

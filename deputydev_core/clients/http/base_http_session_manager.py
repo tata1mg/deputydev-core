@@ -11,15 +11,24 @@ from deputydev_core.utils.singleton import Singleton
 
 class SessionManager(metaclass=Singleton):
     def __init__(
-        self, limit: Optional[int] = None, limit_per_host: Optional[int] = None, ttl_dns_cache: Optional[int] = None
+        self,
+        limit: Optional[int] = None,
+        limit_per_host: Optional[int] = None,
+        ttl_dns_cache: Optional[int] = None,
     ):
         self._session: Optional[aiohttp.ClientSession] = None
-        self.limit = limit if limit is not None else ConfigManager.configs["AIOHTTP"]["LIMIT"]
+        self.limit = (
+            limit if limit is not None else ConfigManager.configs["AIOHTTP"]["LIMIT"]
+        )
         self.limit_per_host = (
-            limit_per_host if limit_per_host is not None else ConfigManager.configs["AIOHTTP"]["LIMIT_PER_HOST"]
+            limit_per_host
+            if limit_per_host is not None
+            else ConfigManager.configs["AIOHTTP"]["LIMIT_PER_HOST"]
         )
         self.ttl_dns_cache = (
-            ttl_dns_cache if ttl_dns_cache is not None else ConfigManager.configs["AIOHTTP"]["TTL_DNS_CACHE"]
+            ttl_dns_cache
+            if ttl_dns_cache is not None
+            else ConfigManager.configs["AIOHTTP"]["TTL_DNS_CACHE"]
         )
 
     async def get_session(self) -> aiohttp.ClientSession:

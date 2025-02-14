@@ -1,5 +1,7 @@
 from weaviate.classes.config import DataType, Property
+
 from deputydev_core.models.dao.weaviate.base import Base
+
 from .constants.collection_names import WEAVIATE_SCHEMA_DETAILS_COLLECTION_NAME
 
 

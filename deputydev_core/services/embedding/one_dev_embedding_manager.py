@@ -6,19 +6,23 @@ import numpy as np
 from numpy.typing import NDArray
 from prompt_toolkit.shortcuts.progress_bar import ProgressBarCounter
 
-from deputydev_core.services.embedding.base_embedding_manager import BaseEmbeddingManager
-from deputydev_core.services.tiktoken import TikToken
 from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
+from deputydev_core.services.embedding.base_embedding_manager import (
+    BaseEmbeddingManager,
+)
+from deputydev_core.services.tiktoken import TikToken
+from deputydev_core.utils.app_logger import AppLogger
+from deputydev_core.utils.config_manager import ConfigManager
 
 
 class OneDevEmbeddingManager(BaseEmbeddingManager):
     def __init__(self, auth_token: str, one_dev_client: OneDevClient):
         self.auth_token = auth_token
-        self.one_dev_client = one_dev_client
+        self.oen_dev_client = one_dev_client
 
     @classmethod
     def create_optimized_batches(
-            cls, texts: List[str], max_tokens_per_text: int, max_tokens_per_batch: int, model: str
+        cls, texts: List[str], target_tokens_per_batch: int, model: str
     ) -> List[List[str]]:
         tiktoken_client = TikToken()
         batches: List[List[str]] = []
@@ -28,11 +32,16 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
         for text in texts:
             text_token_count = tiktoken_client.count(text, model=model)
 
-            if text_token_count > max_tokens_per_text:  # Single text exceeds max tokens
+            if (
+                text_token_count > target_tokens_per_batch
+            ):  # Single text exceeds max tokens
                 batches.append([text])
+                AppLogger.log_warn(
+                    f"Text with token count {text_token_count} exceeds the max token limit of {target_tokens_per_batch}."
+                )
                 continue
 
-            if current_batch_token_count + text_token_count > max_tokens_per_batch:
+            if current_batch_token_count + text_token_count > target_tokens_per_batch:
                 batches.append(current_batch)
                 current_batch = [text]
                 current_batch_token_count = text_token_count
@@ -46,29 +55,40 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
         return batches
 
     async def _get_embeddings_for_single_batch(
-            self, batch: List[str], store_embeddings: bool = True
+        self, batch: List[str], store_embeddings: bool = True
     ) -> Tuple[Optional[List[List[float]]], int, List[str]]:
         try:
             time_start = time.perf_counter()
-            embedding_result = await self.one_dev_client.create_embedding(
+            embedding_result = await self.oen_dev_client.create_embedding(
                 payload={"texts": batch, "store_embeddings": store_embeddings},
-                headers={"Content-Type": "application/json", "Authorization": f"Bearer {self.auth_token}"},
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {self.auth_token}",
+                },
             )
-            return embedding_result["embeddings"], embedding_result["tokens_used"], batch
+            AppLogger.log_debug(
+                f"Time taken for embedding batch via API: {time.perf_counter() - time_start}"
+            )
+            return (
+                embedding_result["embeddings"],
+                embedding_result["tokens_used"],
+                batch,
+            )
         except Exception as e:
+            AppLogger.log_error(f"Failed to get embeddings for batch: {e}")
             return None, 0, batch
 
     def _update_embeddings_and_tokens_used(
-            self,
-            all_embeddings: List[List[float]],
-            total_tokens_used: int,
-            failed_batches: List[List[str]],
-            current_batch_embeddings: Optional[List[List[float]]],
-            current_batch_tokens_used: int,
-            current_batch: List[str],
-            last_checkpoint: float,
-            progress_step: Optional[float],
-            progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
+        self,
+        all_embeddings: List[List[float]],
+        total_tokens_used: int,
+        failed_batches: List[List[str]],
+        current_batch_embeddings: Optional[List[List[float]]],
+        current_batch_tokens_used: int,
+        current_batch: List[str],
+        last_checkpoint: float,
+        progress_step: Optional[float],
+        progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
     ) -> Tuple[int, float]:
         if current_batch_embeddings is None:
             failed_batches.append(current_batch)
@@ -84,17 +104,20 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
         return total_tokens_used, last_checkpoint
 
     async def _process_parallel_batches(
-            self,
-            parallel_batches: List[List[str]],
-            all_embeddings: List[List[float]],
-            tokens_used: int,
-            exponential_backoff: float,
-            last_checkpoint: float,
-            step: Optional[float],
-            store_embeddings: bool = True,
-            progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
+        self,
+        parallel_batches: List[List[str]],
+        all_embeddings: List[List[float]],
+        tokens_used: int,
+        exponential_backoff: float,
+        last_checkpoint: float,
+        step: Optional[float],
+        store_embeddings: bool = True,
+        progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
     ) -> Tuple[int, float, float, List[List[str]]]:
-        parallel_tasks = [self._get_embeddings_for_single_batch(batch, store_embeddings) for batch in parallel_batches]
+        parallel_tasks = [
+            self._get_embeddings_for_single_batch(batch, store_embeddings)
+            for batch in parallel_batches
+        ]
         failed_batches: List[List[str]] = []
         for single_task in asyncio.as_completed(parallel_tasks):
             _embeddings, _tokens_used, data_batch = await single_task
@@ -120,24 +143,31 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
         return tokens_used, last_checkpoint, exponential_backoff, parallel_batches
 
     async def embed_text_array(
-            self,
-            texts: List[str],
-            store_embeddings: bool = True,
-            progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
-            len_checkpoints: Optional[int] = None,
+        self,
+        texts: List[str],
+        store_embeddings: bool = True,
+        progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
+        len_checkpoints: Optional[int] = None,
     ) -> Tuple[NDArray[np.float64], int]:
         embeddings: List[List[float]] = []
         tokens_used: int = 0
         exponential_backoff = 0.2
 
+        # we send 2048 tokens per batch to the API to avoid having spikes of long api response times in the range of 15-20s
         iterable_batches = self.create_optimized_batches(
-            texts, max_tokens_per_text=4096, max_tokens_per_batch=2048, model="text-embedding-3-small"
+            texts,
+            target_tokens_per_batch=2048,
+            model=ConfigManager.configs["EMBEDDING"]["MODEL"],
         )
 
-        max_parallel_tasks = 60
+        max_parallel_tasks = ConfigManager.configs["EMBEDDING"]["MAX_PARALLEL_TASKS"]
         parallel_batches: List[List[str]] = []
         last_checkpoint: float = 0
         step = (len(texts) / len_checkpoints) if len_checkpoints else None
+
+        AppLogger.log_debug(
+            f"Total batches: {len(iterable_batches)}, Total Texts: {len(texts)}, Total checkpoints: {len_checkpoints}"
+        )
         for batch in iterable_batches:
             if len(parallel_batches) >= max_parallel_tasks:
                 (
@@ -159,15 +189,17 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
             parallel_batches += [batch]
 
         while len(parallel_batches) > 0:
-            tokens_used, last_checkpoint, exponential_backoff, parallel_batches = await self._process_parallel_batches(
-                parallel_batches,
-                embeddings,
-                tokens_used,
-                exponential_backoff,
-                last_checkpoint,
-                step,
-                store_embeddings,
-                progress_bar_counter,
+            tokens_used, last_checkpoint, exponential_backoff, parallel_batches = (
+                await self._process_parallel_batches(
+                    parallel_batches,
+                    embeddings,
+                    tokens_used,
+                    exponential_backoff,
+                    last_checkpoint,
+                    step,
+                    store_embeddings,
+                    progress_bar_counter,
+                )
             )
 
         if len(embeddings) != len(texts):

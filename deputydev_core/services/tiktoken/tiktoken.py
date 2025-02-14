@@ -1,7 +1,7 @@
 import tiktoken
 
-from deputydev_core.utils.constants import LLMModelNames
 from deputydev_core.utils.config_manager import ConfigManager
+from deputydev_core.utils.constants import LLMModelNames
 
 
 class TikToken:
@@ -14,7 +14,9 @@ class TikToken:
         Initialize TikToken class with supported language models.
         """
         llm_models = LLMModelNames.list()
-        self.llm_models = {model: tiktoken.encoding_for_model(model) for model in llm_models}
+        self.llm_models = {
+            model: tiktoken.encoding_for_model(model) for model in llm_models
+        }
 
     def count(self, text: str, model: str = LLMModelNames.GPT_4_O.value) -> int:
         """
@@ -29,7 +31,9 @@ class TikToken:
         """
         return len(self.llm_models[model].encode(text, disallowed_special=()))
 
-    def truncate_string(self, text: str, model: str = "gpt-4", max_tokens: int = None) -> str:
+    def truncate_string(
+        self, text: str, model: str = "gpt-4", max_tokens: int = None
+    ) -> str:
         """
         Truncate the input text to a specified maximum number of tokens using the specified language model.
 
@@ -46,7 +50,9 @@ class TikToken:
         tokens = self.llm_models[model].encode(text)[:max_tokens]
         return self.llm_models[model].decode(tokens)
 
-    def split_text_by_tokens(self, text: str, model: str = "gpt-4", max_tokens: int = None) -> list:
+    def split_text_by_tokens(
+        self, text: str, model: str = "gpt-4", max_tokens: int = None
+    ) -> list:
         """
         Split the input text into a list of strings, each adhering to the specified maximum number of tokens using the specified language model.
 
@@ -64,6 +70,6 @@ class TikToken:
         split_texts = []
 
         for i in range(0, len(tokens), max_tokens):
-            segment_tokens = tokens[i: i + max_tokens]
+            segment_tokens = tokens[i : i + max_tokens]
             split_texts.append(self.llm_models[model].decode(segment_tokens))
         return split_texts

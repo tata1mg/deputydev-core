@@ -1,19 +1,30 @@
-import asyncio
+from datetime import datetime
 from typing import Dict, List
+
 from weaviate.classes.query import Filter
-from weaviate.collections.classes.data import DataObject
+from weaviate.util import generate_uuid5
+
 from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
 from deputydev_core.models.dto.chunk_file_dto import ChunkFileDTO
-from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
+)
+from deputydev_core.utils.app_logger import AppLogger
 
 
 class ChunkFilesService:
     def __init__(self, weaviate_client: WeaviateSyncAndAsyncClients):
         self.weaviate_client = weaviate_client
-        self.async_collection = weaviate_client.async_client.collections.get(ChunkFiles.collection_name)
-        self.sync_collection = weaviate_client.sync_client.collections.get(ChunkFiles.collection_name)
+        self.async_collection = weaviate_client.async_client.collections.get(
+            ChunkFiles.collection_name
+        )
+        self.sync_collection = weaviate_client.sync_client.collections.get(
+            ChunkFiles.collection_name
+        )
 
-    async def get_chunk_files_by_commit_hashes(self, file_to_commit_hashes: Dict[str, str]) -> List[ChunkFileDTO]:
+    async def get_chunk_files_by_commit_hashes(
+        self, file_to_commit_hashes: Dict[str, str]
+    ) -> List[ChunkFileDTO]:
         BATCH_SIZE = 1000
         MAX_RESULTS_PER_QUERY = 10000
         all_chunk_files = []
@@ -23,7 +34,7 @@ class ChunkFilesService:
 
             # Process in smaller batches
             for i in range(0, len(file_commit_pairs), BATCH_SIZE):
-                batch_pairs = file_commit_pairs[i: i + BATCH_SIZE]
+                batch_pairs = file_commit_pairs[i : i + BATCH_SIZE]
 
                 # Single query per batch without offset pagination
                 batch_files = await self.async_collection.query.fetch_objects(
@@ -55,23 +66,53 @@ class ChunkFilesService:
             return all_chunk_files
 
         except Exception as ex:
+            AppLogger.log_error("Failed to get chunk files by commit hashes")
             raise ex
 
     async def bulk_insert(self, chunks: List[ChunkFileDTO]) -> None:
-        batch_size = 200
-        for i in range(0, len(chunks), batch_size):
-            batch = chunks[i: i + batch_size]
-            await self.async_collection.data.insert_many(
-                [DataObject(properties=chunk.model_dump(mode="json", exclude={"id"})) for chunk in batch]
-            )
-            await asyncio.sleep(0.2)  # sleep has been added for controlled insertion
+        with self.sync_collection.batch.dynamic() as _batch:
+            for chunk in chunks:
+                chunk_file_uuid = generate_uuid5(
+                    f"{chunk.file_path}{chunk.file_hash}{chunk.start_line}{chunk.end_line}"
+                )
+                _batch.add_object(
+                    properties=chunk.model_dump(mode="json", exclude={"id"}),
+                    uuid=chunk_file_uuid,
+                )
 
-    def cleanup_old_chunk_files(self, chunk_hashes_to_clean: List[str]) -> None:
-        batch_size = 500
-        for i in range(0, len(chunk_hashes_to_clean), batch_size):
-            chunk_hashes_batch = chunk_hashes_to_clean[i: i + batch_size]
-            self.sync_collection.data.delete_many(
-                Filter.any_of(
-                    [Filter.by_property("chunk_hash").equal(chunk_hash) for chunk_hash in chunk_hashes_batch]
+    def cleanup_old_chunk_files(
+        self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]
+    ) -> None:
+        batch_size = 1000
+        while True:
+            deletable_objects = self.sync_collection.query.fetch_objects(
+                limit=batch_size,
+                filters=Filter.all_of(
+                    [
+                        *[
+                            Filter.by_property("chunk_hash").not_equal(chunk_hash)
+                            for chunk_hash in exclusion_chunk_hashes
+                        ],
+                        Filter.by_property("created_at").less_than(last_used_lt),
+                    ]
                 ),
+            )
+
+            AppLogger.log_debug(
+                f"{len(deletable_objects.objects)} chunk_files to be deleted in batch"
+            )
+
+            if len(deletable_objects.objects) <= 0:
+                break
+
+            result = self.sync_collection.data.delete_many(
+                Filter.any_of(
+                    [
+                        Filter.by_id().equal(obj.uuid)
+                        for obj in deletable_objects.objects
+                    ],
+                )
+            )
+            AppLogger.log_debug(
+                f"chunk_files deleted. successful - {result.successful}, failed - {result.failed}"
             )
