@@ -2,9 +2,9 @@ import asyncio
 from typing import Dict, List
 from weaviate.classes.query import Filter
 from weaviate.collections.classes.data import DataObject
-from deputydev_core.models.weaviate.chunk_files import ChunkFiles
-from deputydev_core.models.chunk_file_dto import ChunkFileDTO
-from repository.dataclasses.main import WeaviateSyncAndAsyncClients
+from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
+from deputydev_core.models.dto.chunk_file_dto import ChunkFileDTO
+from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
 
 
 class ChunkFilesService:

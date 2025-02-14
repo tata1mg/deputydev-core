@@ -6,9 +6,9 @@ import numpy as np
 from numpy.typing import NDArray
 from prompt_toolkit.shortcuts.progress_bar import ProgressBarCounter
 
-from managers.base_embedding_manager import BaseEmbeddingManager
-from deputydev_core.utils.tiktoken_operations import TikToken
-from deputydev_core.clients.one_dev_client import OneDevClient
+from deputydev_core.services.embedding.base_embedding_manager import BaseEmbeddingManager
+from deputydev_core.services.tiktoken import TikToken
+from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
 
 
 class OneDevEmbeddingManager(BaseEmbeddingManager):
