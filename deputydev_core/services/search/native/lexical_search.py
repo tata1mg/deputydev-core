@@ -153,7 +153,7 @@ def create_lexical_search_tokens(all_docs: List[Document]) -> LexicalSearch:
         for doc, document_token_freq in zip(all_docs, all_tokens):
             index.add_document(title=doc.title, token_freq=document_token_freq)
     except FileNotFoundError as e:
-        logger.exception(e)
+        AppLogger.log_error(str(e))
 
     # Return the created index
     return index

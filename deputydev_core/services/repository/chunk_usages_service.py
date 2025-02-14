@@ -5,8 +5,8 @@ from typing import List
 from weaviate.classes.query import Filter, QueryReference
 from weaviate.util import generate_uuid5
 
-from deputydev_core.models.weaviate.chunks_usages import ChunkUsages
-from repository.dataclasses.main import WeaviateSyncAndAsyncClients
+from deputydev_core.models.dao.weaviate.chunks_usages import ChunkUsages
+from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
 
 
 class ChunkUsagesService:
