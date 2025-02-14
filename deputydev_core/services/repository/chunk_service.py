@@ -4,9 +4,9 @@ from weaviate.classes.query import Filter
 from weaviate.collections.classes.data import DataObject
 from weaviate.util import generate_uuid5
 
-from deputydev_core.models.weaviate.chunks import Chunks
-from deputydev_core.models.chunk_dto import ChunkDTO, ChunkDTOWithVector
-from repository.dataclasses.main import WeaviateSyncAndAsyncClients
+from deputydev_core.models.dao.weaviate.chunks import Chunks
+from deputydev_core.models.dto.chunk_dto import ChunkDTO, ChunkDTOWithVector
+from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
 
 
 class ChunkService:
