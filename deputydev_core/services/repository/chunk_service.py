@@ -1,5 +1,5 @@
 import asyncio
-from typing import List
+from typing import List, Tuple
 from weaviate.classes.query import Filter
 from weaviate.collections.classes.data import DataObject
 from weaviate.util import generate_uuid5
@@ -36,7 +36,7 @@ class ChunkService:
         except Exception as ex:
             raise ex
 
-    async def get_chunks_by_chunk_hashes(self, chunk_hashes: List[str]) -> List[ChunkDTO]:
+    async def get_chunks_by_chunk_hashes(self, chunk_hashes: List[str]) -> List[Tuple[ChunkDTO, List[float]]]:
         BATCH_SIZE = 10000
         all_chunks = []
         MAX_RESULTS_PER_QUERY = 10000
@@ -54,9 +54,9 @@ class ChunkService:
                 if batch_chunks.objects:
                     # Convert to DTOs efficiently using list comprehension
                     batch_dtos = [
-                        ChunkDTO(**chunk_obj.properties, id=str(chunk_obj.uuid)) for chunk_obj in batch_chunks.objects
+                        (ChunkDTO(**chunk_obj.properties, id=str(chunk_obj.uuid)), chunk_obj.vector["default"])
+                        for chunk_obj in batch_chunks.objects
                     ]
-
                     all_chunks.extend(batch_dtos)
 
             return all_chunks
