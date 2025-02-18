@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Tuple
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
 from deputydev_core.services.chunking.chunker.base_chunker import BaseChunker
-from deputydev_core.services.chunking.reranker.base_chunk_reranker import (
+from deputydev_core.services.reranker.base_chunk_reranker import (
     BaseChunkReranker,
 )
 from deputydev_core.services.embedding.base_embedding_manager import (
