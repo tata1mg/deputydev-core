@@ -2,12 +2,7 @@ from typing import Any, Dict, Optional
 
 from deputydev_core.clients.http.base_http_client import BaseHTTPClient
 from deputydev_core.clients.http.service_clients.constants import (
-    HOST,
-    LIMIT,
-    LIMIT_PER_HOST,
-    TIMEOUT,
-    TTL_DNS_CACHE,
-)
+    HOST, LIMIT, LIMIT_PER_HOST, TIMEOUT, TTL_DNS_CACHE)
 from deputydev_core.utils.constants import APP_VERSION
 from deputydev_core.utils.exceptions import InvalidVersionException
 
