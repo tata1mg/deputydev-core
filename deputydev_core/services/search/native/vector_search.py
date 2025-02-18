@@ -6,9 +6,8 @@ import numpy as np
 
 from deputydev_core.services.chunking.chunk import chunk_pr_diff
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
-from deputydev_core.services.embedding.base_embedding_manager import (
-    BaseEmbeddingManager,
-)
+from deputydev_core.services.embedding.base_embedding_manager import \
+    BaseEmbeddingManager
 
 
 def cosine_similarity(a: np.ndarray, B: np.ndarray) -> np.ndarray:

@@ -3,15 +3,14 @@ from typing import Dict, List, Optional, Tuple
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.chunker.base_chunker import BaseChunker
-from deputydev_core.services.embedding.base_embedding_manager import (
-    BaseEmbeddingManager,
-)
-from deputydev_core.services.repository.dataclasses.main import (
-    WeaviateSyncAndAsyncClients,
-)
+from deputydev_core.services.embedding.base_embedding_manager import \
+    BaseEmbeddingManager
+from deputydev_core.services.repository.dataclasses.main import \
+    WeaviateSyncAndAsyncClients
 from deputydev_core.services.search.dataclasses.main import SearchTypes
 from deputydev_core.services.search.native.search import NativeSearch
-from deputydev_core.services.search.vector_db_based.search import VectorDBBasedSearch
+from deputydev_core.services.search.vector_db_based.search import \
+    VectorDBBasedSearch
 
 
 async def perform_search(
