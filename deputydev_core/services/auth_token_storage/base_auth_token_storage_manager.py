@@ -2,7 +2,7 @@ import json
 import os
 from typing import Union
 
-from utils.constants import (
+from deputydev_core.utils.constants import (
     LocalDirectories,
     LocalFiles,
 )

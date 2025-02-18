@@ -1,7 +1,7 @@
-from services.auth_token_storage.base_auth_token_storage_manager import (
+from deputydev_core.services.auth_token_storage.base_auth_token_storage_manager import (
     AuthTokenStorageBase,
 )
-from utils.constants import AuthTokenKeys
+from deputydev_core.utils.constants import AuthTokenKeys
 
 
 class CLIAuthTokenStorageManager(AuthTokenStorageBase):
