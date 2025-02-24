@@ -1,12 +1,11 @@
 from typing import Dict, List, Tuple
 
-from deputydev_core.services.chunking.chunk_info import (ChunkInfo,
-                                                         ChunkSourceDetails)
-from deputydev_core.services.repository.chunk_files_service import \
-    ChunkFilesService
+from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
+from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
 from deputydev_core.services.repository.chunk_service import ChunkService
-from deputydev_core.services.repository.dataclasses.main import \
-    WeaviateSyncAndAsyncClients
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
+)
 
 
 class VectorDBBasedSearch:

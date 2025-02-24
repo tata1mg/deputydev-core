@@ -4,11 +4,13 @@ from typing import List, Tuple
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.chunker.base_chunker import BaseChunker
 from deputydev_core.services.chunking.document import chunks_to_docs
-from deputydev_core.services.embedding.base_embedding_manager import \
-    BaseEmbeddingManager
+from deputydev_core.services.embedding.base_embedding_manager import (
+    BaseEmbeddingManager,
+)
 from deputydev_core.services.search.native.lexical_search import lexical_search
-from deputydev_core.services.search.native.vector_search import \
-    compute_vector_search_scores
+from deputydev_core.services.search.native.vector_search import (
+    compute_vector_search_scores,
+)
 
 
 class NativeSearch:
