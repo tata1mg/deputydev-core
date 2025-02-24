@@ -7,8 +7,8 @@ from deputydev_core.services.repo.local_repo.base_local_repo_service import (
 
 
 class NonVCSRepo(BaseLocalRepo):
-    def __init__(self, repo_path: str):
-        super().__init__(repo_path)
+    def __init__(self, repo_path: str, chunkable_files: List[str] = None):
+        super().__init__(repo_path, chunkable_files=chunkable_files)
 
     async def get_chunkable_files(self) -> List[str]:
         ignore_dirs = {"node_modules", ".venv", "build", "venv", "patch"}
