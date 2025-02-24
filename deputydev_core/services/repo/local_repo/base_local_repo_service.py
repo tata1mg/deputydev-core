@@ -9,9 +9,15 @@ from deputydev_core.utils.app_logger import AppLogger
 
 
 class BaseLocalRepo(ABC):
-    def __init__(self, repo_path: str, chunk_config: Optional[ChunkConfig] = None):
+    def __init__(
+        self,
+        repo_path: str,
+        chunk_config: Optional[ChunkConfig] = None,
+        chunkable_files: List = None,
+    ):
         self.repo_path = repo_path
         self.chunk_config = chunk_config or ChunkConfig()
+        self.chunkable_files = chunkable_files if chunkable_files else []
 
     def _apply_diff_in_file_content(
         self, content: List[str], chunks: List[Tuple[int, int, str]]

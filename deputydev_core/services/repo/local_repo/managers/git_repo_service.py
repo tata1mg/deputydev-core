@@ -9,8 +9,9 @@ from git.repo import Repo
 from git.util import Actor
 from giturlparse import parse as parse_git_url  # type: ignore
 
-from deputydev_core.services.repo.local_repo.base_local_repo_service import \
-    BaseLocalRepo
+from deputydev_core.services.repo.local_repo.base_local_repo_service import (
+    BaseLocalRepo,
+)
 from deputydev_core.utils.app_logger import AppLogger
 
 
@@ -136,7 +137,12 @@ class GitRepo(BaseLocalRepo):
         task_results = await asyncio.gather(*tasks)
         modified_files: List[str] = task_results[0]  # type: ignore
         all_files_and_hashes: Dict[str, str] = task_results[1]  # type: ignore
-
+        # filter non required files
+        if self.chunkable_files:
+            for file in all_files_and_hashes:
+                if file not in self.chunkable_files:
+                    all_files_and_hashes.pop(file, None)
+            modified_files = list(set(modified_files) & set(self.chunkable_files))
         # remove all modified files from all_files_and_hashes
         for file in modified_files:
             all_files_and_hashes.pop(file, None)

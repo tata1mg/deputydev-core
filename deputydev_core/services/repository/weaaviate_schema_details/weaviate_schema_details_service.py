@@ -4,10 +4,12 @@ from typing import Optional
 from weaviate.classes.query import Filter
 from weaviate.util import generate_uuid5
 
-from deputydev_core.models.dao.weaviate.weaviate_schema_details import \
-    WeaviateSchemaDetails
-from deputydev_core.services.repository.dataclasses.main import \
-    WeaviateSyncAndAsyncClients
+from deputydev_core.models.dao.weaviate.weaviate_schema_details import (
+    WeaviateSchemaDetails,
+)
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
+)
 from deputydev_core.utils.app_logger import AppLogger
 
 
