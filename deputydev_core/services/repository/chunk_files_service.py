@@ -3,12 +3,15 @@ from typing import Dict, List
 
 from weaviate.classes.query import Filter
 from weaviate.util import generate_uuid5
+import weaviate.classes.query as wq
 
 from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
 from deputydev_core.models.dto.chunk_file_dto import ChunkFileDTO
-from deputydev_core.services.repository.dataclasses.main import \
-    WeaviateSyncAndAsyncClients
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
+)
 from deputydev_core.utils.app_logger import AppLogger
+import time
 
 
 class ChunkFilesService:
@@ -115,3 +118,42 @@ class ChunkFilesService:
             AppLogger.log_debug(
                 f"chunk_files deleted. successful - {result.successful}, failed - {result.failed}"
             )
+
+    async def get_autocomplete_keyword_chunks(
+        self, keyword: str, limit: int = 10
+    ) -> List[ChunkFileDTO]:
+        """
+        Search for code symbols using BM25 and fuzzy matching
+        """
+        try:
+            start_time = time.time()
+
+            results = await self.async_collection.query.bm25(
+                query=keyword,
+                query_properties=["entities"],
+                return_metadata=wq.MetadataQuery(score=True),
+            )
+
+            elapsed_time = time.time() - start_time  # Calculate elapsed time
+            AppLogger.log_info(f"Code search completed in {elapsed_time:.4f} seconds")
+
+            # Convert to DTOs and sort by score
+            if results.objects:
+                chunk_dtos = [
+                    ChunkFileDTO(**chunk_obj.properties, id=str(chunk_obj.uuid))
+                    # for chunk_obj in results.objects
+                    for chunk_obj in sorted(
+                        results.objects,
+                        key=lambda x: x.metadata.score
+                        if hasattr(x.metadata, "score")
+                        else print("xxx"),
+                        reverse=True,
+                    )
+                ]
+                return chunk_dtos
+
+            return []
+
+        except Exception as ex:
+            AppLogger.log_error("Failed to search code symbols")
+            raise ex

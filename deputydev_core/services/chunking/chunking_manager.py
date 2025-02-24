@@ -3,17 +3,18 @@ import os
 from concurrent.futures import ProcessPoolExecutor
 from typing import Dict, List, Optional, Tuple
 
-from deputydev_core.services.chunking.chunk_info import (ChunkInfo,
-                                                         ChunkSourceDetails)
+from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
 from deputydev_core.services.chunking.chunker.base_chunker import BaseChunker
-from deputydev_core.services.embedding.base_embedding_manager import \
-    BaseEmbeddingManager
-from deputydev_core.services.repo.local_repo.base_local_repo_service import \
-    BaseLocalRepo
-from deputydev_core.services.repository.dataclasses.main import \
-    WeaviateSyncAndAsyncClients
-from deputydev_core.services.reranker.base_chunk_reranker import \
-    BaseChunkReranker
+from deputydev_core.services.embedding.base_embedding_manager import (
+    BaseEmbeddingManager,
+)
+from deputydev_core.services.repo.local_repo.base_local_repo_service import (
+    BaseLocalRepo,
+)
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
+)
+from deputydev_core.services.reranker.base_chunk_reranker import BaseChunkReranker
 from deputydev_core.services.search.dataclasses.main import SearchTypes
 from deputydev_core.services.search.search import perform_search
 from deputydev_core.utils.app_logger import AppLogger

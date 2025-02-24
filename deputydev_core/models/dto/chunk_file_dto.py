@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 
@@ -12,5 +12,8 @@ class ChunkFileDTO(BaseModel):
     start_line: int
     end_line: int
     total_chunks: int
+    classes: List[str]
+    functions: List[str]
+    entities: str
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None

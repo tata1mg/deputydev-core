@@ -5,17 +5,19 @@ from typing import Dict, List, Optional, Tuple
 
 from deputydev_core.models.dto.chunk_dto import ChunkDTO, ChunkDTOWithVector
 from deputydev_core.models.dto.chunk_file_dto import ChunkFileDTO
-from deputydev_core.services.chunking.chunk_info import (ChunkInfo,
-                                                         ChunkSourceDetails)
-from deputydev_core.services.chunking.vector_store.dataclasses.refresh_config import \
-    RefreshConfig
-from deputydev_core.services.repo.local_repo.base_local_repo_service import \
-    BaseLocalRepo
-from deputydev_core.services.repository.chunk_files_service import \
-    ChunkFilesService
+from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
+from deputydev_core.services.chunking.dataclass.main import ChunkNodeType
+from deputydev_core.services.chunking.vector_store.dataclasses.refresh_config import (
+    RefreshConfig,
+)
+from deputydev_core.services.repo.local_repo.base_local_repo_service import (
+    BaseLocalRepo,
+)
+from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
 from deputydev_core.services.repository.chunk_service import ChunkService
-from deputydev_core.services.repository.dataclasses.main import \
-    WeaviateSyncAndAsyncClients
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
+)
 from deputydev_core.utils.app_logger import AppLogger
 
 
@@ -46,6 +48,18 @@ class ChunkVectorStoreManager:
                     raise ValueError(
                         f"Chunk {chunk.content_hash} does not have an embedding"
                     )
+
+                chunk_functions, chunk_classes = [], []
+
+                # Extract functions and classes from hierarchy if metadata exists
+                if hasattr(chunk, "metadata") and chunk.metadata:
+                    hierarchy = getattr(chunk.metadata, "hierarchy", None)
+                    if hierarchy:
+                        print(chunk.metadata.hierarchy)
+                        (
+                            chunk_functions,
+                            chunk_classes,
+                        ) = self.get_symbols_from_hierarchy(hierarchy)
 
                 now_time = datetime.now().replace(tzinfo=timezone.utc)
                 all_chunks_to_store.append(
@@ -85,6 +99,17 @@ class ChunkVectorStoreManager:
                             else now_time
                         ),
                         total_chunks=len(chunks),
+                        classes=chunk_classes,
+                        functions=chunk_functions,
+                        entities=" ".join(
+                            [
+                                *chunk_classes,
+                                *chunk_functions,
+                                chunk.source_details.file_path,
+                            ]
+                        )
+                        if chunk.metadata
+                        else chunk.source_details.file_path,
                     )
                 )
 
@@ -101,6 +126,24 @@ class ChunkVectorStoreManager:
         AppLogger.log_debug(
             f"Inserting {len(all_chunks_to_store)} chunks and {len(all_chunk_files_to_store)} chunk_files took {time_end - time_start} seconds"
         )
+
+    def get_symbols_from_hierarchy(self, hierarchy) -> Tuple[List[str], List[str]]:
+        """Extract functions and classes from hierarchy"""
+        functions = set()
+        classes = set()
+        if not hierarchy:
+            return [], []
+
+        for item in hierarchy:
+            if item.type == ChunkNodeType.FUNCTION.value:
+                functions.add(item.value)
+            elif item.type == ChunkNodeType.CLASS.value:
+                classes.add(item.value)
+            # elif "namespace" in item.type:
+            #     functions.append(item.value)
+            #     classes.append(item.value)
+
+        return list(functions), list(classes)
 
     async def _get_file_wise_stored_chunk_files_chunks_and_vectors(
         self,
@@ -176,9 +219,9 @@ class ChunkVectorStoreManager:
             ):
                 AppLogger.log_debug(f"File {file_path} has missing chunks")
                 continue
-            filtered_file_wise_chunk_files_chunks_and_vectors[file_path] = (
-                chunk_files_chunks_and_vectors
-            )
+            filtered_file_wise_chunk_files_chunks_and_vectors[
+                file_path
+            ] = chunk_files_chunks_and_vectors
 
         return filtered_file_wise_chunk_files_chunks_and_vectors
 
