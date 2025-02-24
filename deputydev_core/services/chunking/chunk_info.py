@@ -70,6 +70,8 @@ class ChunkInfo(BaseModel):
         hierarchy_seperator = "\t"
 
         for idx, hierarchy in enumerate(self.metadata.hierarchy):
+            if hierarchy.is_breakable_node:
+                break
             indent = hierarchy_seperator * idx
             hierarchy_data.append(f"{indent}{hierarchy.type.value}  {hierarchy.value}")
             hierarchy_data.append(

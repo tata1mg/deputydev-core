@@ -4,10 +4,11 @@ from abc import ABC, abstractmethod
 from concurrent.futures import ProcessPoolExecutor
 from typing import Dict, List, Mapping, Optional
 
-from deputydev_core.services.chunking.chunk import chunk_source
+from deputydev_core.services.chunking.source_chunker import chunk_source
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
-from deputydev_core.services.repo.local_repo.base_local_repo_service import \
-    BaseLocalRepo
+from deputydev_core.services.repo.local_repo.base_local_repo_service import (
+    BaseLocalRepo,
+)
 from deputydev_core.utils.file_utils import read_file
 
 

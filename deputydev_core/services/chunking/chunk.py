@@ -8,10 +8,12 @@ import tree_sitter_javascript
 from tree_sitter import Language, Node, Parser
 from tree_sitter_languages import get_parser as tree_sitter_get_parser
 
-from deputydev_core.services.chunking.chunk_info import (ChunkInfo,
-                                                         ChunkSourceDetails)
+from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
 from deputydev_core.services.chunking.dataclass.main import (
-    ChunkMetadata, ChunkMetadataHierachyObject, ChunkNodeType)
+    ChunkMetadata,
+    ChunkMetadataHierachyObject,
+    ChunkNodeType,
+)
 from deputydev_core.services.tiktoken import TikToken
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
@@ -177,7 +179,7 @@ class NeoSpan:
         Calculates the length of a string excluding whitespace characters.
 
         Args:
-            s (str): The input string.
+            source_code (str): The input string.
 
         Returns:
             int: The length of the string excluding whitespace characters.
@@ -734,7 +736,9 @@ def chunk_code(
         chunks[i].end = chunks[
             i + 1
         ].start  # sets the last byte of chunk to start byte of suceessiding chunk
-    chunks[-1].end = (
+    chunks[
+        -1
+    ].end = (
         tree.root_node.end_byte
     )  # sets the last byte of chunk to start byte of suceessiding chunk for last chunk
 

@@ -1,8 +1,9 @@
 from weaviate.classes.config import DataType, Property, Tokenization
 
 from deputydev_core.models.dao.weaviate.base import Base
-from deputydev_core.models.dao.weaviate.constants.collection_names import \
-    CHUNKS_COLLECTION_NAME
+from deputydev_core.models.dao.weaviate.constants.collection_names import (
+    CHUNKS_COLLECTION_NAME,
+)
 
 
 class Chunks(Base):
