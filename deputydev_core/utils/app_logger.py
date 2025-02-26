@@ -4,8 +4,7 @@ from typing import Any, Dict
 from sanic import Sanic
 from sanic.log import logger as sanic_logger
 
-from deputydev_core.utils.context_vars import (get_context_value,
-                                               set_context_values)
+from deputydev_core.utils.context_vars import get_context_value, set_context_values
 
 logger = logging.getLogger()
 

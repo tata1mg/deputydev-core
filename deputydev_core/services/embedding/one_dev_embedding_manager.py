@@ -6,10 +6,10 @@ import numpy as np
 from numpy.typing import NDArray
 from prompt_toolkit.shortcuts.progress_bar import ProgressBarCounter
 
-from deputydev_core.clients.http.service_clients.one_dev_client import \
-    OneDevClient
-from deputydev_core.services.embedding.base_embedding_manager import \
-    BaseEmbeddingManager
+from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
+from deputydev_core.services.embedding.base_embedding_manager import (
+    BaseEmbeddingManager,
+)
 from deputydev_core.services.tiktoken import TikToken
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
@@ -189,17 +189,20 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
             parallel_batches += [batch]
 
         while len(parallel_batches) > 0:
-            tokens_used, last_checkpoint, exponential_backoff, parallel_batches = (
-                await self._process_parallel_batches(
-                    parallel_batches,
-                    embeddings,
-                    tokens_used,
-                    exponential_backoff,
-                    last_checkpoint,
-                    step,
-                    store_embeddings,
-                    progress_bar_counter,
-                )
+            (
+                tokens_used,
+                last_checkpoint,
+                exponential_backoff,
+                parallel_batches,
+            ) = await self._process_parallel_batches(
+                parallel_batches,
+                embeddings,
+                tokens_used,
+                exponential_backoff,
+                last_checkpoint,
+                step,
+                store_embeddings,
+                progress_bar_counter,
             )
 
         if len(embeddings) != len(texts):
