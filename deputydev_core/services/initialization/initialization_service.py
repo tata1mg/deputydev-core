@@ -41,10 +41,10 @@ from deputydev_core.utils.constants import WEAVIATE_SCHEMA_VERSION
 class InitializationManager:
     def __init__(
         self,
-        repo_path: str,
-        auth_token: str,
-        process_executor: ProcessPoolExecutor,
-        one_dev_client: OneDevClient,
+        repo_path: str = None,
+        auth_token: str = None,
+        process_executor: ProcessPoolExecutor = None,
+        one_dev_client: OneDevClient = None,
         weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
     ) -> None:
         self.repo_path = repo_path
