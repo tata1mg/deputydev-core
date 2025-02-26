@@ -1,17 +1,17 @@
+import time
 from datetime import datetime
 from typing import Dict, List
 
+import weaviate.classes.query as wq
 from weaviate.classes.query import Filter
 from weaviate.util import generate_uuid5
-import weaviate.classes.query as wq
 
 from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
 from deputydev_core.models.dto.chunk_file_dto import ChunkFileDTO
-from deputydev_core.services.repository.dataclasses.main import (
-    WeaviateSyncAndAsyncClients,
-)
+from deputydev_core.services.repository.dataclasses.main import \
+    WeaviateSyncAndAsyncClients
 from deputydev_core.utils.app_logger import AppLogger
-import time
+from deputydev_core.utils.constants import CHUNKFILE_KEYWORD_PROPERTY_MAP
 
 
 class ChunkFilesService:
@@ -120,7 +120,7 @@ class ChunkFilesService:
             )
 
     async def get_autocomplete_keyword_chunks(
-        self, keyword: str, limit: int = 10
+        self, keyword: str, chunkable_files_and_hashes, limit: int = 10
     ) -> List[ChunkFileDTO]:
         """
         Search for code symbols using BM25 and fuzzy matching
@@ -134,25 +134,34 @@ class ChunkFilesService:
                 return_metadata=wq.MetadataQuery(score=True),
             )
 
-            elapsed_time = time.time() - start_time  # Calculate elapsed time
+            elapsed_time = time.time() - start_time
             AppLogger.log_info(f"Code search completed in {elapsed_time:.4f} seconds")
 
-            # Convert to DTOs and sort by score
-            if results.objects:
-                chunk_dtos = [
-                    ChunkFileDTO(**chunk_obj.properties, id=str(chunk_obj.uuid))
-                    # for chunk_obj in results.objects
-                    for chunk_obj in sorted(
-                        results.objects,
-                        key=lambda x: x.metadata.score
-                        if hasattr(x.metadata, "score")
-                        else print("xxx"),
-                        reverse=True,
-                    )
-                ]
-                return chunk_dtos
+            return results.objects
 
-            return []
+        except Exception as ex:
+            AppLogger.log_error("Failed to search code symbols")
+            raise ex
+
+    async def get_autocomplete_keyword_type_chunks(
+        self, keyword: str, type: str, chunkable_files_and_hashes, limit: int = 10
+    ) -> List[ChunkFileDTO]:
+        """
+        Search for code symbols using BM25 and fuzzy matching
+        """
+        try:
+            start_time = time.time()
+
+            results = await self.async_collection.query.bm25(
+                query=keyword,
+                query_properties=[CHUNKFILE_KEYWORD_PROPERTY_MAP.get(type)],
+                return_metadata=wq.MetadataQuery(score=True),
+            )
+
+            elapsed_time = time.time() - start_time
+            AppLogger.log_info(f"Code search completed in {elapsed_time:.4f} seconds")
+
+            return results.objects
 
         except Exception as ex:
             AppLogger.log_error("Failed to search code symbols")

@@ -1,22 +1,16 @@
 import re
 from typing import List, Optional, Set, Tuple
 
-from deputydev_core.utils.app_logger import AppLogger
-
-from deputydev_core.utils.constants import ALL_EXTENSIONS
-from deputydev_core.services.chunking.strategies.chunk_strategy_factory import (
-    ChunkingStrategyFactory,
-)
+from deputydev_core.services.chunking.strategies.chunk_strategy_factory import \
+    ChunkingStrategyFactory
 from deputydev_core.services.chunking.utils.chunk_utils import (
-    get_parser,
-    supported_new_chunk_language,
-)
+    get_parser, supported_new_chunk_language)
+from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
+from deputydev_core.utils.constants import ALL_EXTENSIONS
 
 from ..tiktoken import TikToken
 from .chunk_info import ChunkInfo, ChunkSourceDetails
-
-CHARACTER_SIZE = ConfigManager.configs["CHUNKING"]["CHARACTER_SIZE"]
 
 
 def chunk_content(
@@ -53,7 +47,7 @@ def chunk_source(
     content: str,
     path: str,
     file_hash: Optional[str] = None,
-    MAX_CHARS=CHARACTER_SIZE,
+    MAX_CHARS=None,
     coalesce=80,
     nl_desc=False,
     use_new_chunking=False,
@@ -71,6 +65,9 @@ def chunk_source(
     Returns:
         List[ChunkInfo]: A list of ChunkInfo objects representing the chunks of content.
     """
+    if not MAX_CHARS:
+        MAX_CHARS = ConfigManager.configs["CHUNKING"]["CHARACTER_SIZE"]
+
     ext = path.split(".")[-1]
     if ext in ALL_EXTENSIONS:
         language = ALL_EXTENSIONS[ext]

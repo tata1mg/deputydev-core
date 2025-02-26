@@ -1,7 +1,7 @@
 from enum import Enum
 
 APP_VERSION = "1.0.4"
-WEAVIATE_SCHEMA_VERSION = 1
+WEAVIATE_SCHEMA_VERSION = 2
 LARGE_NO_OF_CHUNKS = 60
 JAVASCRIPT_EXTENSIONS = {
     "js": "javascript",
@@ -32,6 +32,19 @@ ALL_EXTENSIONS = {
     **JAVA_EXTENSIONS,
     **TSX_EXTENSIONS,
     **EXTENSION_TO_LANGUAGE,
+}
+
+
+class PropertyTypes(Enum):
+    FUNCTION = "functions"
+    CLASS = "classes"
+    FILE = "file_path"
+
+
+CHUNKFILE_KEYWORD_PROPERTY_MAP = {
+    "class": PropertyTypes.CLASS.value,
+    "function": PropertyTypes.FUNCTION.value,
+    "file": PropertyTypes.FILE.value,
 }
 
 
