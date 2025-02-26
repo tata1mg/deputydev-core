@@ -1,6 +1,6 @@
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
-from typing import Dict, Optional, Type
+from typing import Dict, Optional, Type, List
 
 from prompt_toolkit.shortcuts.progress_bar import ProgressBar
 from weaviate import WeaviateAsyncClient, WeaviateClient
@@ -56,8 +56,8 @@ class InitializationManager:
         self.process_executor = process_executor
         self.chunk_cleanup_task = None
 
-    def get_local_repo(self) -> BaseLocalRepo:
-        self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path)
+    def get_local_repo(self, chunkable_files: List[str] = None) -> BaseLocalRepo:
+        self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path, chunkable_files=chunkable_files)
         return self.local_repo
 
     async def __check_and_initialize_collection(
