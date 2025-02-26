@@ -4,9 +4,7 @@ from tree_sitter import Node
 
 from deputydev_core.services.chunking.dataclass.main import Span
 from deputydev_core.services.chunking.utils.chunk_utils import (
-    get_line_number,
-    non_whitespace_len,
-)
+    get_line_number, non_whitespace_len)
 
 from .base_chunker import BaseChunker
 

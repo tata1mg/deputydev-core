@@ -1,9 +1,8 @@
 from weaviate.classes.config import DataType, Property, Tokenization
 
 from deputydev_core.models.dao.weaviate.base import Base
-from deputydev_core.models.dao.weaviate.constants.collection_names import (
-    CHUNK_FILES_COLLECTION_NAME,
-)
+from deputydev_core.models.dao.weaviate.constants.collection_names import \
+    CHUNK_FILES_COLLECTION_NAME
 
 
 class ChunkFiles(Base):
@@ -13,7 +12,7 @@ class ChunkFiles(Base):
             data_type=DataType.TEXT,
             vectorize_property_name=False,
             skip_vectorization=True,
-            tokenization=Tokenization.FIELD,
+            tokenization=Tokenization.TRIGRAM,
             index_filterable=True,
         ),
         Property(
