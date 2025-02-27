@@ -2,6 +2,13 @@ import os
 from typing import Dict, List, Optional, Set, Tuple
 import difflib
 from pathlib import Path
+from .search_and_replace import (
+    SearchTextNotUnique,
+    all_preprocs,
+    diff_lines,
+    flexible_search_and_replace,
+    search_and_replace,
+)
 
 
 NO_MATCH_ERROR = """UnifiedDiffNoMatch: hunk failed to apply!
@@ -48,7 +55,7 @@ class UnifiedDiffApplicator:
         with open(abs_file_path, "w") as file_obj:
             file_obj.write(content)
 
-    def _flexi_just_search_and_replace(self, texts: List[str]) -> str:
+    def _flexi_just_search_and_replace(self, texts: List[str]) -> Optional[str]:
         strategies = [
             (search_and_replace, all_preprocs),
         ]
