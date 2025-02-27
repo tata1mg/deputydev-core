@@ -1,10 +1,15 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from xxhash import xxh64
 
 from deputydev_core.services.chunking.config.chunk_config import ChunkConfig
+from deputydev_core.services.repo.local_repo.dataclasses.main import DiffTypes
+from deputydev_core.services.repo.local_repo.diff_applicators.line_numbered_diff.applicator import (
+    LineNumberedDiffApplicator,
+)
+from deputydev_core.services.repo.local_repo.diff_applicators.unified_diff.applicator import UnifiedDiffApplicator
 from deputydev_core.utils.app_logger import AppLogger
 
 
@@ -53,3 +58,13 @@ class BaseLocalRepo(ABC):
     @abstractmethod
     async def get_chunkable_files(self) -> List[str]:
         raise NotImplementedError("get_chunkable_files method must be implemented in the child class")
+
+    def apply_diff(
+        self, diff: Dict[str, Union[List[Tuple[int, int, str]], str]], diff_type: DiffTypes = DiffTypes.LINE_NUMBERED
+    ) -> None:
+        if diff_type == DiffTypes.LINE_NUMBERED:
+            line_numed_diff_applicator = LineNumberedDiffApplicator(self.repo_path)
+            line_numed_diff_applicator.apply_diff(diff)
+        else:
+            udiff_applicator = UnifiedDiffApplicator(self.repo_path)
+            udiff_applicator.apply_diff(diff)
