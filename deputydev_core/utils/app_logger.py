@@ -1,9 +1,6 @@
 import logging
 from typing import Any, Dict
 
-from sanic import Sanic
-from sanic.log import logger as sanic_logger
-
 from deputydev_core.utils.context_vars import get_context_value, set_context_values
 
 logger = logging.getLogger()
@@ -19,7 +16,8 @@ class AppLogger:
         # INFO: sanic is being imported in this method because we do not want sanic to be a dependency where we don't need it
         # This allows the AppLogger to be used without sanic
         try:
-
+            from sanic import Sanic
+            from sanic.log import logger as sanic_logger
             app = Sanic.get_app()
             return True if app else False
         except Exception:
