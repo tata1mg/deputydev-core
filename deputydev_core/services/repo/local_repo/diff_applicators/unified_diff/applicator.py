@@ -132,9 +132,11 @@ class UnifiedDiffApplicator:
         # add a end of diff marker, will help us to cut the last diff
         block.append("@@ @@")
 
-        if block[0].startswith("--- ") and block[1].startswith("+++ "):
-            # Remove the first two lines, they are just the file paths
-            block = block[2:]
+        # search for the diff start marker, and if there is newline before it, we want strip it
+        for i in range(len(block)):
+            if block[i].startswith("--- ") and block[i + 1].startswith("+++ "):
+                block = block[i + 2:]
+                break
 
         edits: List[Tuple[str, List[str]]] = []
 
