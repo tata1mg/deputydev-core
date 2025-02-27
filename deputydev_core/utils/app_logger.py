@@ -18,6 +18,7 @@ class AppLogger:
         try:
             from sanic import Sanic
             from sanic.log import logger as sanic_logger
+
             app = Sanic.get_app()
             return True if app else False
         except Exception:
