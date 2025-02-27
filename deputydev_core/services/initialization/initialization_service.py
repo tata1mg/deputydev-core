@@ -57,7 +57,9 @@ class InitializationManager:
         self.chunk_cleanup_task = None
 
     def get_local_repo(self, chunkable_files: List[str] = None) -> BaseLocalRepo:
-        self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path, chunkable_files=chunkable_files)
+        self.local_repo = LocalRepoFactory.get_local_repo(
+            self.repo_path, chunkable_files=chunkable_files
+        )
         return self.local_repo
 
     async def __check_and_initialize_collection(

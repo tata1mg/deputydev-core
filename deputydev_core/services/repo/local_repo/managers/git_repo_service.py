@@ -139,7 +139,11 @@ class GitRepo(BaseLocalRepo):
         all_files_and_hashes: Dict[str, str] = task_results[1]  # type: ignore
         # filter non required files
         if self.chunkable_files:
-            all_files_and_hashes = {k: v for k, v in all_files_and_hashes.items() if k in self.chunkable_files}
+            all_files_and_hashes = {
+                k: v
+                for k, v in all_files_and_hashes.items()
+                if k in self.chunkable_files
+            }
             modified_files = list(set(modified_files) & set(self.chunkable_files))
         # remove all modified files from all_files_and_hashes
         for file in modified_files:
