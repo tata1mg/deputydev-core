@@ -19,14 +19,12 @@ class VectorDBBasedSearch:
         max_chunks_to_return: int,
     ) -> Tuple[List[ChunkInfo], int]:
 
-        chunk_files = await ChunkFilesService(
-            weaviate_client
-        ).get_chunk_files_by_commit_hashes(whitelisted_file_commits)
+        chunk_files = await ChunkFilesService(weaviate_client).get_chunk_files_by_commit_hashes(
+            whitelisted_file_commits
+        )
         chunk_hashes = [chunk_file.chunk_hash for chunk_file in chunk_files]
 
-        sorted_chunk_dtos = await ChunkService(
-            weaviate_client
-        ).perform_filtered_vector_hybrid_search(
+        sorted_chunk_dtos = await ChunkService(weaviate_client).perform_filtered_vector_hybrid_search(
             chunk_hashes=chunk_hashes,
             query=query,
             query_vector=query_vector,

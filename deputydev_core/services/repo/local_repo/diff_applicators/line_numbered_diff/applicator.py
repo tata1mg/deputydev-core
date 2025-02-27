@@ -9,9 +9,7 @@ class LineNumberedDiffApplicator:
     def __init__(self, repo_path: str):
         self.repo_path = repo_path
 
-    def _apply_diff_in_file_content(
-        self, content: List[str], chunks: List[Tuple[int, int, str]]
-    ) -> List[str]:
+    def _apply_diff_in_file_content(self, content: List[str], chunks: List[Tuple[int, int, str]]) -> List[str]:
         modified_content = []
         current_chunk_index = 0  # Tracks the current chunk being processed
         skip_line_upto = 0  # Tracks the lines to skip due to chunk processing
@@ -66,14 +64,10 @@ class LineNumberedDiffApplicator:
                 with open(abs_file_path, "r") as file_obj:
                     content = file_obj.readlines()
             except FileNotFoundError:
-                AppLogger.log_info(
-                    f"File not found: {abs_file_path}, a new file will be created"
-                )
+                AppLogger.log_info(f"File not found: {abs_file_path}, a new file will be created")
 
             # List to store the modified content
-            modified_content = self._apply_diff_in_file_content(
-                content=content, chunks=chunks
-            )
+            modified_content = self._apply_diff_in_file_content(content=content, chunks=chunks)
 
             # Write the modified content back to the file
             # if the file path does not exist, create the file path

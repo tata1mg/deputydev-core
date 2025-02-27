@@ -32,13 +32,8 @@ class BaseLocalRepo(ABC):
                 return False
             if not os.path.isfile(abs_file_path):
                 return False
-            if (
-                os.path.getsize(abs_file_path)
-                > self.chunk_config.max_chunkable_file_size_bytes
-            ):
-                AppLogger.log_debug(
-                    f"File size is greater than the max_chunkable_file_size_bytes: {abs_file_path}"
-                )
+            if os.path.getsize(abs_file_path) > self.chunk_config.max_chunkable_file_size_bytes:
+                AppLogger.log_debug(f"File size is greater than the max_chunkable_file_size_bytes: {abs_file_path}")
                 return False
             # check if the filepath startswith any of the exclude_dirs
             if any(
@@ -48,19 +43,13 @@ class BaseLocalRepo(ABC):
                 return False
             return True
         except Exception as ex:
-            AppLogger.log_debug(
-                f"Error while checking if file is chunkable: {ex} for file: {file_path}"
-            )
+            AppLogger.log_debug(f"Error while checking if file is chunkable: {ex} for file: {file_path}")
             return False
 
     @abstractmethod
     async def get_chunkable_files_and_commit_hashes(self) -> Dict[str, str]:
-        raise NotImplementedError(
-            "get_file_to_commit_hash_map method must be implemented in the child class"
-        )
+        raise NotImplementedError("get_file_to_commit_hash_map method must be implemented in the child class")
 
     @abstractmethod
     async def get_chunkable_files(self) -> List[str]:
-        raise NotImplementedError(
-            "get_chunkable_files method must be implemented in the child class"
-        )
+        raise NotImplementedError("get_chunkable_files method must be implemented in the child class")

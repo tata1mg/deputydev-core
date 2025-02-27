@@ -23,9 +23,7 @@ from deputydev_core.utils.file_utils import read_file
 
 class ChunkingManger:
     @classmethod
-    def build_focus_query(
-        cls, user_query: str, custom_context_code_chunks: List[ChunkInfo]
-    ):
+    def build_focus_query(cls, user_query: str, custom_context_code_chunks: List[ChunkInfo]):
         if not custom_context_code_chunks:
             return user_query
 
@@ -214,29 +212,19 @@ class ChunkingManger:
             weaviate_client=weaviate_client,
             chunking_handler=chunking_handler,
         )
-        reranked_chunks = await cls.rerank_related_chunks(
-            query, relevant_chunks, reranker, focus_chunks_details
-        )
+        reranked_chunks = await cls.rerank_related_chunks(query, relevant_chunks, reranker, focus_chunks_details)
         return reranked_chunks, input_tokens, focus_chunks_details
 
     @classmethod
     def exclude_focused_chunks(cls, related_chunk, focus_chunks_details):
         related_chunk = [
-            chunk
-            for chunk in related_chunk
-            if chunk.content not in [chunk.content for chunk in focus_chunks_details]
+            chunk for chunk in related_chunk if chunk.content not in [chunk.content for chunk in focus_chunks_details]
         ]
         return related_chunk
 
     @classmethod
-    async def rerank_related_chunks(
-        cls, query, related_chunks, reranker, focus_chunks_details
-    ):
-        related_chunks = cls.exclude_focused_chunks(
-            related_chunks, focus_chunks_details
-        )
+    async def rerank_related_chunks(cls, query, related_chunks, reranker, focus_chunks_details):
+        related_chunks = cls.exclude_focused_chunks(related_chunks, focus_chunks_details)
         if reranker:
-            related_chunks = await reranker.rerank(
-                focus_chunks_details, related_chunks, query
-            )
+            related_chunks = await reranker.rerank(focus_chunks_details, related_chunks, query)
         return related_chunks

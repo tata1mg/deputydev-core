@@ -34,9 +34,7 @@ def chunks_to_docs(chunks: List[ChunkInfo]) -> List[Document]:
         docs.append(
             Document(
                 title=f"{chunk.source_details.file_path}:{chunk.source_details.start_line}-{chunk.source_details.end_line}",
-                content=chunk.get_chunk_content_with_meta_data(
-                    add_ellipsis=False, add_lines=False
-                ),
+                content=chunk.get_chunk_content_with_meta_data(add_ellipsis=False, add_lines=False),
             )
         )
     return docs

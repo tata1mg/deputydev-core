@@ -47,13 +47,9 @@ class OneDevCLIChunker(VectorDBChunker):
         self.progress_bar = progress_bar
         self.file_progressbar_counter: Optional[ProgressBarCounter[int]] = None
 
-    async def add_chunk_embeddings(
-        self, chunks: List[ChunkInfo], len_checkpoints: Optional[int] = None
-    ) -> None:
+    async def add_chunk_embeddings(self, chunks: List[ChunkInfo], len_checkpoints: Optional[int] = None) -> None:
         texts_to_embed = [
-            chunk.get_chunk_content_with_meta_data(
-                add_ellipsis=False, add_lines=False, add_class_function_info=True
-            )
+            chunk.get_chunk_content_with_meta_data(add_ellipsis=False, add_lines=False, add_class_function_info=True)
             for chunk in chunks
         ]
         embeddings, _input_tokens = await self.embedding_manager.embed_text_array(
@@ -71,22 +67,18 @@ class OneDevCLIChunker(VectorDBChunker):
         """
         Handles a batch of files to be chunked
         """
-        file_wise_chunks = (
-            await self.file_chunk_creator.create_and_get_file_wise_chunks(
-                dict(files_to_chunk_batch),
-                self.local_repo.repo_path,
-                self.use_new_chunking,
-                process_executor=self.process_executor,
-            )
+        file_wise_chunks = await self.file_chunk_creator.create_and_get_file_wise_chunks(
+            dict(files_to_chunk_batch),
+            self.local_repo.repo_path,
+            self.use_new_chunking,
+            process_executor=self.process_executor,
         )
 
         batched_chunks: List[ChunkInfo] = []
         for chunks in file_wise_chunks.values():
             batched_chunks.extend(chunks)
         if batched_chunks:
-            await self.add_chunk_embeddings(
-                batched_chunks, len_checkpoints=len(files_to_chunk_batch)
-            )
+            await self.add_chunk_embeddings(batched_chunks, len_checkpoints=len(files_to_chunk_batch))
         else:
             if self.file_progressbar_counter:
                 for _ in range(len(files_to_chunk_batch)):

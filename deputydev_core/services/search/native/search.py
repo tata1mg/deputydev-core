@@ -38,9 +38,7 @@ class NativeSearch:
         all_docs = chunks_to_docs(all_chunks)
 
         # Perform lexical search
-        content_to_lexical_score_list = await lexical_search(
-            query, all_docs, process_executor
-        )
+        content_to_lexical_score_list = await lexical_search(query, all_docs, process_executor)
         # Compute vector search scores asynchronously
         files_to_scores_list, input_tokens = await compute_vector_search_scores(
             query, all_chunks, embedding_manager, process_executor=process_executor
@@ -53,15 +51,11 @@ class NativeSearch:
 
             # Adjust chunk score if denotation is found in lexical search results
             if chunk.denotation in content_to_lexical_score_list:
-                chunk_score = content_to_lexical_score_list[chunk.denotation] + (
-                    vector_score * 3.5
-                )
+                chunk_score = content_to_lexical_score_list[chunk.denotation] + (vector_score * 3.5)
                 content_to_lexical_score_list[chunk.denotation] = chunk_score
             else:
                 # If denotation not found, calculate score based on vector search only
-                content_to_lexical_score_list[chunk.denotation] = (
-                    chunk_score * vector_score
-                )
+                content_to_lexical_score_list[chunk.denotation] = chunk_score * vector_score
         # Return search results
 
         ranked_snippets_list = sorted(

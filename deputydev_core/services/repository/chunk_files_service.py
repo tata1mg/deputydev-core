@@ -15,16 +15,10 @@ from deputydev_core.utils.app_logger import AppLogger
 class ChunkFilesService:
     def __init__(self, weaviate_client: WeaviateSyncAndAsyncClients):
         self.weaviate_client = weaviate_client
-        self.async_collection = weaviate_client.async_client.collections.get(
-            ChunkFiles.collection_name
-        )
-        self.sync_collection = weaviate_client.sync_client.collections.get(
-            ChunkFiles.collection_name
-        )
+        self.async_collection = weaviate_client.async_client.collections.get(ChunkFiles.collection_name)
+        self.sync_collection = weaviate_client.sync_client.collections.get(ChunkFiles.collection_name)
 
-    async def get_chunk_files_by_commit_hashes(
-        self, file_to_commit_hashes: Dict[str, str]
-    ) -> List[ChunkFileDTO]:
+    async def get_chunk_files_by_commit_hashes(self, file_to_commit_hashes: Dict[str, str]) -> List[ChunkFileDTO]:
         BATCH_SIZE = 1000
         MAX_RESULTS_PER_QUERY = 10000
         all_chunk_files = []
@@ -80,9 +74,7 @@ class ChunkFilesService:
                     uuid=chunk_file_uuid,
                 )
 
-    def cleanup_old_chunk_files(
-        self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]
-    ) -> None:
+    def cleanup_old_chunk_files(self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]) -> None:
         batch_size = 1000
         while True:
             deletable_objects = self.sync_collection.query.fetch_objects(
@@ -98,21 +90,14 @@ class ChunkFilesService:
                 ),
             )
 
-            AppLogger.log_debug(
-                f"{len(deletable_objects.objects)} chunk_files to be deleted in batch"
-            )
+            AppLogger.log_debug(f"{len(deletable_objects.objects)} chunk_files to be deleted in batch")
 
             if len(deletable_objects.objects) <= 0:
                 break
 
             result = self.sync_collection.data.delete_many(
                 Filter.any_of(
-                    [
-                        Filter.by_id().equal(obj.uuid)
-                        for obj in deletable_objects.objects
-                    ],
+                    [Filter.by_id().equal(obj.uuid) for obj in deletable_objects.objects],
                 )
             )
-            AppLogger.log_debug(
-                f"chunk_files deleted. successful - {result.successful}, failed - {result.failed}"
-            )
+            AppLogger.log_debug(f"chunk_files deleted. successful - {result.successful}, failed - {result.failed}")

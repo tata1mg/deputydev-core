@@ -21,9 +21,7 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
         self.oen_dev_client = one_dev_client
 
     @classmethod
-    def create_optimized_batches(
-        cls, texts: List[str], target_tokens_per_batch: int, model: str
-    ) -> List[List[str]]:
+    def create_optimized_batches(cls, texts: List[str], target_tokens_per_batch: int, model: str) -> List[List[str]]:
         tiktoken_client = TikToken()
         batches: List[List[str]] = []
         current_batch = []
@@ -32,9 +30,7 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
         for text in texts:
             text_token_count = tiktoken_client.count(text, model=model)
 
-            if (
-                text_token_count > target_tokens_per_batch
-            ):  # Single text exceeds max tokens
+            if text_token_count > target_tokens_per_batch:  # Single text exceeds max tokens
                 batches.append([text])
                 AppLogger.log_warn(
                     f"Text with token count {text_token_count} exceeds the max token limit of {target_tokens_per_batch}."
@@ -66,9 +62,7 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
                     "Authorization": f"Bearer {self.auth_token}",
                 },
             )
-            AppLogger.log_debug(
-                f"Time taken for embedding batch via API: {time.perf_counter() - time_start}"
-            )
+            AppLogger.log_debug(f"Time taken for embedding batch via API: {time.perf_counter() - time_start}")
             return (
                 embedding_result["embeddings"],
                 embedding_result["tokens_used"],
@@ -114,10 +108,7 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
         store_embeddings: bool = True,
         progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
     ) -> Tuple[int, float, float, List[List[str]]]:
-        parallel_tasks = [
-            self._get_embeddings_for_single_batch(batch, store_embeddings)
-            for batch in parallel_batches
-        ]
+        parallel_tasks = [self._get_embeddings_for_single_batch(batch, store_embeddings) for batch in parallel_batches]
         failed_batches: List[List[str]] = []
         for single_task in asyncio.as_completed(parallel_tasks):
             _embeddings, _tokens_used, data_batch = await single_task

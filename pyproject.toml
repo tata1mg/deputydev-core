@@ -1,0 +1,37 @@
+[tool]
+python = "3.9.12"
+
+[tool.black]
+version = "22.3.0"
+line-length = 120
+target-version = ["py37", "py38", "py39", "py310"]
+include = '\.pyi?$'
+
+[tool.pytest]
+version = "6.2.5"
+addopts = "-p no:warnings"
+
+[tool.isort]
+profile = "black"
+
+[tool.flake8]
+version = "4.0.1"
+max-line-length = 120
+extend-ignore = "E203"
+
+[tool.pylint]
+version = "2.11.1"
+# A comma-separated list of package or module names from where C extensions may
+# be loaded. Extensions are loading into the active Python interpreter and may
+# run arbitrary code.
+extension-pkg-whitelist = "ujson"
+
+# Specify a score threshold to be exceeded before program exits with error.
+fail-under=8.5
+
+ignore = "tests"
+disable = ["C0114","C0115","W0212","C0116","C0305","W0703","C0301","R0903","R1705","E0402"]
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["B608"]
