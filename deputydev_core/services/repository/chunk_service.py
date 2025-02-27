@@ -19,12 +19,8 @@ from deputydev_core.utils.app_logger import AppLogger
 class ChunkService:
     def __init__(self, weaviate_client: WeaviateSyncAndAsyncClients):
         self.weaviate_client = weaviate_client
-        self.async_collection = weaviate_client.async_client.collections.get(
-            Chunks.collection_name
-        )
-        self.sync_collection = weaviate_client.sync_client.collections.get(
-            Chunks.collection_name
-        )
+        self.async_collection = weaviate_client.async_client.collections.get(Chunks.collection_name)
+        self.sync_collection = weaviate_client.sync_client.collections.get(Chunks.collection_name)
 
     async def perform_filtered_vector_hybrid_search(
         self,
@@ -57,9 +53,7 @@ class ChunkService:
             AppLogger.log_error("Failed to get chunk files by commit hashes")
             raise ex
 
-    async def get_chunks_by_chunk_hashes(
-        self, chunk_hashes: List[str]
-    ) -> List[Tuple[ChunkDTO, List[float]]]:
+    async def get_chunks_by_chunk_hashes(self, chunk_hashes: List[str]) -> List[Tuple[ChunkDTO, List[float]]]:
         BATCH_SIZE = 1000
         all_chunks: List[Tuple[ChunkDTO, List[float]]] = []
         MAX_RESULTS_PER_QUERY = 10000
@@ -69,10 +63,7 @@ class ChunkService:
                 batch_hashes = chunk_hashes[i : i + BATCH_SIZE]
                 batch_chunks = await self.async_collection.query.fetch_objects(
                     filters=Filter.any_of(
-                        [
-                            Filter.by_id().equal(generate_uuid5(chunk_hash))
-                            for chunk_hash in batch_hashes
-                        ]
+                        [Filter.by_id().equal(generate_uuid5(chunk_hash)) for chunk_hash in batch_hashes]
                     ),
                     include_vector=True,
                     limit=MAX_RESULTS_PER_QUERY,
@@ -107,9 +98,7 @@ class ChunkService:
                     uuid=generate_uuid5(chunk.dto.chunk_hash),
                 )
 
-    def cleanup_old_chunks(
-        self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]
-    ) -> None:
+    def cleanup_old_chunks(self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]) -> None:
         batch_size = 1000
         while True:
             deletable_objects = self.sync_collection.query.fetch_objects(
@@ -125,21 +114,14 @@ class ChunkService:
                 ),
             )
 
-            AppLogger.log_debug(
-                f"{len(deletable_objects.objects)} chunks to be deleted in batch"
-            )
+            AppLogger.log_debug(f"{len(deletable_objects.objects)} chunks to be deleted in batch")
 
             if len(deletable_objects.objects) <= 0:
                 break
 
             result = self.sync_collection.data.delete_many(
                 Filter.any_of(
-                    [
-                        Filter.by_id().equal(obj.uuid)
-                        for obj in deletable_objects.objects
-                    ],
+                    [Filter.by_id().equal(obj.uuid) for obj in deletable_objects.objects],
                 )
             )
-            AppLogger.log_debug(
-                f"chunks deleted. successful - {result.successful}, failed - {result.failed}"
-            )
+            AppLogger.log_debug(f"chunks deleted. successful - {result.successful}, failed - {result.failed}")
