@@ -736,7 +736,9 @@ def chunk_code(
         chunks[i].end = chunks[
             i + 1
         ].start  # sets the last byte of chunk to start byte of suceessiding chunk
-    chunks[-1].end = (
+    chunks[
+        -1
+    ].end = (
         tree.root_node.end_byte
     )  # sets the last byte of chunk to start byte of suceessiding chunk for last chunk
 

@@ -7,6 +7,7 @@ from deputydev_core.services.repo.local_repo.managers.git_repo_service import Gi
 from deputydev_core.services.repo.local_repo.managers.non_vcs_repo_service import (
     NonVCSRepo,
 )
+from typing import List
 
 
 class LocalRepoFactory:
@@ -19,7 +20,7 @@ class LocalRepoFactory:
             return False
 
     @classmethod
-    def get_local_repo(cls, repo_path: str) -> BaseLocalRepo:
+    def get_local_repo(cls, repo_path: str, chunkable_files: List[str] = None) -> BaseLocalRepo:
         if cls._is_git_repo(repo_path):
-            return GitRepo(repo_path)
-        return NonVCSRepo(repo_path)
+            return GitRepo(repo_path, chunkable_files=chunkable_files)
+        return NonVCSRepo(repo_path, chunkable_files=chunkable_files)

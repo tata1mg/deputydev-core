@@ -1,6 +1,6 @@
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
-from typing import Dict, Optional, Type
+from typing import Dict, Optional, Type, List
 
 from prompt_toolkit.shortcuts.progress_bar import ProgressBar
 from weaviate import WeaviateAsyncClient, WeaviateClient
@@ -41,10 +41,10 @@ from deputydev_core.utils.constants import WEAVIATE_SCHEMA_VERSION
 class InitializationManager:
     def __init__(
         self,
-        repo_path: str,
-        auth_token: str,
-        process_executor: ProcessPoolExecutor,
-        one_dev_client: OneDevClient,
+        repo_path: str = None,
+        auth_token: str = None,
+        process_executor: ProcessPoolExecutor = None,
+        one_dev_client: OneDevClient = None,
         weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
     ) -> None:
         self.repo_path = repo_path
@@ -56,8 +56,8 @@ class InitializationManager:
         self.process_executor = process_executor
         self.chunk_cleanup_task = None
 
-    def get_local_repo(self) -> BaseLocalRepo:
-        self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path)
+    def get_local_repo(self, chunkable_files: List[str] = None) -> BaseLocalRepo:
+        self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path, chunkable_files=chunkable_files)
         return self.local_repo
 
     async def __check_and_initialize_collection(

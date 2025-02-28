@@ -207,10 +207,10 @@ class VectorDBChunker(BaseChunker):
         )
 
         # create and store chunks for each batch
-        missing_file_wise_chunks: Dict[str, List[ChunkInfo]] = (
-            await self.create_and_store_chunks_for_file_batches(
-                batchified_files_for_insertion, custom_timestamp=chunking_timestamp
-            )
+        missing_file_wise_chunks: Dict[
+            str, List[ChunkInfo]
+        ] = await self.create_and_store_chunks_for_file_batches(
+            batchified_files_for_insertion, custom_timestamp=chunking_timestamp
         )
 
         # merge the missing and existing chunks
