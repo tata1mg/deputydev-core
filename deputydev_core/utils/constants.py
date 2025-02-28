@@ -47,3 +47,15 @@ class LLMModelNames(ExtendedEnum):
     GPT_4_PREVIEW = "gpt-4-1106-preview"
     GPT_4_O = "gpt-4o"
     GPT_TEXT_EMBEDDING_3_SMALL = "text-embedding-3-small"
+
+class AuthTokenKeys(Enum):
+    CLI_AUTH_TOKEN = "cli_auth_token"
+    EXTENSION_AUTH_TOKEN = "extension_auth_token"
+
+
+class LocalDirectories(Enum):
+    LOCAL_ROOT_DIRECTORY = ".deputydev"
+
+
+class LocalFiles(Enum):
+    LOCAL_AUTH_TOKENS_FILE = "264325ba-cbd0-47d5-9269-ac4bd19067c2.json"
