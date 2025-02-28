@@ -177,9 +177,9 @@ class ChunkVectorStoreManager:
             ):
                 AppLogger.log_debug(f"File {file_path} has missing chunks")
                 continue
-            filtered_file_wise_chunk_files_chunks_and_vectors[file_path] = (
-                chunk_files_chunks_and_vectors
-            )
+            filtered_file_wise_chunk_files_chunks_and_vectors[
+                file_path
+            ] = chunk_files_chunks_and_vectors
 
         return filtered_file_wise_chunk_files_chunks_and_vectors
 

@@ -189,17 +189,20 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
             parallel_batches += [batch]
 
         while len(parallel_batches) > 0:
-            tokens_used, last_checkpoint, exponential_backoff, parallel_batches = (
-                await self._process_parallel_batches(
-                    parallel_batches,
-                    embeddings,
-                    tokens_used,
-                    exponential_backoff,
-                    last_checkpoint,
-                    step,
-                    store_embeddings,
-                    progress_bar_counter,
-                )
+            (
+                tokens_used,
+                last_checkpoint,
+                exponential_backoff,
+                parallel_batches,
+            ) = await self._process_parallel_batches(
+                parallel_batches,
+                embeddings,
+                tokens_used,
+                exponential_backoff,
+                last_checkpoint,
+                step,
+                store_embeddings,
+                progress_bar_counter,
             )
 
         if len(embeddings) != len(texts):
