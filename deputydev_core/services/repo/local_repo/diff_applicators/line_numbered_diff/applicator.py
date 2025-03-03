@@ -53,7 +53,8 @@ class LineNumberedDiffApplicator:
 
         return modified_content
 
-    def apply_diff(self, diff: Dict[str, List[Tuple[int, int, str]]]):
+    def get_final_content(self, diff: Dict[str, List[Tuple[int, int, str]]]) -> Dict[str, List[str]]:
+        final_content: Dict[str, List[str]] = {}
         for fp, chunks in diff.items():
             # Sort the chunks by start line number to ensure proper processing order
             chunks = sorted(chunks, key=lambda x: x[0])
@@ -69,8 +70,19 @@ class LineNumberedDiffApplicator:
             # List to store the modified content
             modified_content = self._apply_diff_in_file_content(content=content, chunks=chunks)
 
+            final_content[fp] = modified_content
+
+        return final_content
+
+    def apply_diff(self, diff: Dict[str, List[Tuple[int, int, str]]]):
+
+        applied_content = self.get_final_content(diff)
+
+        for fp, modified_content in applied_content.items():
+            # Sort the chunks by start line number to ensure proper processing order
             # Write the modified content back to the file
             # if the file path does not exist, create the file path
+            abs_file_path = os.path.join(self.repo_path, fp)
             if not os.path.exists(os.path.dirname(abs_file_path)):
                 os.makedirs(os.path.dirname(abs_file_path))
 
