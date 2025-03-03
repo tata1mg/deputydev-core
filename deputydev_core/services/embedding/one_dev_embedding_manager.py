@@ -18,7 +18,7 @@ from deputydev_core.utils.config_manager import ConfigManager
 class OneDevEmbeddingManager(BaseEmbeddingManager):
     def __init__(self, auth_token: str, one_dev_client: OneDevClient):
         self.auth_token = auth_token
-        self.oen_dev_client = one_dev_client
+        self.one_dev_client = one_dev_client
 
     @classmethod
     def create_optimized_batches(
@@ -59,7 +59,7 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
     ) -> Tuple[Optional[List[List[float]]], int, List[str]]:
         try:
             time_start = time.perf_counter()
-            embedding_result = await self.oen_dev_client.create_embedding(
+            embedding_result = await self.one_dev_client.create_embedding(
                 payload={"texts": batch, "store_embeddings": store_embeddings},
                 headers={
                     "Content-Type": "application/json",
