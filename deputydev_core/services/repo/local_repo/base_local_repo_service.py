@@ -68,3 +68,17 @@ class BaseLocalRepo(ABC):
         else:
             udiff_applicator = UnifiedDiffApplicator(self.repo_path)
             udiff_applicator.apply_diff(diff)
+
+    def get_modified_file_content(
+        self, diff: Dict[str, Union[List[Tuple[int, int, str]], str]], diff_type: DiffTypes = DiffTypes.LINE_NUMBERED
+    ) -> Dict[str, str]:
+        if diff_type == DiffTypes.LINE_NUMBERED:
+            line_numed_diff_applicator = LineNumberedDiffApplicator(self.repo_path)
+            modified_content_lines = line_numed_diff_applicator.get_final_content(diff)
+            return {
+                file_path: "".join(modified_content_lines)
+                for file_path, modified_content_lines in modified_content_lines.items()
+            }
+        else:
+            udiff_applicator = UnifiedDiffApplicator(self.repo_path)
+            return udiff_applicator.get_final_content(diff)

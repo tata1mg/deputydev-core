@@ -135,7 +135,7 @@ class UnifiedDiffApplicator:
         # search for the diff start marker, and if there is newline before it, we want strip it
         for i in range(len(block)):
             if block[i].startswith("--- ") and block[i + 1].startswith("+++ "):
-                block = block[i + 2:]
+                block = block[i + 2 :]
                 break
 
         edits: List[Tuple[str, List[str]]] = []
@@ -361,17 +361,22 @@ class UnifiedDiffApplicator:
             return new_content
         return None
 
-    def apply_diff(self, filepath_to_diff_map: Dict[str, str]) -> None:
+    def get_final_content(self, filepath_to_diff_map: Dict[str, str]) -> Dict[str, str]:
         """
-        Apply the given diffs to the files in the repository
+        Get the final content of the files after applying the diffs
 
         Args:
             filepath_to_diff_map: A dictionary mapping file paths to unified diff strings
+
+        Returns:
+            A dictionary mapping file paths to their final content
 
         Raises:
             ValueError: If any of the diffs cannot be applied
 
         """
+
+        final_file_contents: Dict[str, str] = {}
 
         # firstly, get the unique hunks
         edits = self.find_diff_hunks(filepath_to_diff_map)
@@ -427,10 +432,30 @@ class UnifiedDiffApplicator:
                 continue
 
             # SUCCESS!
-            self._write_file_content(full_path, content)
+            final_file_contents[path] = content
 
         if errors:
             errors_str = "\n\n".join(errors)
             if len(errors) < len(unique_normalized_hunks):
                 errors_str += SOME_HUNKS_APPLIED_MESSAGE
             raise ValueError(errors_str)
+
+    def apply_diff(self, filepath_to_diff_map: Dict[str, str]) -> None:
+        """
+        Apply the given diffs to the files in the repository
+
+        Args:
+            filepath_to_diff_map: A dictionary mapping file paths to unified diff strings
+
+        Raises:
+            ValueError: If any of the diffs cannot be applied
+
+        """
+
+        # get the final content of the files after applying the diffs
+        final_file_contents = self.get_final_content(filepath_to_diff_map)
+
+        for path, content in final_file_contents.items():
+            full_path = os.path.join(self.repo_path, path)
+            # SUCCESS!
+            self._write_file_content(full_path, content)
