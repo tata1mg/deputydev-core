@@ -1,7 +1,8 @@
 from deputydev_core.services.auth_token_storage.base_auth_token_storage_manager import (
     AuthTokenStorageBase,
 )
-from deputydev_core.utils.constants import AuthTokenKeys
+from deputydev_core.utils.constants.constants import AuthTokenKeys
+
 
 class ExtensionAuthTokenStorageManager(AuthTokenStorageBase):
     """
