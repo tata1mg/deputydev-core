@@ -68,3 +68,7 @@ class OneDevClient(BaseHTTPClient):
                 )
         return response
 
+    async def create_embedding(
+            self, payload: Dict[str, Any], headers: Dict[str, str]
+    ) -> Dict[str, Any]:
+        raise NotImplementedError()
