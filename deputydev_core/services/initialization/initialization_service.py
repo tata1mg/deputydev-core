@@ -35,7 +35,7 @@ from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema
 )
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
-from deputydev_core.utils.constants import WEAVIATE_SCHEMA_VERSION
+from deputydev_core.utils.constants.constants import WEAVIATE_SCHEMA_VERSION
 
 
 class InitializationManager:
