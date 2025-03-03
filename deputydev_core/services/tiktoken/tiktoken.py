@@ -1,7 +1,7 @@
 import tiktoken
 
 from deputydev_core.utils.config_manager import ConfigManager
-from deputydev_core.utils.constants import LLMModelNames
+from deputydev_core.utils.constants.constants import LLMModelNames
 
 
 class TikToken:
