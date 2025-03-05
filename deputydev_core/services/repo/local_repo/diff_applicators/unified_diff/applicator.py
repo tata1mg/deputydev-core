@@ -434,11 +434,13 @@ class UnifiedDiffApplicator:
             # SUCCESS!
             final_file_contents[path] = content
 
-        if errors:
-            errors_str = "\n\n".join(errors)
-            if len(errors) < len(unique_normalized_hunks):
-                errors_str += SOME_HUNKS_APPLIED_MESSAGE
-            raise ValueError(errors_str)
+        # if errors:
+        #     errors_str = "\n\n".join(errors)
+        #     if len(errors) < len(unique_normalized_hunks):
+        #         errors_str += SOME_HUNKS_APPLIED_MESSAGE
+        #     raise ValueError(errors_str)
+
+        return final_file_contents
 
     def apply_diff(self, filepath_to_diff_map: Dict[str, str]) -> None:
         """
