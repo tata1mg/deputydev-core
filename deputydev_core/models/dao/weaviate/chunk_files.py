@@ -78,5 +78,30 @@ class ChunkFiles(Base):
             index_filterable=True,
             index_searchable=True,
         ),
+        Property(
+            name="meta_info",
+            data_type=DataType.OBJECT,
+            vectorize_property_name=False,
+            tokenization=None,
+            skip_vectorization=True,
+            index_filterable=False,
+            index_searchable=False,
+            nested_properties=[
+                Property(
+                    name="hierarchy",
+                    data_type=DataType.OBJECT_ARRAY,
+                    nested_properties=[
+                        Property(name="type", data_type=DataType.TEXT),
+                        Property(name="value", data_type=DataType.TEXT),
+                        Property(name="is_breakable_node", data_type=DataType.BOOL)
+                    ]
+                ),
+                Property(name="dechunk", data_type=DataType.BOOL),
+                Property(name="import_only_chunk", data_type=DataType.BOOL),
+                Property(name="all_functions", data_type=DataType.TEXT_ARRAY),
+                Property(name="all_classes", data_type=DataType.TEXT_ARRAY),
+                Property(name="byte_size", data_type=DataType.INT)
+            ]
+        ),
     ]
     collection_name = CHUNK_FILES_COLLECTION_NAME

@@ -109,6 +109,7 @@ class ChunkVectorStoreManager:
                         )
                         if chunk.metadata
                         else chunk.source_details.file_path,
+                        meta_info = chunk.metadata
                     )
                 )
 

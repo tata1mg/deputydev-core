@@ -49,6 +49,7 @@ class VectorDBBasedSearch:
                             ),
                             embedding=None,
                             search_score=chunk_dto.score,
+                            metadata = chunk_file.meta_info
                         )
                     )
                     break
