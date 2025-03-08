@@ -17,7 +17,6 @@ class AppLogger:
         # This allows the AppLogger to be used without sanic
         try:
             from sanic import Sanic
-            from sanic.log import logger as sanic_logger
 
             app = Sanic.get_app()
             return True if app else False
@@ -27,6 +26,7 @@ class AppLogger:
     @classmethod
     def __get_selected_logger(cls) -> logging.Logger:
         if cls.__is_called_from_sanic():
+            from sanic.log import logger as sanic_logger
 
             return sanic_logger
 

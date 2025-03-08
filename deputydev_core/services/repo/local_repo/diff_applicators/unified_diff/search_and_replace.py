@@ -1,5 +1,7 @@
 from typing import Any, List, Optional, Set, Tuple
+
 from diff_match_patch import diff_match_patch
+
 
 # A custom exception for when the search text is not unique in the file
 class SearchTextNotUnique(ValueError):

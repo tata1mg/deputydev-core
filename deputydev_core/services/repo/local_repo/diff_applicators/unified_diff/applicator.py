@@ -1,7 +1,8 @@
-import os
-from typing import Dict, List, Optional, Set, Tuple
 import difflib
+import os
 from pathlib import Path
+from typing import Dict, List, Optional, Set, Tuple
+
 from .search_and_replace import (
     SearchTextNotUnique,
     all_preprocs,
@@ -9,7 +10,6 @@ from .search_and_replace import (
     flexible_search_and_replace,
     search_and_replace,
 )
-
 
 NO_MATCH_ERROR = """UnifiedDiffNoMatch: hunk failed to apply!
 

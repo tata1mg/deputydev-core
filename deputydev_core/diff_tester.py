@@ -1,7 +1,6 @@
 from deputydev_core.services.repo.local_repo.dataclasses.main import DiffTypes
 from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepoFactory
 
-
 if __name__ == "__main__":
 
     local_repo = LocalRepoFactory.get_local_repo(repo_path="/Users/satyam.kumar/projects/1mg/payment_engine")
