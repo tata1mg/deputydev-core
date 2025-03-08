@@ -153,14 +153,9 @@ class NeoSpan:
         return ChunkMetadata(
             hierarchy=deduplicate_hierarchy(combined_hierarchy),
             dechunk=self.metadata.dechunk and other_meta_data.dechunk,
-            import_only_chunk=self.metadata.import_only_chunk
-            or other_meta_data.import_only_chunk,
-            all_functions=list(
-                set(self.metadata.all_functions + other_meta_data.all_functions)
-            ),
-            all_classes=list(
-                set(self.metadata.all_classes + other_meta_data.all_classes)
-            ),
+            import_only_chunk=self.metadata.import_only_chunk or other_meta_data.import_only_chunk,
+            all_functions=list(set(self.metadata.all_functions + other_meta_data.all_functions)),
+            all_classes=list(set(self.metadata.all_classes + other_meta_data.all_classes)),
         )
 
     def get_chunk_first_char(self, source_code: bytes):
@@ -252,9 +247,7 @@ class Span:
         elif isinstance(other, Span):
             return Span(self.start, other.end)
         else:
-            raise NotImplementedError(
-                "Unsupported type for 'other'. Must be Span or int."
-            )
+            raise NotImplementedError("Unsupported type for 'other'. Must be Span or int.")
 
     def __len__(self) -> int:
         """
@@ -300,9 +293,7 @@ def is_class_node(node: Node, grammar: Dict[str, str]):
     if node.type in grammar[LanguageIdentifiers.FUNCTION_CLASS_WRAPPER.value]:
         is_class_node = False
         for child in node.children:
-            is_class_node = is_class_node or (
-                child.type in grammar[LanguageIdentifiers.CLASS_DEFINITION.value]
-            )
+            is_class_node = is_class_node or (child.type in grammar[LanguageIdentifiers.CLASS_DEFINITION.value])
         return is_class_node
 
     return node.type in grammar[LanguageIdentifiers.CLASS_DEFINITION.value]
@@ -333,8 +324,7 @@ def extract_name(node: Node, grammar: Dict[str, str]) -> Optional[str]:
     # Direct identifier check
     if (
         node.type
-        in grammar[LanguageIdentifiers.FUNCTION_IDENTIFIER.value]
-        + grammar[LanguageIdentifiers.CLASS_IDENTIFIER.value]
+        in grammar[LanguageIdentifiers.FUNCTION_IDENTIFIER.value] + grammar[LanguageIdentifiers.CLASS_IDENTIFIER.value]
     ):
         return node.text.decode("utf-8")
 
@@ -476,9 +466,7 @@ def chunk_node_with_meta_data(
     grammar = chunk_language_identifiers[language]
     # Handle decorators for class or function definitions
 
-    def create_chunk_with_decorators(
-        start_point, end_point, decorators=None, current_node=None
-    ):
+    def create_chunk_with_decorators(start_point, end_point, decorators=None, current_node=None):
         if decorators:
             # Start from the first decorator
             actual_start = decorators[0].start
@@ -492,8 +480,7 @@ def chunk_node_with_meta_data(
             metadata=ChunkMetadata(
                 hierarchy=copy.deepcopy(hierarchy),
                 dechunk=not is_node_breakable(current_node, grammar),
-                import_only_chunk=not hierarchy
-                and not is_node_breakable(current_node, grammar),
+                import_only_chunk=not hierarchy and not is_node_breakable(current_node, grammar),
                 all_functions=[],
                 all_classes=[],
             ),
@@ -503,23 +490,15 @@ def chunk_node_with_meta_data(
     if node.type not in grammar[LanguageIdentifiers.FUNCTION_CLASS_WRAPPER.value]:
         if is_class_node(node, grammar):
             class_name = extract_name(node, grammar)
-            hierarchy.append(
-                ChunkMetadataHierachyObject(type=ChunkNodeType.CLASS, value=class_name)
-            )
+            hierarchy.append(ChunkMetadataHierachyObject(type=ChunkNodeType.CLASS, value=class_name))
             all_classes.append(class_name)
 
         elif is_function_node(node, grammar):
             func_name = extract_name(node, grammar)
-            hierarchy.append(
-                ChunkMetadataHierachyObject(
-                    type=ChunkNodeType.FUNCTION, value=func_name
-                )
-            )
+            hierarchy.append(ChunkMetadataHierachyObject(type=ChunkNodeType.FUNCTION, value=func_name))
             all_functions.append(func_name)
 
-    current_chunk = create_chunk_with_decorators(
-        node.start_point, node.start_point, pending_decorators, node
-    )
+    current_chunk = create_chunk_with_decorators(node.start_point, node.start_point, pending_decorators, node)
 
     for child in node_children:
         if is_class_node(child, grammar):
@@ -557,10 +536,7 @@ def chunk_node_with_meta_data(
             )
 
         elif (
-            child.end_byte
-            - child.start_byte
-            + get_current_chunk_length(current_chunk, source_code)
-            > max_chars
+            child.end_byte - child.start_byte + get_current_chunk_length(current_chunk, source_code) > max_chars
         ) or is_node_breakable(child, grammar):
             # Split the current chunk if it exceeds the maximum size
             if is_valid_chunk(current_chunk):
@@ -576,13 +552,9 @@ def chunk_node_with_meta_data(
         else:
             # Append the current child to the chunk
             if current_chunk:
-                current_chunk += create_chunk_with_decorators(
-                    child.start_point, child.end_point, current_node=child
-                )
+                current_chunk += create_chunk_with_decorators(child.start_point, child.end_point, current_node=child)
             else:
-                current_chunk = create_chunk_with_decorators(
-                    child.start_point, child.end_point, current_node=child
-                )
+                current_chunk = create_chunk_with_decorators(child.start_point, child.end_point, current_node=child)
 
     # Finalize the last chunk
     if is_valid_chunk(current_chunk):
@@ -647,9 +619,7 @@ def dechunk(chunks: List[NeoSpan], coalesce: int, source_code: bytes) -> list[Ne
     return new_chunks
 
 
-def chunk_code_with_metadata(
-    tree, source_code: bytes, language: str, MAX_CHARS=None, coalesce=100
-) -> list[NeoSpan]:
+def chunk_code_with_metadata(tree, source_code: bytes, language: str, MAX_CHARS=None, coalesce=100) -> list[NeoSpan]:
     """
     Chunk the AST tree based on maximum characters and coalesce size.
 
@@ -733,14 +703,10 @@ def chunk_code(
         end = get_line_number(chunks[0].end, source_code)
         return [Span(0, end)]
     for i in range(len(chunks) - 1):
-        chunks[i].end = chunks[
-            i + 1
-        ].start  # sets the last byte of chunk to start byte of suceessiding chunk
+        chunks[i].end = chunks[i + 1].start  # sets the last byte of chunk to start byte of suceessiding chunk
     chunks[
         -1
-    ].end = (
-        tree.root_node.end_byte
-    )  # sets the last byte of chunk to start byte of suceessiding chunk for last chunk
+    ].end = tree.root_node.end_byte  # sets the last byte of chunk to start byte of suceessiding chunk for last chunk
 
     # 3. Combining small chunks with bigger ones
     new_chunks = []
@@ -781,9 +747,7 @@ def chunk_code(
     return line_chunks
 
 
-def chunk_content(
-    content: str, line_count: int = 30, overlap: int = 15
-) -> List[Tuple[int, int, str]]:
+def chunk_content(content: str, line_count: int = 30, overlap: int = 15) -> List[Tuple[int, int, str]]:
     """
     Default chunking of content based on line count and overlap.
 
@@ -865,9 +829,7 @@ def chunk_source(
         final_chunks: List[ChunkInfo] = []
         parser = get_parser(language)
         tree = parser.parse(content.encode("utf-8"))
-        is_eligible_for_new_chunking = (
-            use_new_chunking and supported_new_chunk_language(language)
-        )
+        is_eligible_for_new_chunking = use_new_chunking and supported_new_chunk_language(language)
         if is_eligible_for_new_chunking:
             all_current_file_chunks = chunk_code_with_metadata(
                 tree,
@@ -877,9 +839,7 @@ def chunk_source(
                 language=language,
             )
         else:
-            all_current_file_chunks = chunk_code(
-                tree, content.encode("utf-8"), MAX_CHARS=MAX_CHARS
-            )
+            all_current_file_chunks = chunk_code(tree, content.encode("utf-8"), MAX_CHARS=MAX_CHARS)
         already_visited_chunk: Set[str] = set()
         file_contents = content.splitlines()
         for chunk in all_current_file_chunks:
@@ -916,15 +876,11 @@ def chunk_source(
         return []
 
 
-def chunk_pr_diff(
-    diff_content: str, max_lines: int = 200, overlap: int = 15
-) -> list[str]:
+def chunk_pr_diff(diff_content: str, max_lines: int = 200, overlap: int = 15) -> list[str]:
     file_pattern = re.compile(r"^a/.+ b/.+$")  # Our files start with a/b
     tiktoken_client = TikToken()
 
-    pr_diff_token_count = tiktoken_client.count(
-        diff_content, ConfigManager.configs["EMBEDDING"]["MODEL"]
-    )
+    pr_diff_token_count = tiktoken_client.count(diff_content, ConfigManager.configs["EMBEDDING"]["MODEL"])
     embeeding_token_limit = ConfigManager.configs["EMBEDDING"]["TOKEN_LIMIT"]
 
     if pr_diff_token_count < embeeding_token_limit:

@@ -1,10 +1,17 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from xxhash import xxh64
 
 from deputydev_core.services.chunking.config.chunk_config import ChunkConfig
+from deputydev_core.services.repo.local_repo.dataclasses.main import DiffTypes
+from deputydev_core.services.repo.local_repo.diff_applicators.line_numbered_diff.applicator import (
+    LineNumberedDiffApplicator,
+)
+from deputydev_core.services.repo.local_repo.diff_applicators.unified_diff.applicator import (
+    UnifiedDiffApplicator,
+)
 from deputydev_core.utils.app_logger import AppLogger
 
 
@@ -19,80 +26,6 @@ class BaseLocalRepo(ABC):
         self.chunk_config = chunk_config or ChunkConfig()
         self.chunkable_files = chunkable_files if chunkable_files else []
 
-    def _apply_diff_in_file_content(
-        self, content: List[str], chunks: List[Tuple[int, int, str]]
-    ) -> List[str]:
-        modified_content = []
-        current_chunk_index = 0  # Tracks the current chunk being processed
-        skip_line_upto = 0  # Tracks the lines to skip due to chunk processing
-
-        # Process the file line by line
-        for idx, line in enumerate(content):
-            # Skip lines that are part of an already-applied chunk
-            if idx < skip_line_upto:
-                continue
-
-            # If there are no remaining chunks, append the line as-is
-            if current_chunk_index >= len(chunks):
-                modified_content.append(line)
-                continue
-
-            line_number = idx + 1  # Convert zero-based index to line number
-
-            # Check if the current line matches the start of the current chunk
-            if chunks[current_chunk_index][0] == line_number:
-                # Extract chunk details
-                _, end_line, diff = chunks[current_chunk_index]
-                diff_lines = diff.split("\n")  # Split diff content into lines
-
-                # Add the diff content to the modified content
-                modified_content.extend([line + "\n" for line in diff_lines])
-                # remove the last newline character
-                modified_content = modified_content[:-1]
-
-                # Update the skip range and move to the next chunk
-                skip_line_upto = end_line
-                current_chunk_index += 1
-            else:
-                # If the current line is outside the chunk, append it as-is
-                modified_content.append(line)
-
-        # Handle any remaining chunks after processing the file lines
-        for chunk in chunks[current_chunk_index:]:
-            _, _, diff = chunk
-            diff_lines = diff.split("\n")
-            modified_content.extend([line + "\n" for line in diff_lines])
-
-        return modified_content
-
-    def apply_diff(self, diff: Dict[str, List[Tuple[int, int, str]]]):
-        for fp, chunks in diff.items():
-            # Sort the chunks by start line number to ensure proper processing order
-            chunks = sorted(chunks, key=lambda x: x[0])
-            abs_file_path = os.path.join(self.repo_path, fp)
-            content = []
-            # Attempt to read the file content, handling the case where the file doesn't exist
-            try:
-                with open(abs_file_path, "r") as file_obj:
-                    content = file_obj.readlines()
-            except FileNotFoundError:
-                AppLogger.log_info(
-                    f"File not found: {abs_file_path}, a new file will be created"
-                )
-
-            # List to store the modified content
-            modified_content = self._apply_diff_in_file_content(
-                content=content, chunks=chunks
-            )
-
-            # Write the modified content back to the file
-            # if the file path does not exist, create the file path
-            if not os.path.exists(os.path.dirname(abs_file_path)):
-                os.makedirs(os.path.dirname(abs_file_path))
-
-            with open(abs_file_path, "w") as file_obj:
-                file_obj.writelines(modified_content)
-
     def _get_file_hash(self, file_path: str) -> str:
         with open(os.path.join(self.repo_path, file_path), "rb") as file:
             file_content = file.read()
@@ -106,13 +39,8 @@ class BaseLocalRepo(ABC):
                 return False
             if not os.path.isfile(abs_file_path):
                 return False
-            if (
-                os.path.getsize(abs_file_path)
-                > self.chunk_config.max_chunkable_file_size_bytes
-            ):
-                AppLogger.log_debug(
-                    f"File size is greater than the max_chunkable_file_size_bytes: {abs_file_path}"
-                )
+            if os.path.getsize(abs_file_path) > self.chunk_config.max_chunkable_file_size_bytes:
+                AppLogger.log_debug(f"File size is greater than the max_chunkable_file_size_bytes: {abs_file_path}")
                 return False
             # check if the filepath startswith any of the exclude_dirs
             if any(
@@ -122,19 +50,37 @@ class BaseLocalRepo(ABC):
                 return False
             return True
         except Exception as ex:
-            AppLogger.log_debug(
-                f"Error while checking if file is chunkable: {ex} for file: {file_path}"
-            )
+            AppLogger.log_debug(f"Error while checking if file is chunkable: {ex} for file: {file_path}")
             return False
 
     @abstractmethod
     async def get_chunkable_files_and_commit_hashes(self) -> Dict[str, str]:
-        raise NotImplementedError(
-            "get_file_to_commit_hash_map method must be implemented in the child class"
-        )
+        raise NotImplementedError("get_file_to_commit_hash_map method must be implemented in the child class")
 
     @abstractmethod
     async def get_chunkable_files(self) -> List[str]:
-        raise NotImplementedError(
-            "get_chunkable_files method must be implemented in the child class"
-        )
+        raise NotImplementedError("get_chunkable_files method must be implemented in the child class")
+
+    def apply_diff(
+        self, diff: Dict[str, Union[List[Tuple[int, int, str]], str]], diff_type: DiffTypes = DiffTypes.LINE_NUMBERED
+    ) -> None:
+        if diff_type == DiffTypes.LINE_NUMBERED:
+            line_numed_diff_applicator = LineNumberedDiffApplicator(self.repo_path)
+            line_numed_diff_applicator.apply_diff(diff)
+        else:
+            udiff_applicator = UnifiedDiffApplicator(self.repo_path)
+            udiff_applicator.apply_diff(diff)
+
+    def get_modified_file_content(
+        self, diff: Dict[str, Union[List[Tuple[int, int, str]], str]], diff_type: DiffTypes = DiffTypes.LINE_NUMBERED
+    ) -> Dict[str, str]:
+        if diff_type == DiffTypes.LINE_NUMBERED:
+            line_numed_diff_applicator = LineNumberedDiffApplicator(self.repo_path)
+            modified_content_lines = line_numed_diff_applicator.get_final_content(diff)
+            return {
+                file_path: "".join(modified_content_lines)
+                for file_path, modified_content_lines in modified_content_lines.items()
+            }
+        else:
+            udiff_applicator = UnifiedDiffApplicator(self.repo_path)
+            return udiff_applicator.get_final_content(diff)

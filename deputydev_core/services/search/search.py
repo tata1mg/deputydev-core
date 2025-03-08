@@ -43,9 +43,7 @@ async def perform_search(
         if query_vector is None:
             raise ValueError("Query vector is required for vector db based search")
         if not chunkable_files_with_hashes:
-            raise ValueError(
-                "Chunkable files with hashes are required for vector db based search"
-            )
+            raise ValueError("Chunkable files with hashes are required for vector db based search")
         sorted_chunks, input_tokens = await VectorDBBasedSearch.perform_search(
             whitelisted_file_commits=chunkable_files_with_hashes,
             query=query,
