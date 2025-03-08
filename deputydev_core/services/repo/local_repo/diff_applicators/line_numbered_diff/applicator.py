@@ -1,7 +1,6 @@
 import os
 from typing import Dict, List, Tuple
 
-
 from deputydev_core.utils.app_logger import AppLogger
 
 

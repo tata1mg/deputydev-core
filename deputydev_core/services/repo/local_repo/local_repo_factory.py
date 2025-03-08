@@ -1,3 +1,5 @@
+from typing import List
+
 from git import InvalidGitRepositoryError, Repo
 
 from deputydev_core.services.repo.local_repo.base_local_repo_service import (
@@ -7,7 +9,6 @@ from deputydev_core.services.repo.local_repo.managers.git_repo_service import Gi
 from deputydev_core.services.repo.local_repo.managers.non_vcs_repo_service import (
     NonVCSRepo,
 )
-from typing import List
 
 
 class LocalRepoFactory:

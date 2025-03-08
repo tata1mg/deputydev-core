@@ -17,7 +17,7 @@ from deputydev_core.services.chunking.dataclass.main import (
 from deputydev_core.services.tiktoken import TikToken
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
-from deputydev_core.utils.constants import ALL_EXTENSIONS
+from deputydev_core.utils.constants.constants import ALL_EXTENSIONS
 
 
 def get_parser(language: str) -> Parser:

@@ -9,7 +9,9 @@ from deputydev_core.services.repo.local_repo.dataclasses.main import DiffTypes
 from deputydev_core.services.repo.local_repo.diff_applicators.line_numbered_diff.applicator import (
     LineNumberedDiffApplicator,
 )
-from deputydev_core.services.repo.local_repo.diff_applicators.unified_diff.applicator import UnifiedDiffApplicator
+from deputydev_core.services.repo.local_repo.diff_applicators.unified_diff.applicator import (
+    UnifiedDiffApplicator,
+)
 from deputydev_core.utils.app_logger import AppLogger
 
 
