@@ -1,6 +1,6 @@
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
-from typing import Dict, Optional, Type, List
+from typing import Dict, List, Optional, Type
 
 from prompt_toolkit.shortcuts.progress_bar import ProgressBar
 from weaviate import WeaviateAsyncClient, WeaviateClient
@@ -50,9 +50,7 @@ class InitializationManager:
         self.repo_path = repo_path
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
         self.local_repo = None
-        self.embedding_manager = OneDevEmbeddingManager(
-            auth_token=auth_token, one_dev_client=one_dev_client
-        )
+        self.embedding_manager = OneDevEmbeddingManager(auth_token=auth_token, one_dev_client=one_dev_client)
         self.process_executor = process_executor
         self.chunk_cleanup_task = None
 
@@ -60,14 +58,10 @@ class InitializationManager:
         self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path, chunkable_files=chunkable_files)
         return self.local_repo
 
-    async def __check_and_initialize_collection(
-        self, collection: Type[WeaviateBaseDAO]
-    ) -> None:
+    async def __check_and_initialize_collection(self, collection: Type[WeaviateBaseDAO]) -> None:
         if not self.weaviate_client:
             raise ValueError("Weaviate client is not initialized")
-        exists = await self.weaviate_client.async_client.collections.exists(
-            collection.collection_name
-        )
+        exists = await self.weaviate_client.async_client.collections.exists(collection.collection_name)
         if not exists:
             await self.weaviate_client.async_client.collections.create(
                 name=collection.collection_name,
@@ -139,9 +133,7 @@ class InitializationManager:
         sync_client.connect()
         return sync_client
 
-    async def initialize_vector_db(
-        self, should_clean: bool = False
-    ) -> WeaviateSyncAndAsyncClients:
+    async def initialize_vector_db(self, should_clean: bool = False) -> WeaviateSyncAndAsyncClients:
         if self.weaviate_client:
             return self.weaviate_client
         async_client = await self.initialize_vector_db_async()
@@ -155,13 +147,9 @@ class InitializationManager:
         if not self.weaviate_client:
             raise ValueError("Connect to vector store failed")
 
-        schema_version = WeaviateSchemaDetailsService(
-            weaviate_client=self.weaviate_client
-        ).get_schema_version()
+        schema_version = WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).get_schema_version()
 
-        is_schema_invalid = (
-            schema_version is None or schema_version != WEAVIATE_SCHEMA_VERSION
-        )
+        is_schema_invalid = schema_version is None or schema_version != WEAVIATE_SCHEMA_VERSION
 
         if should_clean or is_schema_invalid:
             AppLogger.log_debug("Cleaning up the vector store")
@@ -171,16 +159,14 @@ class InitializationManager:
             *[
                 self.__check_and_initialize_collection(collection=Chunks),
                 self.__check_and_initialize_collection(collection=ChunkFiles),
-                self.__check_and_initialize_collection(
-                    collection=WeaviateSchemaDetails
-                ),
+                self.__check_and_initialize_collection(collection=WeaviateSchemaDetails),
             ]
         )
 
         if should_clean or is_schema_invalid:
-            WeaviateSchemaDetailsService(
-                weaviate_client=self.weaviate_client
-            ).set_schema_version(WEAVIATE_SCHEMA_VERSION)
+            WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).set_schema_version(
+                WEAVIATE_SCHEMA_VERSION
+            )
 
         return self.weaviate_client
 

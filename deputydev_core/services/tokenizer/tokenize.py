@@ -88,9 +88,7 @@ class ContentTokenizer:
             prev_token = token
         return res
 
-    def get_all_tokens(
-        self, include_bigrams: bool = True, include_trigrams: bool = True
-    ) -> List[str]:
+    def get_all_tokens(self, include_bigrams: bool = True, include_trigrams: bool = True) -> List[str]:
         """
         Retrieves all tokens, bigrams, and trigrams.
 
@@ -111,9 +109,7 @@ class ContentTokenizer:
         return tokens
 
 
-def compute_document_tokens(
-    content: str, include_bigrams: bool = True, include_trigrams: bool = True
-) -> Counter:
+def compute_document_tokens(content: str, include_bigrams: bool = True, include_trigrams: bool = True) -> Counter:
     """
     Computes the tokens and their counts in the given document content.
 

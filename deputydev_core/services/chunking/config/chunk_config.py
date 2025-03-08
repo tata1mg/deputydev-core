@@ -165,9 +165,7 @@ def get_blocked_dirs(repo: git.Repo) -> List[str]:
         List[str]: A list of blocked directories.
     """
     try:
-        yaml_content = repo.get_contents("deputy_dev.yaml").decoded_content.decode(
-            "utf-8"
-        )
+        yaml_content = repo.get_contents("deputy_dev.yaml").decoded_content.decode("utf-8")
         deputy_dev_yaml = yaml.safe_load(yaml_content)
         dirs = deputy_dev_yaml.get("blocked_dirs", [])
         return dirs

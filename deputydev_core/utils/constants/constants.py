@@ -48,6 +48,7 @@ class LLMModelNames(ExtendedEnum):
     GPT_4_O = "gpt-4o"
     GPT_TEXT_EMBEDDING_3_SMALL = "text-embedding-3-small"
 
+
 class AuthTokenKeys(Enum):
     CLI_AUTH_TOKEN = "cli_auth_token"
     EXTENSION_AUTH_TOKEN = "extension_auth_token"
