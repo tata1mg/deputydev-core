@@ -5,7 +5,8 @@ from math import log
 from typing import Any, Dict, List
 
 from deputydev_core.services.chunking.document import Document
-from deputydev_core.services.tokenizer import ContentTokenizer, compute_document_tokens
+from deputydev_core.services.tokenizer import (ContentTokenizer,
+                                               compute_document_tokens)
 from deputydev_core.utils.app_logger import AppLogger
 
 
