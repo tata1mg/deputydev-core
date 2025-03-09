@@ -112,10 +112,24 @@ class ChunkFilesService:
         """
         try:
             start_time = time.time()
+            file_filters = None
+            if chunkable_files_and_hashes and len(chunkable_files_and_hashes) > 0:
+                file_filters = Filter.any_of(
+                    [
+                        Filter.all_of(
+                            [
+                                Filter.by_property("file_path").equal(file_path),
+                                Filter.by_property("file_hash").equal(file_hash)
+                            ]
+                        )
+                        for file_path, file_hash in chunkable_files_and_hashes.items()
+                    ]
+                )
 
             results = await self.async_collection.query.bm25(
                 query=keyword,
                 query_properties=["entities"],
+                filters=file_filters,
                 return_metadata=wq.MetadataQuery(score=True),
             )
 
@@ -128,7 +142,7 @@ class ChunkFilesService:
             AppLogger.log_error("Failed to search code symbols")
             raise ex
 
-    async def get_autocomplete_keyword_type_chunks(
+    async def get_keyword_type_chunks(
         self, keyword: str, type: str, chunkable_files_and_hashes, limit: int = 10
     ) -> List[ChunkFileDTO]:
         """
@@ -136,11 +150,27 @@ class ChunkFilesService:
         """
         try:
             start_time = time.time()
+            file_filters = None
+            if chunkable_files_and_hashes and len(chunkable_files_and_hashes) > 0:
+                file_filters = Filter.any_of(
+                    [
+                        Filter.all_of(
+                            [
+                                Filter.by_property("file_path").equal(file_path),
+                                Filter.by_property("file_hash").equal(file_hash)
+                            ]
+                        )
+                        for file_path, file_hash in chunkable_files_and_hashes.items()
+                    ]
+                )
+
 
             results = await self.async_collection.query.bm25(
                 query=keyword,
                 query_properties=[CHUNKFILE_KEYWORD_PROPERTY_MAP.get(type)],
+                filters=file_filters,
                 return_metadata=wq.MetadataQuery(score=True),
+                limit=limit
             )
 
             elapsed_time = time.time() - start_time
