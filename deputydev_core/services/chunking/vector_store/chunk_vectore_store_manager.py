@@ -50,7 +50,6 @@ class ChunkVectorStoreManager:
                 if hasattr(chunk, "metadata") and chunk.metadata:
                     hierarchy = getattr(chunk.metadata, "hierarchy", None)
                     if hierarchy:
-                        print(chunk.metadata.hierarchy)
                         (
                             chunk_functions,
                             chunk_classes,
