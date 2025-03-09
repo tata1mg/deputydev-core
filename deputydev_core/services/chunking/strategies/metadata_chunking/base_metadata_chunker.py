@@ -203,7 +203,7 @@ class BaseMetadataChunker(BaseChunker):
                 and self.is_node_breakable(current_node, grammar)
                 and byte_size > 0
             ):
-                chunk_hierarchy = self.get_breakable_node_hierarchy(
+                chunk_hierarchy = hierarchy + self.get_breakable_node_hierarchy(
                     current_node, grammar
                 )
             else:

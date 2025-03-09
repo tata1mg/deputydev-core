@@ -89,6 +89,7 @@ class ChunkVectorStoreManager:
                         )
                         if chunk.metadata
                         else chunk.source_details.file_path,
+                        meta_info = chunk.metadata
                     )
                 )
 
@@ -202,6 +203,7 @@ class ChunkVectorStoreManager:
                         end_line=chunk_file_chunk[0].end_line,
                     ),
                     embedding=chunk_file_chunk[2],
+                    metadata=chunk_file_chunk[0].meta_info
                 )
                 for chunk_file_chunk in chunk_files_chunks_and_vectors
             ]
