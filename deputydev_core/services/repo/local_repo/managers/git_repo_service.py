@@ -9,9 +9,8 @@ from git.repo import Repo
 from git.util import Actor
 from giturlparse import parse as parse_git_url  # type: ignore
 
-from deputydev_core.services.repo.local_repo.base_local_repo_service import (
-    BaseLocalRepo,
-)
+from deputydev_core.services.repo.local_repo.base_local_repo_service import \
+    BaseLocalRepo
 from deputydev_core.utils.app_logger import AppLogger
 
 
@@ -133,7 +132,11 @@ class GitRepo(BaseLocalRepo):
         all_files_and_hashes: Dict[str, str] = task_results[1]  # type: ignore
         # filter non required files
         if self.chunkable_files:
-            all_files_and_hashes = {k: v for k, v in all_files_and_hashes.items() if k in self.chunkable_files}
+            all_files_and_hashes = {
+                k: v
+                for k, v in all_files_and_hashes.items()
+                if k in self.chunkable_files
+            }
             modified_files = list(set(modified_files) & set(self.chunkable_files))
         # remove all modified files from all_files_and_hashes
         for file in modified_files:

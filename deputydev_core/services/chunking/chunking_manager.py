@@ -3,18 +3,17 @@ import os
 from concurrent.futures import ProcessPoolExecutor
 from typing import Dict, List, Optional, Tuple
 
-from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
+from deputydev_core.services.chunking.chunk_info import (ChunkInfo,
+                                                         ChunkSourceDetails)
 from deputydev_core.services.chunking.chunker.base_chunker import BaseChunker
-from deputydev_core.services.embedding.base_embedding_manager import (
-    BaseEmbeddingManager,
-)
-from deputydev_core.services.repo.local_repo.base_local_repo_service import (
-    BaseLocalRepo,
-)
-from deputydev_core.services.repository.dataclasses.main import (
-    WeaviateSyncAndAsyncClients,
-)
-from deputydev_core.services.reranker.base_chunk_reranker import BaseChunkReranker
+from deputydev_core.services.embedding.base_embedding_manager import \
+    BaseEmbeddingManager
+from deputydev_core.services.repo.local_repo.base_local_repo_service import \
+    BaseLocalRepo
+from deputydev_core.services.repository.dataclasses.main import \
+    WeaviateSyncAndAsyncClients
+from deputydev_core.services.reranker.base_chunk_reranker import \
+    BaseChunkReranker
 from deputydev_core.services.search.dataclasses.main import SearchTypes
 from deputydev_core.services.search.search import perform_search
 from deputydev_core.utils.app_logger import AppLogger
@@ -170,6 +169,7 @@ class ChunkingManger:
         max_chunks_to_return: int,
         focus_files: List[str] = [],
         focus_chunks: List[str] = [],
+        focus_directories: List[str] = [],
         query_vector: Optional[List[float]] = None,
         only_focus_code_chunks: bool = False,
         search_type: SearchTypes = SearchTypes.VECTOR_DB_BASED,
@@ -194,6 +194,14 @@ class ChunkingManger:
         )
         if only_focus_code_chunks and focus_chunks_details:
             return focus_chunks_details, 0, ""
+
+        if focus_directories:
+            focus_files.extend(
+                cls.get_focus_files_from_focus_directories(
+                    chunkable_files_with_hashes, focus_directories
+                )
+            )
+
         if focus_files:
             # remove focus file to get chunks which are not related to focus chunks
             chunkable_files_with_hashes = copy.deepcopy(chunkable_files_with_hashes)
@@ -214,6 +222,19 @@ class ChunkingManger:
         )
         reranked_chunks = await cls.rerank_related_chunks(query, relevant_chunks, reranker, focus_chunks_details)
         return reranked_chunks, input_tokens, focus_chunks_details
+
+    @classmethod
+    def get_focus_files_from_focus_directories(
+        cls, chunkable_files_with_hashes, focus_directories
+    ):
+        focus_files = set()
+
+        for directory in focus_directories:
+            for file_path in chunkable_files_with_hashes:
+                if file_path.startswith(directory):
+                    focus_files.add(file_path)
+
+        return list(focus_files)
 
     @classmethod
     def exclude_focused_chunks(cls, related_chunk, focus_chunks_details):

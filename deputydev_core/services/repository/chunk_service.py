@@ -5,14 +5,10 @@ from weaviate.classes.query import Filter, MetadataQuery
 from weaviate.util import generate_uuid5
 
 from deputydev_core.models.dao.weaviate.chunks import Chunks
-from deputydev_core.models.dto.chunk_dto import (
-    ChunkDTO,
-    ChunkDTOWithScore,
-    ChunkDTOWithVector,
-)
-from deputydev_core.services.repository.dataclasses.main import (
-    WeaviateSyncAndAsyncClients,
-)
+from deputydev_core.models.dto.chunk_dto import (ChunkDTO, ChunkDTOWithScore,
+                                                 ChunkDTOWithVector)
+from deputydev_core.services.repository.dataclasses.main import \
+    WeaviateSyncAndAsyncClients
 from deputydev_core.utils.app_logger import AppLogger
 
 
