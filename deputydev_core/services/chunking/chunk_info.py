@@ -77,7 +77,7 @@ class ChunkInfo(BaseModel):
             if hierarchy.is_breakable_node:
                 break
             indent = hierarchy_seperator * idx
-            hierarchy_data.append(f"{indent}{hierarchy.type.value}  {hierarchy.value}")
+            hierarchy_data.append(f"{indent}{hierarchy.type}  {hierarchy.value}")
             hierarchy_data.append(
                 f"{indent}{hierarchy_seperator}..."
             )  # Add ellipsis at current indent level
