@@ -7,7 +7,7 @@ from deputydev_core.services.chunking.utils.chunk_utils import (
     get_parser, supported_new_chunk_language)
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
-from deputydev_core.utils.constants import ALL_EXTENSIONS
+from deputydev_core.utils.constants.constants import ALL_EXTENSIONS
 
 from ..tiktoken import TikToken
 from .chunk_info import ChunkInfo, ChunkSourceDetails

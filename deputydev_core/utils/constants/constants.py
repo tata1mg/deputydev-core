@@ -1,7 +1,7 @@
 from enum import Enum
 
 APP_VERSION = "1.0.4"
-WEAVIATE_SCHEMA_VERSION = 2
+WEAVIATE_SCHEMA_VERSION = 3
 LARGE_NO_OF_CHUNKS = 60
 JAVASCRIPT_EXTENSIONS = {
     "js": "javascript",
