@@ -30,17 +30,16 @@ from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema
     WeaviateSchemaDetailsService
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
-from deputydev_core.utils.constants.constants import WEAVIATE_SCHEMA_VERSION
 
 
 class InitializationManager:
     def __init__(
-        self,
-        repo_path: Optional[str] = None,
-        auth_token: Optional[str] = None,
-        process_executor: Optional[ProcessPoolExecutor] = None,
-        one_dev_client: Optional[OneDevClient] = None,
-        weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
+            self,
+            repo_path: Optional[str] = None,
+            auth_token: Optional[str] = None,
+            process_executor: Optional[ProcessPoolExecutor] = None,
+            one_dev_client: Optional[OneDevClient] = None,
+            weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
     ) -> None:
         self.repo_path = repo_path
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
@@ -86,8 +85,8 @@ class InitializationManager:
             await async_client.connect()
         except Exception as _ex:
             if (
-                "Embedded DB did not start because processes are already listening on ports http:8079 and grpc:50050"
-                in str(_ex)
+                    "Embedded DB did not start because processes are already listening on ports http:8079 and grpc:50050"
+                    in str(_ex)
             ):
                 async_client = WeaviateAsyncClient(
                     connection_params=ConnectionParams(
@@ -146,7 +145,7 @@ class InitializationManager:
 
         schema_version = WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).get_schema_version()
 
-        is_schema_invalid = schema_version is None or schema_version != WEAVIATE_SCHEMA_VERSION
+        is_schema_invalid = schema_version is None or schema_version != ConfigManager.configs["WEAVIATE_SCHEMA_VERSION"]
 
         if should_clean or is_schema_invalid:
             AppLogger.log_debug("Cleaning up the vector store")
@@ -162,15 +161,15 @@ class InitializationManager:
 
         if should_clean or is_schema_invalid:
             WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).set_schema_version(
-                WEAVIATE_SCHEMA_VERSION
+                ConfigManager.configs["WEAVIATE_SCHEMA_VERSION"]
             )
 
         return self.weaviate_client
 
     async def prefill_vector_store(
-        self,
-        chunkable_files_and_hashes: Dict[str, str],
-        progressbar: Optional[ProgressBar] = None,
+            self,
+            chunkable_files_and_hashes: Dict[str, str],
+            progressbar: Optional[ProgressBar] = None,
     ) -> None:
         if not self.local_repo:
             raise ValueError("Local repo is not initialized")
