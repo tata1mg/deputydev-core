@@ -19,10 +19,10 @@ class ChunkMetadataHierachyObject(BaseModel):
 
 class ChunkMetadata(BaseModel):
     hierarchy: List[ChunkMetadataHierachyObject]
-    dechunk: bool
-    import_only_chunk: bool
-    all_functions: List[str]
-    all_classes: List[str]
+    dechunk: Optional[bool] = False
+    import_only_chunk: Optional[bool] = False
+    all_functions: Optional[List[str]] = []
+    all_classes: Optional[List[str]] = []
     byte_size: Optional[int] = None
 
 
