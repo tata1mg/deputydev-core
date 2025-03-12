@@ -1,10 +1,11 @@
 import re
+from typing import Tuple, List, Set
 
 import tree_sitter_javascript
 from tree_sitter import Language, Parser
 from tree_sitter_languages import get_parser as tree_sitter_get_parser
 
-from deputydev_core.services.chunking.dataclass.main import NeoSpan
+from deputydev_core.services.chunking.dataclass.main import NeoSpan, ChunkMetadataHierachyObject
 
 
 def get_parser(language: str) -> Parser:
@@ -87,3 +88,18 @@ def supported_new_chunk_language(language):
         "ruby",
         "kotlin",
     ]
+
+
+def deduplicate_hierarchy(hierarchy_list: List[ChunkMetadataHierachyObject]):
+    """Removes duplicate dictionaries from the hierarchy list while preserving order."""
+    seen: Set[Tuple[str, str]] = set()
+    deduped: List[ChunkMetadataHierachyObject] = []
+    for _item in hierarchy_list:
+        item_tuple = (
+            _item.type,
+            _item.value,
+        )  # Sort items to ensure consistent comparison
+        if item_tuple not in seen:
+            seen.add(item_tuple)
+            deduped.append(_item)
+    return deduped
