@@ -71,6 +71,7 @@ class ChunkFilesService:
                 chunk_file_uuid = generate_uuid5(
                     f"{chunk.file_path}{chunk.file_hash}{chunk.start_line}{chunk.end_line}"
                 )
+                chunk["meta_info"] = {"hierarchy": chunk["meta_info"]["hierarchy"]} if chunk["meta_info"] else None
                 _batch.add_object(
                     properties=chunk.model_dump(mode="json", exclude={"id"}),
                     uuid=chunk_file_uuid,
