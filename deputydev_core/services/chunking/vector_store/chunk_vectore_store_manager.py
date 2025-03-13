@@ -79,16 +79,8 @@ class ChunkVectorStoreManager:
                         total_chunks=len(chunks),
                         classes=chunk_classes,
                         functions=chunk_functions,
-                        entities=" ".join(
-                            [
-                                *chunk_classes,
-                                *chunk_functions,
-                                chunk.source_details.file_path,
-                            ]
-                        )
-                        if chunk.metadata
-                        else chunk.source_details.file_path,
-                        meta_info = chunk.metadata
+                        searchable_file_path=chunk.source_details.file_path,
+                        meta_info=chunk.metadata
                     )
                 )
 
