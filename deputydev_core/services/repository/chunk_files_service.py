@@ -11,7 +11,7 @@ from deputydev_core.models.dto.chunk_file_dto import ChunkFileDTO
 from deputydev_core.services.repository.dataclasses.main import \
     WeaviateSyncAndAsyncClients
 from deputydev_core.utils.app_logger import AppLogger
-from deputydev_core.utils.constants.constants import CHUNKFILE_KEYWORD_PROPERTY_MAP
+from deputydev_core.utils.constants.constants import CHUNKFILE_KEYWORD_PROPERTY_MAP, PropertyTypes
 
 
 class ChunkFilesService:
@@ -130,7 +130,9 @@ class ChunkFilesService:
 
             results = await self.async_collection.query.bm25(
                 query=keyword,
-                query_properties=["entities"],
+                query_properties=[PropertyTypes.FUNCTION.value,
+                                  PropertyTypes.CLASS.value,
+                                  PropertyTypes.FILE.value],
                 filters=file_filters,
                 return_metadata=wq.MetadataQuery(score=True),
             )
@@ -165,7 +167,6 @@ class ChunkFilesService:
                         for file_path, file_hash in chunkable_files_and_hashes.items()
                     ]
                 )
-
 
             results = await self.async_collection.query.bm25(
                 query=keyword,

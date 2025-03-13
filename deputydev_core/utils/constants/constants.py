@@ -37,7 +37,7 @@ ALL_EXTENSIONS = {
 class PropertyTypes(Enum):
     FUNCTION = "functions"
     CLASS = "classes"
-    FILE = "file_path"
+    FILE = "searchable_file_path"
 
 
 CHUNKFILE_KEYWORD_PROPERTY_MAP = {
