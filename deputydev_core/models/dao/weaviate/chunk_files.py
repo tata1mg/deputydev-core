@@ -12,7 +12,7 @@ class ChunkFiles(Base):
             data_type=DataType.TEXT,
             vectorize_property_name=False,
             skip_vectorization=True,
-            tokenization=Tokenization.TRIGRAM,
+            tokenization=Tokenization.FIELD,
             index_filterable=True,
         ),
         Property(
@@ -52,6 +52,15 @@ class ChunkFiles(Base):
             skip_vectorization=True,
         ),
         Property(
+            name="searchable_file_path",
+            data_type=DataType.TEXT,
+            vectorize_property_name=False,
+            skip_vectorization=True,
+            tokenization=Tokenization.TRIGRAM,
+            index_filterable=True,
+            index_searchable=True,
+        ),
+        Property(
             name="classes",
             data_type=DataType.TEXT_ARRAY,
             vectorize_property_name=False,
@@ -63,15 +72,6 @@ class ChunkFiles(Base):
         Property(
             name="functions",
             data_type=DataType.TEXT_ARRAY,
-            vectorize_property_name=False,
-            tokenization=Tokenization.TRIGRAM,
-            skip_vectorization=True,
-            index_filterable=True,
-            index_searchable=True,
-        ),
-        Property(
-            name="entities",
-            data_type=DataType.TEXT,
             vectorize_property_name=False,
             tokenization=Tokenization.TRIGRAM,
             skip_vectorization=True,
@@ -96,11 +96,6 @@ class ChunkFiles(Base):
                         Property(name="is_breakable_node", data_type=DataType.BOOL)
                     ]
                 ),
-                Property(name="dechunk", data_type=DataType.BOOL),
-                Property(name="import_only_chunk", data_type=DataType.BOOL),
-                Property(name="all_functions", data_type=DataType.TEXT_ARRAY),
-                Property(name="all_classes", data_type=DataType.TEXT_ARRAY),
-                Property(name="byte_size", data_type=DataType.INT)
             ]
         ),
     ]

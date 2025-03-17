@@ -6,7 +6,7 @@ from tree_sitter import Node
 from deputydev_core.services.chunking.dataclass.main import (
     ChunkMetadata, ChunkMetadataHierachyObject, ChunkNodeType, NeoSpan)
 from deputydev_core.services.chunking.utils.chunk_utils import \
-    get_current_chunk_length
+    get_current_chunk_length, deduplicate_hierarchy
 from deputydev_core.services.chunking.utils.grammar_utils import \
     LanguageIdentifiers
 
@@ -183,7 +183,7 @@ class BaseMetadataChunker(BaseChunker):
         chunks: list[NeoSpan] = []
         node_children = node.children
         grammar = self.language_identifiers
-
+        prev_hierarchy_length = len(hierarchy)
         # Handle decorators for class or function definitions
 
         def create_chunk_with_decorators(
@@ -203,9 +203,9 @@ class BaseMetadataChunker(BaseChunker):
                 and self.is_node_breakable(current_node, grammar)
                 and byte_size > 0
             ):
-                chunk_hierarchy = hierarchy + self.get_breakable_node_hierarchy(
+                chunk_hierarchy = deduplicate_hierarchy(hierarchy + self.get_breakable_node_hierarchy(
                     current_node, grammar
-                )
+                ))
             else:
                 chunk_hierarchy.extend(copy.deepcopy(hierarchy or []))
 
@@ -332,7 +332,7 @@ class BaseMetadataChunker(BaseChunker):
             chunks.append(current_chunk)
 
         # pop the last hirarchey
-        if self.is_node_breakable(node, grammar) and hierarchy and len(hierarchy) > 0:
+        if hierarchy and len(hierarchy) > 0 and len(hierarchy) > prev_hierarchy_length:
             hierarchy.pop()
         return chunks
 
@@ -372,11 +372,6 @@ class BaseMetadataChunker(BaseChunker):
             ):
                 if previous_chunk and len(previous_chunk) > 0:
                     new_chunks.append(previous_chunk)
-                previous_chunk = chunk
-
-            # Split based on size or newline condition
-            elif chunk.non_whitespace_len(source_code) > coalesce:
-                new_chunks.append(previous_chunk)
                 previous_chunk = chunk
 
             else:
