@@ -107,7 +107,7 @@ class ChunkFilesService:
             AppLogger.log_debug(f"chunk_files deleted. successful - {result.successful}, failed - {result.failed}")
 
     async def get_autocomplete_keyword_chunks(
-        self, keyword: str, chunkable_files_and_hashes, limit: int = 10
+            self, keyword: str, chunkable_files_and_hashes
     ) -> List[ChunkFileDTO]:
         """
         Search for code symbols using BM25 and fuzzy matching
@@ -121,21 +121,32 @@ class ChunkFilesService:
                         Filter.all_of(
                             [
                                 Filter.by_property("file_path").equal(file_path),
-                                Filter.by_property("file_hash").equal(file_hash)
+                                Filter.by_property("file_hash").equal(file_hash),
                             ]
                         )
                         for file_path, file_hash in chunkable_files_and_hashes.items()
                     ]
                 )
-
-            results = await self.async_collection.query.bm25(
-                query=keyword,
-                query_properties=[PropertyTypes.FUNCTION.value,
-                                  PropertyTypes.CLASS.value,
-                                  PropertyTypes.FILE.value],
-                filters=file_filters,
-                return_metadata=wq.MetadataQuery(score=True),
-            )
+            if len(keyword) < 3:
+                content_filters = Filter.any_of([
+                    Filter.by_property(PropertyTypes.FUNCTION.value).like(f"*{keyword}*"),
+                    Filter.by_property(PropertyTypes.CLASS.value).like(f"*{keyword}*"),
+                    Filter.by_property(PropertyTypes.FILE.value).like(f"*{keyword}*"),
+                ])
+                combined_filter = Filter.all_of([file_filters, content_filters])
+                results = await self.async_collection.query.fetch_objects(
+                    filters=combined_filter,
+                    return_metadata=wq.MetadataQuery(score=True),
+                )
+            else:
+                results = await self.async_collection.query.bm25(
+                    query=keyword,
+                    query_properties=[PropertyTypes.FUNCTION.value,
+                                      PropertyTypes.CLASS.value,
+                                      PropertyTypes.FILE.value],
+                    filters=file_filters,
+                    return_metadata=wq.MetadataQuery(score=True),
+                )
 
             elapsed_time = time.time() - start_time
             AppLogger.log_info(f"Code search completed in {elapsed_time:.4f} seconds")
@@ -147,7 +158,7 @@ class ChunkFilesService:
             raise ex
 
     async def get_keyword_type_chunks(
-        self, keyword: str, type: str, chunkable_files_and_hashes, limit: int = 10
+            self, keyword: str, type: str, chunkable_files_and_hashes, limit: int = 50
     ) -> List[ChunkFileDTO]:
         """
         Search for code symbols using BM25 and fuzzy matching
@@ -167,14 +178,23 @@ class ChunkFilesService:
                         for file_path, file_hash in chunkable_files_and_hashes.items()
                     ]
                 )
-
-            results = await self.async_collection.query.bm25(
-                query=keyword,
-                query_properties=[CHUNKFILE_KEYWORD_PROPERTY_MAP.get(type)],
-                filters=file_filters,
-                return_metadata=wq.MetadataQuery(score=True),
-                limit=limit
-            )
+            if len(keyword) < 3:
+                content_filters = Filter.any_of([
+                    Filter.by_property(CHUNKFILE_KEYWORD_PROPERTY_MAP.get(type)).like(f"*{keyword}*"),
+                ])
+                combined_filter = Filter.all_of([file_filters, content_filters])
+                results = await self.async_collection.query.fetch_objects(
+                    filters=combined_filter,
+                    return_metadata=wq.MetadataQuery(score=True),
+                )
+            else:
+                results = await self.async_collection.query.bm25(
+                    query=keyword,
+                    query_properties=[CHUNKFILE_KEYWORD_PROPERTY_MAP.get(type)],
+                    filters=file_filters,
+                    return_metadata=wq.MetadataQuery(score=True),
+                    limit=limit
+                )
 
             elapsed_time = time.time() - start_time
             AppLogger.log_info(f"Code search completed in {elapsed_time:.4f} seconds")

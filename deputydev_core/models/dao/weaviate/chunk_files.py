@@ -58,6 +58,7 @@ class ChunkFiles(Base):
             skip_vectorization=True,
             tokenization=Tokenization.TRIGRAM,
             index_filterable=True,
+            index_searchable=True,
         ),
         Property(
             name="classes",
