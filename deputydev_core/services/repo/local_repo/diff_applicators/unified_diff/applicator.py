@@ -339,7 +339,11 @@ class UnifiedDiffApplicator:
 
         # if the file does not exist and there is no before text, we can just create the file
         if not file_path.exists() and not before_text.strip():
-            file_path.touch()
+            # file_path.touch()
+            content = ""
+
+        if not file_path.exists() and before_text.strip():
+            before_text = ""
             content = ""
 
         # if the file does not exist and there is before text, we cannot apply the diff
@@ -380,6 +384,7 @@ class UnifiedDiffApplicator:
 
         # firstly, get the unique hunks
         edits = self.find_diff_hunks(filepath_to_diff_map)
+        print("edits", edits)
 
         # remove duplicates using a set
         seen: Set[str] = set()
@@ -399,6 +404,7 @@ class UnifiedDiffApplicator:
             seen.add(this)
 
             unique_normalized_hunks.append((path, hunk))
+        print("unique_normalized_hunks", unique_normalized_hunks)
 
         # apply the hunks
         errors: List[str] = []
