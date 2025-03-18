@@ -130,6 +130,7 @@ class VectorDBChunker(BaseChunker):
         """
 
         all_file_wise_chunks: Dict[str, List[ChunkInfo]] = {}
+
         for batch_files in batched_files_to_store:
 
             # get the chunks for the batch
