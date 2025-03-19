@@ -8,8 +8,8 @@ from prompt_toolkit.shortcuts.progress_bar import (ProgressBar,
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.chunker.handlers.vector_db_chunker import \
     VectorDBChunker
-from deputydev_core.services.embedding.one_dev_embedding_manager import \
-    OneDevEmbeddingManager
+from deputydev_core.services.embedding.cli_embedding_manager import \
+    CLIEmbeddingManager
 from deputydev_core.services.repo.local_repo.base_local_repo_service import \
     BaseLocalRepo
 from deputydev_core.services.repository.dataclasses.main import \
@@ -23,7 +23,7 @@ class OneDevCLIChunker(VectorDBChunker):
         local_repo: BaseLocalRepo,
         process_executor: ProcessPoolExecutor,
         weaviate_client: WeaviateSyncAndAsyncClients,
-        embedding_manager: OneDevEmbeddingManager,
+        embedding_manager: CLIEmbeddingManager,
         chunkable_files_and_hashes: Dict[str, str],
         progress_bar: Optional[ProgressBar] = None,
         use_new_chunking: bool = True,

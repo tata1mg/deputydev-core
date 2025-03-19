@@ -18,8 +18,7 @@ from deputydev_core.services.chunking.chunker.handlers.one_dev_cli_chunker impor
     OneDevCLIChunker
 from deputydev_core.services.chunking.vector_store.chunk_vector_store_cleanup_manager import \
     ChunkVectorStoreCleaneupManager
-from deputydev_core.services.embedding.one_dev_embedding_manager import \
-    OneDevEmbeddingManager
+from deputydev_core.services.embedding.cli_embedding_manager import CLIEmbeddingManager
 from deputydev_core.services.repo.local_repo.base_local_repo_service import \
     BaseLocalRepo
 from deputydev_core.services.repo.local_repo.local_repo_factory import \
@@ -44,7 +43,7 @@ class InitializationManager:
         self.repo_path = repo_path
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
         self.local_repo = None
-        self.embedding_manager = OneDevEmbeddingManager(auth_token=auth_token, one_dev_client=one_dev_client)
+        self.embedding_manager = CLIEmbeddingManager(auth_token=auth_token, one_dev_client=one_dev_client)
         self.process_executor = process_executor
         self.chunk_cleanup_task = None
 
