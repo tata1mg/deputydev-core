@@ -30,13 +30,14 @@ from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema
     WeaviateSchemaDetailsService
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
+from deputydev_core.utils.shared_memory import SharedMemory
 
 
 class InitializationManager:
     def __init__(
             self,
             repo_path: Optional[str] = None,
-            auth_token: Optional[str] = None,
+            auth_token_key: Optional[str] = None,
             process_executor: Optional[ProcessPoolExecutor] = None,
             one_dev_client: Optional[OneDevClient] = None,
             weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
@@ -44,7 +45,8 @@ class InitializationManager:
         self.repo_path = repo_path
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
         self.local_repo = None
-        self.embedding_manager = OneDevEmbeddingManager(auth_token=auth_token, one_dev_client=one_dev_client)
+        self.embedding_manager = OneDevEmbeddingManager(auth_token_key=auth_token_key,
+                                                        one_dev_client=one_dev_client)
         self.process_executor = process_executor
         self.chunk_cleanup_task = None
 

@@ -13,11 +13,12 @@ from deputydev_core.services.embedding.base_embedding_manager import \
 from deputydev_core.services.tiktoken import TikToken
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
+from deputydev_core.utils.shared_memory import SharedMemory
 
 
 class OneDevEmbeddingManager(BaseEmbeddingManager):
-    def __init__(self, auth_token: str, one_dev_client: OneDevClient):
-        self.auth_token = auth_token
+    def __init__(self, auth_token_key: str, one_dev_client: OneDevClient):
+        self.auth_token_key = auth_token_key
         self.one_dev_client = one_dev_client
 
     @classmethod
@@ -51,7 +52,7 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
         return batches
 
     async def _get_embeddings_for_single_batch(
-        self, batch: List[str], store_embeddings: bool = True
+            self, batch: List[str], store_embeddings: bool = True
     ) -> Tuple[Optional[List[List[float]]], int, List[str]]:
         try:
             time_start = time.perf_counter()
@@ -59,7 +60,7 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
                 payload={"texts": batch, "store_embeddings": store_embeddings},
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {self.auth_token}",
+                    "Authorization": f"Bearer {SharedMemory.read(self.auth_token_key)}",
                 },
             )
             AppLogger.log_debug(f"Time taken for embedding batch via API: {time.perf_counter() - time_start}")
@@ -73,16 +74,16 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
             return None, 0, batch
 
     def _update_embeddings_and_tokens_used(
-        self,
-        all_embeddings: List[List[float]],
-        total_tokens_used: int,
-        failed_batches: List[List[str]],
-        current_batch_embeddings: Optional[List[List[float]]],
-        current_batch_tokens_used: int,
-        current_batch: List[str],
-        last_checkpoint: float,
-        progress_step: Optional[float],
-        progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
+            self,
+            all_embeddings: List[List[float]],
+            total_tokens_used: int,
+            failed_batches: List[List[str]],
+            current_batch_embeddings: Optional[List[List[float]]],
+            current_batch_tokens_used: int,
+            current_batch: List[str],
+            last_checkpoint: float,
+            progress_step: Optional[float],
+            progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
     ) -> Tuple[int, float]:
         if current_batch_embeddings is None:
             failed_batches.append(current_batch)
@@ -98,15 +99,15 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
         return total_tokens_used, last_checkpoint
 
     async def _process_parallel_batches(
-        self,
-        parallel_batches: List[List[str]],
-        all_embeddings: List[List[float]],
-        tokens_used: int,
-        exponential_backoff: float,
-        last_checkpoint: float,
-        step: Optional[float],
-        store_embeddings: bool = True,
-        progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
+            self,
+            parallel_batches: List[List[str]],
+            all_embeddings: List[List[float]],
+            tokens_used: int,
+            exponential_backoff: float,
+            last_checkpoint: float,
+            step: Optional[float],
+            store_embeddings: bool = True,
+            progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
     ) -> Tuple[int, float, float, List[List[str]]]:
         parallel_tasks = [self._get_embeddings_for_single_batch(batch, store_embeddings) for batch in parallel_batches]
         failed_batches: List[List[str]] = []
@@ -134,11 +135,11 @@ class OneDevEmbeddingManager(BaseEmbeddingManager):
         return tokens_used, last_checkpoint, exponential_backoff, parallel_batches
 
     async def embed_text_array(
-        self,
-        texts: List[str],
-        store_embeddings: bool = True,
-        progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
-        len_checkpoints: Optional[int] = None,
+            self,
+            texts: List[str],
+            store_embeddings: bool = True,
+            progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
+            len_checkpoints: Optional[int] = None,
     ) -> Tuple[NDArray[np.float64], int]:
         embeddings: List[List[float]] = []
         tokens_used: int = 0
