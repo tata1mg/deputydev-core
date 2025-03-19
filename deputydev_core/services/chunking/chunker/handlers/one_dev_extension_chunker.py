@@ -104,7 +104,8 @@ class OneDevExtensionChunker(VectorDBChunker):
 
             # merge the chunks
             all_file_wise_chunks.update(file_wise_chunks_for_batch)
-
+        if self.progress_bar:
+            self.progress_bar.mark_finish()
         return all_file_wise_chunks
 
     async def add_chunk_embeddings(self, chunks: List[ChunkInfo]) -> None:

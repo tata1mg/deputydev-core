@@ -156,7 +156,6 @@ class VectorDBChunker(BaseChunker):
 
             # merge the chunks
             all_file_wise_chunks.update(file_wise_chunks_for_batch)
-
         return all_file_wise_chunks
 
     async def create_chunks_and_docs(self) -> List[ChunkInfo]:
