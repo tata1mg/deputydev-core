@@ -5,7 +5,7 @@ from typing import Optional, Dict, Tuple, List
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.chunker.handlers.vector_db_chunker import VectorDBChunker
 from deputydev_core.services.chunking.vector_store.chunk_vectore_store_manager import ChunkVectorStoreManager
-from deputydev_core.services.embedding.extension_embedding_manager_with_progress import ExtensionEmbeddingManager
+from deputydev_core.services.embedding.extension_embedding_manager import ExtensionEmbeddingManager
 from deputydev_core.utils.custom_progress_bar import CustomProgressBar
 from deputydev_core.services.repo.local_repo.base_local_repo_service import BaseLocalRepo
 from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients

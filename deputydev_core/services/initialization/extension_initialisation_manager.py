@@ -6,7 +6,7 @@ from deputydev_core.clients.http.service_clients.one_dev_client import OneDevCli
 from deputydev_core.services.chunking.chunker.handlers.one_dev_extension_chunker import OneDevExtensionChunker
 from deputydev_core.services.chunking.vector_store.chunk_vector_store_cleanup_manager import \
     ChunkVectorStoreCleaneupManager
-from deputydev_core.services.embedding.extension_embedding_manager_with_progress import ExtensionEmbeddingManager
+from deputydev_core.services.embedding.extension_embedding_manager import ExtensionEmbeddingManager
 from deputydev_core.services.initialization.initialization_service import InitializationManager
 from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
 from deputydev_core.utils.custom_progress_bar import CustomProgressBar
