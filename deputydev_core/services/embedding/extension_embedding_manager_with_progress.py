@@ -49,7 +49,8 @@ class ExtensionEmbeddingManager(BaseOneDevEmbeddingManager):
                 _tokens_used,
                 data_batch,
             )
-            progress_bar.update(len(data_batch), progress_step)
+            if progress_bar:
+                progress_bar.update(len(data_batch), progress_step)
         parallel_batches = []
         if failed_batches:
             await asyncio.sleep(exponential_backoff)
@@ -99,7 +100,6 @@ class ExtensionEmbeddingManager(BaseOneDevEmbeddingManager):
                     progress_bar_counter,
                     len(texts)
                 )
-                progress_bar_counter.update(len(parallel_batches), len(texts))
             # store current batch
             parallel_batches += [batch]
 
@@ -117,7 +117,6 @@ class ExtensionEmbeddingManager(BaseOneDevEmbeddingManager):
                 progress_bar_counter,
                 len(texts)
             )
-            progress_bar_counter.update(len(parallel_batches), len(texts))
 
         if len(embeddings) != len(texts):
             raise ValueError("Mismatch in number of embeddings and texts")

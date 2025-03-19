@@ -36,8 +36,6 @@ class ExtensionInitialisationManager(InitializationManager):
         if not self.weaviate_client:
             raise ValueError("Connect to vector store")
 
-        progress_monitor_task = asyncio.create_task(self._monitor_progress(progressbar))
-
         all_chunks = await OneDevExtensionChunker(
             local_repo=self.local_repo,
             weaviate_client=self.weaviate_client,
@@ -54,13 +52,3 @@ class ExtensionInitialisationManager(InitializationManager):
                 weaviate_client=self.weaviate_client,
             ).start_cleanup_for_chunk_and_hashes()
         )
-
-    async def _monitor_progress(self, progress_bar):
-        """A separate task that can monitor and report progress while chunking happens"""
-        try:
-            while True:
-                print("progressing", progress_bar.total_percentage)
-                await asyncio.sleep(1)  # Check progress every second
-        except asyncio.CancelledError:
-            # Task was cancelled, nothing to do
-            pass
