@@ -7,7 +7,24 @@ class ConfigConsumer(Enum):
     BINARY = "BINARY"
 
 
+class Clients(Enum):
+    CLI = "CLI"
+    BACKEND = "BACKEND"
+    VSCODE_EXT = "VSCODE_EXT"
+    BINARY = "BINARY"
+
+
 class SharedMemoryKeys(Enum):
     BINARY_CONFIG = "BINARY_CONFIG"
     CLI_AUTH_TOKEN = "CLI_AUTH_TOKEN"
     EXTENSION_AUTH_TOKEN = "EXTENSION_AUTH_TOKEN"
+
+
+class AuthTokenStorageManagers(Enum):
+    CLI_AUTH_TOKEN_STORAGE_MANAGER = "cli"
+    EXTENSION_AUTH_TOKEN_STORAGE_MANAGER = "extension"
+
+
+class Status(Enum):
+    SUCCESS = "success"
+    FAILED = "failed"

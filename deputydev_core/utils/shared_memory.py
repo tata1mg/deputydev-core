@@ -15,7 +15,7 @@ class SharedMemory:
         return cls._locks[shm_name]
 
     @classmethod
-    def create(cls, shm_name: str, data: Dict) -> None:
+    def create(cls, shm_name: str, data: Any) -> None:
         """Creates or overwrites shared memory with pickled data, using a lock."""
         data_bytes = pickle.dumps(data)  # Serialize object
 
