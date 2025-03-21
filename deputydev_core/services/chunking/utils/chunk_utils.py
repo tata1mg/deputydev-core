@@ -1,11 +1,14 @@
 import re
-from typing import Tuple, List, Set
+from typing import List, Set, Tuple
 
 import tree_sitter_javascript
 from tree_sitter import Language, Parser
 from tree_sitter_languages import get_parser as tree_sitter_get_parser
 
-from deputydev_core.services.chunking.dataclass.main import NeoSpan, ChunkMetadataHierachyObject
+from deputydev_core.services.chunking.dataclass.main import (
+    ChunkMetadataHierachyObject,
+    NeoSpan,
+)
 
 
 def get_parser(language: str) -> Parser:
