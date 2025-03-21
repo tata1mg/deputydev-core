@@ -2,11 +2,9 @@ import time
 from datetime import datetime, timedelta, timezone
 from typing import List
 
-from deputydev_core.services.repository.chunk_files_service import \
-    ChunkFilesService
+from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
 from deputydev_core.services.repository.chunk_service import ChunkService
-from deputydev_core.services.repository.dataclasses.main import \
-    WeaviateSyncAndAsyncClients
+from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
 from deputydev_core.utils.app_logger import AppLogger
 
 
