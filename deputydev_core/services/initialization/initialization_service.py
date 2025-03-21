@@ -7,26 +7,22 @@ from weaviate import WeaviateAsyncClient, WeaviateClient
 from weaviate.connect import ConnectionParams, ProtocolParams
 from weaviate.embedded import EmbeddedOptions
 
-from deputydev_core.clients.http.service_clients.one_dev_client import \
-    OneDevClient
+from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
 from deputydev_core.models.dao.weaviate.base import Base as WeaviateBaseDAO
 from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
 from deputydev_core.models.dao.weaviate.chunks import Chunks
-from deputydev_core.models.dao.weaviate.weaviate_schema_details import \
-    WeaviateSchemaDetails
-from deputydev_core.services.chunking.chunker.handlers.one_dev_cli_chunker import \
-    OneDevCLIChunker
-from deputydev_core.services.chunking.vector_store.chunk_vector_store_cleanup_manager import \
-    ChunkVectorStoreCleaneupManager
+from deputydev_core.models.dao.weaviate.weaviate_schema_details import WeaviateSchemaDetails
+from deputydev_core.services.chunking.chunker.handlers.one_dev_cli_chunker import OneDevCLIChunker
+from deputydev_core.services.chunking.vector_store.chunk_vector_store_cleanup_manager import (
+    ChunkVectorStoreCleaneupManager,
+)
 from deputydev_core.services.embedding.cli_embedding_manager import CLIEmbeddingManager
-from deputydev_core.services.repo.local_repo.base_local_repo_service import \
-    BaseLocalRepo
-from deputydev_core.services.repo.local_repo.local_repo_factory import \
-    LocalRepoFactory
-from deputydev_core.services.repository.dataclasses.main import \
-    WeaviateSyncAndAsyncClients
-from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema_details_service import \
-    WeaviateSchemaDetailsService
+from deputydev_core.services.repo.local_repo.base_local_repo_service import BaseLocalRepo
+from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepoFactory
+from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
+from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema_details_service import (
+    WeaviateSchemaDetailsService,
+)
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
 from deputydev_core.utils.shared_memory import SharedMemory
@@ -49,9 +45,7 @@ class InitializationManager:
         self.chunk_cleanup_task = None
 
     def get_local_repo(self, chunkable_files: List[str] = None) -> BaseLocalRepo:
-        self.local_repo = LocalRepoFactory.get_local_repo(
-            self.repo_path, chunkable_files=chunkable_files
-        )
+        self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path, chunkable_files=chunkable_files)
         return self.local_repo
 
     async def __check_and_initialize_collection(self, collection: Type[WeaviateBaseDAO]) -> None:
@@ -85,8 +79,8 @@ class InitializationManager:
             await async_client.connect()
         except Exception as _ex:
             if (
-                    "Embedded DB did not start because processes are already listening on ports http:8079 and grpc:50050"
-                    in str(_ex)
+                "Embedded DB did not start because processes are already listening on ports http:8079 and grpc:50050"
+                in str(_ex)
             ):
                 async_client = WeaviateAsyncClient(
                     connection_params=ConnectionParams(
@@ -167,9 +161,9 @@ class InitializationManager:
         return self.weaviate_client
 
     async def prefill_vector_store(
-            self,
-            chunkable_files_and_hashes: Dict[str, str],
-            progressbar: Optional[ProgressBar] = None,
+        self,
+        chunkable_files_and_hashes: Dict[str, str],
+        progressbar: Optional[ProgressBar] = None,
     ) -> None:
         if not self.local_repo:
             raise ValueError("Local repo is not initialized")

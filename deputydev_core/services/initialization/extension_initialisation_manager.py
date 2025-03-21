@@ -4,8 +4,9 @@ from typing import Optional, Dict
 
 from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
 from deputydev_core.services.chunking.chunker.handlers.one_dev_extension_chunker import OneDevExtensionChunker
-from deputydev_core.services.chunking.vector_store.chunk_vector_store_cleanup_manager import \
-    ChunkVectorStoreCleaneupManager
+from deputydev_core.services.chunking.vector_store.chunk_vector_store_cleanup_manager import (
+    ChunkVectorStoreCleaneupManager,
+)
 from deputydev_core.services.embedding.extension_embedding_manager import ExtensionEmbeddingManager
 from deputydev_core.services.initialization.initialization_service import InitializationManager
 from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
@@ -26,9 +27,9 @@ class ExtensionInitialisationManager(InitializationManager):
         self.embedding_manager = ExtensionEmbeddingManager(auth_token_key=auth_token_key, one_dev_client=one_dev_client)
 
     async def prefill_vector_store(
-            self,
-            chunkable_files_and_hashes: Dict[str, str],
-            progressbar: Optional[CustomProgressBar] = None,
+        self,
+        chunkable_files_and_hashes: Dict[str, str],
+        progressbar: Optional[CustomProgressBar] = None,
     ) -> None:
         if not self.local_repo:
             raise ValueError("Local repo is not initialized")

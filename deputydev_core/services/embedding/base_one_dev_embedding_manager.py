@@ -43,7 +43,7 @@ class BaseOneDevEmbeddingManager(BaseEmbeddingManager):
         return batches
 
     async def _get_embeddings_for_single_batch(
-            self, batch: List[str], store_embeddings: bool = True
+        self, batch: List[str], store_embeddings: bool = True
     ) -> Tuple[Optional[List[List[float]]], int, List[str]]:
         try:
             time_start = time.perf_counter()

@@ -5,18 +5,13 @@ from typing import Dict, List, Optional, Tuple
 
 from deputydev_core.models.dto.chunk_dto import ChunkDTO, ChunkDTOWithVector
 from deputydev_core.models.dto.chunk_file_dto import ChunkFileDTO
-from deputydev_core.services.chunking.chunk_info import (ChunkInfo,
-                                                         ChunkSourceDetails)
+from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
 from deputydev_core.services.chunking.dataclass.main import ChunkNodeType
-from deputydev_core.services.chunking.vector_store.dataclasses.refresh_config import \
-    RefreshConfig
-from deputydev_core.services.repo.local_repo.base_local_repo_service import \
-    BaseLocalRepo
-from deputydev_core.services.repository.chunk_files_service import \
-    ChunkFilesService
+from deputydev_core.services.chunking.vector_store.dataclasses.refresh_config import RefreshConfig
+from deputydev_core.services.repo.local_repo.base_local_repo_service import BaseLocalRepo
+from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
 from deputydev_core.services.repository.chunk_service import ChunkService
-from deputydev_core.services.repository.dataclasses.main import \
-    WeaviateSyncAndAsyncClients
+from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
 from deputydev_core.utils.app_logger import AppLogger
 
 
@@ -80,7 +75,7 @@ class ChunkVectorStoreManager:
                         classes=chunk_classes,
                         functions=chunk_functions,
                         searchable_file_path=chunk.source_details.file_path,
-                        meta_info=chunk.metadata
+                        meta_info=chunk.metadata,
                     )
                 )
 
@@ -194,7 +189,7 @@ class ChunkVectorStoreManager:
                         end_line=chunk_file_chunk[0].end_line,
                     ),
                     embedding=chunk_file_chunk[2],
-                    metadata=chunk_file_chunk[0].meta_info
+                    metadata=chunk_file_chunk[0].meta_info,
                 )
                 for chunk_file_chunk in chunk_files_chunks_and_vectors
             ]
