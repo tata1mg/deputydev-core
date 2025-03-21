@@ -1,15 +1,15 @@
 import asyncio
-import time
 from typing import List, Optional, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
 from prompt_toolkit.shortcuts.progress_bar import ProgressBarCounter
-from deputydev_core.services.embedding.base_one_dev_embedding_manager import BaseOneDevEmbeddingManager
-from deputydev_core.services.tiktoken import TikToken
+
+from deputydev_core.services.embedding.base_one_dev_embedding_manager import (
+    BaseOneDevEmbeddingManager,
+)
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
-from deputydev_core.utils.shared_memory import SharedMemory
 
 
 class CLIEmbeddingManager(BaseOneDevEmbeddingManager):

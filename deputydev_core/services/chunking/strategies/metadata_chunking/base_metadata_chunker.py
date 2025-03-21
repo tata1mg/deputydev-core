@@ -1,5 +1,5 @@
 import copy
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from tree_sitter import Node
 
@@ -9,7 +9,10 @@ from deputydev_core.services.chunking.dataclass.main import (
     ChunkNodeType,
     NeoSpan,
 )
-from deputydev_core.services.chunking.utils.chunk_utils import get_current_chunk_length, deduplicate_hierarchy
+from deputydev_core.services.chunking.utils.chunk_utils import (
+    deduplicate_hierarchy,
+    get_current_chunk_length,
+)
 from deputydev_core.services.chunking.utils.grammar_utils import LanguageIdentifiers
 
 from ..base_chunker import BaseChunker

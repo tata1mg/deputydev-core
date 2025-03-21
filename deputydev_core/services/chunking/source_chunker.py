@@ -1,8 +1,13 @@
 import re
 from typing import List, Optional, Set, Tuple
 
-from deputydev_core.services.chunking.strategies.chunk_strategy_factory import ChunkingStrategyFactory
-from deputydev_core.services.chunking.utils.chunk_utils import get_parser, supported_new_chunk_language
+from deputydev_core.services.chunking.strategies.chunk_strategy_factory import (
+    ChunkingStrategyFactory,
+)
+from deputydev_core.services.chunking.utils.chunk_utils import (
+    get_parser,
+    supported_new_chunk_language,
+)
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
 from deputydev_core.utils.constants.constants import ALL_EXTENSIONS

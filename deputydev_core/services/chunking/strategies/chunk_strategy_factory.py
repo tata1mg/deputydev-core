@@ -1,13 +1,23 @@
 from deputydev_core.services.chunking.strategies.base_chunker import BaseChunker
 from deputydev_core.services.chunking.strategies.legacy_chunker import LegacyChunker
-from deputydev_core.services.chunking.strategies.metadata_chunking.base_metadata_chunker import BaseMetadataChunker
-from deputydev_core.services.chunking.strategies.metadata_chunking.java_metadata_chunker import JavaMetadataChunker
+from deputydev_core.services.chunking.strategies.metadata_chunking.base_metadata_chunker import (
+    BaseMetadataChunker,
+)
+from deputydev_core.services.chunking.strategies.metadata_chunking.java_metadata_chunker import (
+    JavaMetadataChunker,
+)
 from deputydev_core.services.chunking.strategies.metadata_chunking.javascript_metadata_chunker import (
     JavascriptMetadataChunker,
 )
-from deputydev_core.services.chunking.strategies.metadata_chunking.kotlin_metadata_chunker import KotlinMetadataChunker
-from deputydev_core.services.chunking.strategies.metadata_chunking.python_metadata_chunker import PythonMetadataChunker
-from deputydev_core.services.chunking.strategies.metadata_chunking.ruby_metadata_chunker import RubyMetadataChunker
+from deputydev_core.services.chunking.strategies.metadata_chunking.kotlin_metadata_chunker import (
+    KotlinMetadataChunker,
+)
+from deputydev_core.services.chunking.strategies.metadata_chunking.python_metadata_chunker import (
+    PythonMetadataChunker,
+)
+from deputydev_core.services.chunking.strategies.metadata_chunking.ruby_metadata_chunker import (
+    RubyMetadataChunker,
+)
 from deputydev_core.services.chunking.strategies.metadata_chunking.typescript_metadata_chunker import (
     TypescriptMetadataChunker,
 )
