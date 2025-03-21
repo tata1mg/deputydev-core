@@ -105,7 +105,9 @@ class ChunkFilesService:
             )
             AppLogger.log_debug(f"chunk_files deleted. successful - {result.successful}, failed - {result.failed}")
 
-    async def get_autocomplete_keyword_chunks(self, keyword: str, chunkable_files_and_hashes) -> List[ChunkFileDTO]:
+    async def get_autocomplete_keyword_chunks(
+        self, keyword: str, chunkable_files_and_hashes: Dict[str, str], limit: int = 50
+    ) -> List[ChunkFileDTO]:
         """
         Search for code symbols using BM25 and fuzzy matching
         """
@@ -136,6 +138,7 @@ class ChunkFilesService:
                 results = await self.async_collection.query.fetch_objects(
                     filters=combined_filter,
                     return_metadata=wq.MetadataQuery(score=True),
+                    limit=limit,
                 )
             else:
                 results = await self.async_collection.query.bm25(
@@ -147,6 +150,7 @@ class ChunkFilesService:
                     ],
                     filters=file_filters,
                     return_metadata=wq.MetadataQuery(score=True),
+                    limit=limit,
                 )
 
             elapsed_time = time.time() - start_time
@@ -182,18 +186,19 @@ class ChunkFilesService:
             if len(keyword) < 3:
                 content_filters = Filter.any_of(
                     [
-                        Filter.by_property(CHUNKFILE_KEYWORD_PROPERTY_MAP.get(type)).like(f"*{keyword}*"),
+                        Filter.by_property(CHUNKFILE_KEYWORD_PROPERTY_MAP[type]).like(f"*{keyword}*"),
                     ]
                 )
                 combined_filter = Filter.all_of([file_filters, content_filters])
                 results = await self.async_collection.query.fetch_objects(
                     filters=combined_filter,
                     return_metadata=wq.MetadataQuery(score=True),
+                    limit=limit,
                 )
             else:
                 results = await self.async_collection.query.bm25(
                     query=keyword,
-                    query_properties=[CHUNKFILE_KEYWORD_PROPERTY_MAP.get(type)],
+                    query_properties=[CHUNKFILE_KEYWORD_PROPERTY_MAP[type]],
                     filters=file_filters,
                     return_metadata=wq.MetadataQuery(score=True),
                     limit=limit,
