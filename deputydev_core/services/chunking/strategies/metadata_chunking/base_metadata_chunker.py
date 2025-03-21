@@ -4,11 +4,13 @@ from typing import Dict, List, Optional, Tuple
 from tree_sitter import Node
 
 from deputydev_core.services.chunking.dataclass.main import (
-    ChunkMetadata, ChunkMetadataHierachyObject, ChunkNodeType, NeoSpan)
-from deputydev_core.services.chunking.utils.chunk_utils import \
-    get_current_chunk_length, deduplicate_hierarchy
-from deputydev_core.services.chunking.utils.grammar_utils import \
-    LanguageIdentifiers
+    ChunkMetadata,
+    ChunkMetadataHierachyObject,
+    ChunkNodeType,
+    NeoSpan,
+)
+from deputydev_core.services.chunking.utils.chunk_utils import get_current_chunk_length, deduplicate_hierarchy
+from deputydev_core.services.chunking.utils.grammar_utils import LanguageIdentifiers
 
 from ..base_chunker import BaseChunker
 
@@ -17,9 +19,7 @@ class BaseMetadataChunker(BaseChunker):
 
     language_identifiers = {}
 
-    def chunk_code(
-        self, tree, content: bytes, max_chars, coalesce, language
-    ) -> List[NeoSpan]:
+    def chunk_code(self, tree, content: bytes, max_chars, coalesce, language) -> List[NeoSpan]:
         """Main implementation for new chunking"""
         all_classes: List[str] = []
         all_functions: List[str] = []
@@ -36,9 +36,7 @@ class BaseMetadataChunker(BaseChunker):
                 chunk.metadata.all_classes = list(set(all_classes))
                 chunk.metadata.all_functions = list(set(all_functions))
 
-        new_chunks = self.dechunk(
-            chunks, coalesce=coalesce, source_code=content, max_chars=max_chars
-        )
+        new_chunks = self.dechunk(chunks, coalesce=coalesce, source_code=content, max_chars=max_chars)
         return new_chunks
 
     def is_function_node(self, node: Node, grammar: Dict[str, str]):
@@ -74,9 +72,7 @@ class BaseMetadataChunker(BaseChunker):
         if node.type in grammar[LanguageIdentifiers.FUNCTION_CLASS_WRAPPER.value]:
             is_class_node = False
             for child in node.children:
-                is_class_node = is_class_node or (
-                    child.type in grammar[LanguageIdentifiers.CLASS_DEFINITION.value]
-                )
+                is_class_node = is_class_node or (child.type in grammar[LanguageIdentifiers.CLASS_DEFINITION.value])
             return is_class_node
 
         return node.type in grammar[LanguageIdentifiers.CLASS_DEFINITION.value]
@@ -186,9 +182,7 @@ class BaseMetadataChunker(BaseChunker):
         prev_hierarchy_length = len(hierarchy)
         # Handle decorators for class or function definitions
 
-        def create_chunk_with_decorators(
-            start_point, end_point, byte_size, decorators=None, current_node=None
-        ):
+        def create_chunk_with_decorators(start_point, end_point, byte_size, decorators=None, current_node=None):
             if decorators:
                 # Start from the first decorator
                 actual_start = decorators[0].start
@@ -198,14 +192,10 @@ class BaseMetadataChunker(BaseChunker):
 
             chunk_hierarchy = []
             # For non-breakable nodes or regular chunks, use hierarchy
-            if (
-                current_node
-                and self.is_node_breakable(current_node, grammar)
-                and byte_size > 0
-            ):
-                chunk_hierarchy = deduplicate_hierarchy(hierarchy + self.get_breakable_node_hierarchy(
-                    current_node, grammar
-                ))
+            if current_node and self.is_node_breakable(current_node, grammar) and byte_size > 0:
+                chunk_hierarchy = deduplicate_hierarchy(
+                    hierarchy + self.get_breakable_node_hierarchy(current_node, grammar)
+                )
             else:
                 chunk_hierarchy.extend(copy.deepcopy(hierarchy or []))
 
@@ -215,8 +205,7 @@ class BaseMetadataChunker(BaseChunker):
                 metadata=ChunkMetadata(
                     hierarchy=copy.deepcopy(chunk_hierarchy),
                     dechunk=not self.is_node_breakable(current_node, grammar),
-                    import_only_chunk=not hierarchy
-                    and not self.is_node_breakable(current_node, grammar),
+                    import_only_chunk=not hierarchy and not self.is_node_breakable(current_node, grammar),
                     all_functions=[],
                     all_classes=[],
                     byte_size=byte_size,
@@ -227,27 +216,17 @@ class BaseMetadataChunker(BaseChunker):
         if node.type not in grammar[LanguageIdentifiers.FUNCTION_CLASS_WRAPPER.value]:
             if self.is_class_node(node, grammar):
                 class_name = self.extract_name(node, grammar)
-                hierarchy.append(
-                    ChunkMetadataHierachyObject(
-                        type=ChunkNodeType.CLASS.value, value=class_name
-                    )
-                )
+                hierarchy.append(ChunkMetadataHierachyObject(type=ChunkNodeType.CLASS.value, value=class_name))
                 all_classes.append(class_name)
 
             elif self.is_function_node(node, grammar):
                 func_name = self.extract_name(node, grammar)
-                hierarchy.append(
-                    ChunkMetadataHierachyObject(
-                        type=ChunkNodeType.FUNCTION.value, value=func_name
-                    )
-                )
+                hierarchy.append(ChunkMetadataHierachyObject(type=ChunkNodeType.FUNCTION.value, value=func_name))
                 all_functions.append(func_name)
             elif self.is_namespace_node(node, grammar):
                 namespace_name = self.extract_name(node, grammar)
                 # namespace type will not be fixed to class or functon so using node actual type
-                hierarchy.append(
-                    ChunkMetadataHierachyObject(type=node.type, value=namespace_name)
-                )
+                hierarchy.append(ChunkMetadataHierachyObject(type=node.type, value=namespace_name))
 
         current_chunk = create_chunk_with_decorators(
             start_point=node.start_point,
@@ -293,10 +272,7 @@ class BaseMetadataChunker(BaseChunker):
                 )
 
             elif (
-                child.end_byte
-                - child.start_byte
-                + get_current_chunk_length(current_chunk, source_code)
-                > max_chars
+                child.end_byte - child.start_byte + get_current_chunk_length(current_chunk, source_code) > max_chars
             ) or self.is_node_breakable(child, grammar):
                 # Split the current chunk if it exceeds the maximum size
                 if self.is_valid_chunk(current_chunk):
@@ -336,9 +312,7 @@ class BaseMetadataChunker(BaseChunker):
             hierarchy.pop()
         return chunks
 
-    def dechunk(
-        self, chunks: List[NeoSpan], coalesce: int, source_code: bytes, max_chars: int
-    ) -> list[NeoSpan]:
+    def dechunk(self, chunks: List[NeoSpan], coalesce: int, source_code: bytes, max_chars: int) -> list[NeoSpan]:
         """
         Combine chunks intelligently, ensuring chunks with `dechunk` set to `False` are not merged
         with previous chunks, and chunks are split if their combined size exceeds `coalesce`.
@@ -367,8 +341,7 @@ class BaseMetadataChunker(BaseChunker):
 
             elif (
                 chunk.metadata.dechunk is False
-                or previous_chunk.metadata.byte_size + chunk.metadata.byte_size
-                > max_chars
+                or previous_chunk.metadata.byte_size + chunk.metadata.byte_size > max_chars
             ):
                 if previous_chunk and len(previous_chunk) > 0:
                     new_chunks.append(previous_chunk)
@@ -383,9 +356,7 @@ class BaseMetadataChunker(BaseChunker):
 
         return new_chunks
 
-    def get_breakable_node_hierarchy(
-        self, node: Node, grammar: Dict[str, str]
-    ) -> List[ChunkMetadataHierachyObject]:
+    def get_breakable_node_hierarchy(self, node: Node, grammar: Dict[str, str]) -> List[ChunkMetadataHierachyObject]:
         """
         Recursively extract all function and class names from a node and its children
         """
@@ -416,9 +387,7 @@ class BaseMetadataChunker(BaseChunker):
         elif self.is_namespace_node(node, grammar):
             name = self.extract_name(node, grammar)
             if name:
-                hierarchy.append(
-                    ChunkMetadataHierachyObject(type=node.type, value=name)
-                )
+                hierarchy.append(ChunkMetadataHierachyObject(type=node.type, value=name))
 
         # Recursively process children
         for child in node.children:

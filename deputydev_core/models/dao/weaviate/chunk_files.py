@@ -1,8 +1,7 @@
 from weaviate.classes.config import DataType, Property, Tokenization
 
 from deputydev_core.models.dao.weaviate.base import Base
-from deputydev_core.models.dao.weaviate.constants.collection_names import \
-    CHUNK_FILES_COLLECTION_NAME
+from deputydev_core.models.dao.weaviate.constants.collection_names import CHUNK_FILES_COLLECTION_NAME
 
 
 class ChunkFiles(Base):
@@ -93,10 +92,10 @@ class ChunkFiles(Base):
                     nested_properties=[
                         Property(name="type", data_type=DataType.TEXT),
                         Property(name="value", data_type=DataType.TEXT),
-                        Property(name="is_breakable_node", data_type=DataType.BOOL)
-                    ]
+                        Property(name="is_breakable_node", data_type=DataType.BOOL),
+                    ],
                 ),
-            ]
+            ],
         ),
     ]
     collection_name = CHUNK_FILES_COLLECTION_NAME

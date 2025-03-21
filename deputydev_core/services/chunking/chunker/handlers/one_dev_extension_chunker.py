@@ -13,16 +13,16 @@ from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndA
 
 class OneDevExtensionChunker(VectorDBChunker):
     def __init__(
-            self,
-            local_repo: BaseLocalRepo,
-            process_executor: ProcessPoolExecutor,
-            weaviate_client: WeaviateSyncAndAsyncClients,
-            embedding_manager: ExtensionEmbeddingManager,
-            chunkable_files_and_hashes: Dict[str, str],
-            progress_bar: Optional[CustomProgressBar] = None,
-            use_new_chunking: bool = True,
-            use_async_refresh: bool = True,
-            fetch_with_vector: bool = False,
+        self,
+        local_repo: BaseLocalRepo,
+        process_executor: ProcessPoolExecutor,
+        weaviate_client: WeaviateSyncAndAsyncClients,
+        embedding_manager: ExtensionEmbeddingManager,
+        chunkable_files_and_hashes: Dict[str, str],
+        progress_bar: Optional[CustomProgressBar] = None,
+        use_new_chunking: bool = True,
+        use_async_refresh: bool = True,
+        fetch_with_vector: bool = False,
     ):
         super().__init__(
             local_repo,
@@ -36,8 +36,6 @@ class OneDevExtensionChunker(VectorDBChunker):
         )
         self.embedding_manager = embedding_manager
         self.progress_bar = progress_bar
-
-
 
     async def get_file_wise_chunks_for_single_file_batch(
         self,
@@ -62,11 +60,10 @@ class OneDevExtensionChunker(VectorDBChunker):
             await self.add_chunk_embeddings(batched_chunks)
         return file_wise_chunks
 
-
     async def create_and_store_chunks_for_file_batches(
-            self,
-            batched_files_to_store: List[List[Tuple[str, str]]],
-            custom_timestamp: Optional[datetime] = None,
+        self,
+        batched_files_to_store: List[List[Tuple[str, str]]],
+        custom_timestamp: Optional[datetime] = None,
     ) -> Dict[str, List[ChunkInfo]]:
         """
         Creates and stores chunks for a batch of files.
@@ -122,7 +119,8 @@ class OneDevExtensionChunker(VectorDBChunker):
             chunk.get_chunk_content_with_meta_data(add_ellipsis=False, add_lines=False, add_class_function_info=True)
             for chunk in chunks
         ]
-        embeddings, _input_tokens = await self.embedding_manager.embed_text_array(texts=texts_to_embed,
-                                                                                  progress_bar_counter=self.progress_bar)
+        embeddings, _input_tokens = await self.embedding_manager.embed_text_array(
+            texts=texts_to_embed, progress_bar_counter=self.progress_bar
+        )
         for chunk, embedding in zip(chunks, embeddings):
             chunk.embedding = embedding
