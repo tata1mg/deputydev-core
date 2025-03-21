@@ -1,0 +1,8 @@
+from enum import Enum
+
+
+class APIErrorCodes(Enum):
+    INVALID_CLIENT_VERSION = 101
+    CLIENT_HEADER_MISSING = 102
+    INVALID_CLIENT = 103
+    CLIENT_VERSION_HEADER_MISSING = 104
