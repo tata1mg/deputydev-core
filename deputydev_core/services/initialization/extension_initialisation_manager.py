@@ -15,15 +15,16 @@ from deputydev_core.utils.custom_progress_bar import CustomProgressBar
 
 class ExtensionInitialisationManager(InitializationManager):
     def __init__(
-        self,
-        repo_path: Optional[str] = None,
-        auth_token: Optional[str] = None,
-        process_executor: Optional[ProcessPoolExecutor] = None,
-        one_dev_client: Optional[OneDevClient] = None,
-        weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
+            self,
+            repo_path: Optional[str] = None,
+            auth_token_key: Optional[str] = None,
+            process_executor: Optional[ProcessPoolExecutor] = None,
+            one_dev_client: Optional[OneDevClient] = None,
+            weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
+
     ) -> None:
-        super().__init__(repo_path, auth_token, process_executor, one_dev_client, weaviate_client)
-        self.embedding_manager = ExtensionEmbeddingManager(auth_token=auth_token, one_dev_client=one_dev_client)
+        super().__init__(repo_path, auth_token_key, process_executor, one_dev_client, weaviate_client)
+        self.embedding_manager = ExtensionEmbeddingManager(auth_token_key=auth_token_key, one_dev_client=one_dev_client)
 
     async def prefill_vector_store(
         self,

@@ -9,20 +9,21 @@ from deputydev_core.services.embedding.base_one_dev_embedding_manager import Bas
 from deputydev_core.services.tiktoken import TikToken
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
+from deputydev_core.utils.shared_memory import SharedMemory
 
 
 class CLIEmbeddingManager(BaseOneDevEmbeddingManager):
     def _update_embeddings_and_tokens_used(
-        self,
-        all_embeddings: List[List[float]],
-        total_tokens_used: int,
-        failed_batches: List[List[str]],
-        current_batch_embeddings: Optional[List[List[float]]],
-        current_batch_tokens_used: int,
-        current_batch: List[str],
-        last_checkpoint: float,
-        progress_step: Optional[float],
-        progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
+            self,
+            all_embeddings: List[List[float]],
+            total_tokens_used: int,
+            failed_batches: List[List[str]],
+            current_batch_embeddings: Optional[List[List[float]]],
+            current_batch_tokens_used: int,
+            current_batch: List[str],
+            last_checkpoint: float,
+            progress_step: Optional[float],
+            progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
     ) -> Tuple[int, float]:
         if current_batch_embeddings is None:
             failed_batches.append(current_batch)
@@ -38,15 +39,15 @@ class CLIEmbeddingManager(BaseOneDevEmbeddingManager):
         return total_tokens_used, last_checkpoint
 
     async def _process_parallel_batches(
-        self,
-        parallel_batches: List[List[str]],
-        all_embeddings: List[List[float]],
-        tokens_used: int,
-        exponential_backoff: float,
-        last_checkpoint: float,
-        step: Optional[float],
-        store_embeddings: bool = True,
-        progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
+            self,
+            parallel_batches: List[List[str]],
+            all_embeddings: List[List[float]],
+            tokens_used: int,
+            exponential_backoff: float,
+            last_checkpoint: float,
+            step: Optional[float],
+            store_embeddings: bool = True,
+            progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
     ) -> Tuple[int, float, float, List[List[str]]]:
         parallel_tasks = [self._get_embeddings_for_single_batch(batch, store_embeddings) for batch in parallel_batches]
         failed_batches: List[List[str]] = []
@@ -74,11 +75,11 @@ class CLIEmbeddingManager(BaseOneDevEmbeddingManager):
         return tokens_used, last_checkpoint, exponential_backoff, parallel_batches
 
     async def embed_text_array(
-        self,
-        texts: List[str],
-        store_embeddings: bool = True,
-        progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
-        len_checkpoints: Optional[int] = None,
+            self,
+            texts: List[str],
+            store_embeddings: bool = True,
+            progress_bar_counter: Optional[ProgressBarCounter[int]] = None,
+            len_checkpoints: Optional[int] = None,
     ) -> Tuple[NDArray[np.float64], int]:
         embeddings: List[List[float]] = []
         tokens_used: int = 0
