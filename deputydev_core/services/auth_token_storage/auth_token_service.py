@@ -19,7 +19,7 @@ class AuthTokenService:
 
     @classmethod
     def get_auth_token_storage_manager(
-            cls, client: str
+        cls, client: str
     ) -> Union[CLIAuthTokenStorageManager, ExtensionAuthTokenStorageManager]:
         """
         Retrieves the appropriate authentication token storage manager based on the provided type.

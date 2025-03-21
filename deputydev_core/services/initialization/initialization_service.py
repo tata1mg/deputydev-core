@@ -30,12 +30,12 @@ from deputydev_core.utils.shared_memory import SharedMemory
 
 class InitializationManager:
     def __init__(
-            self,
-            repo_path: Optional[str] = None,
-            auth_token_key: Optional[str] = None,
-            process_executor: Optional[ProcessPoolExecutor] = None,
-            one_dev_client: Optional[OneDevClient] = None,
-            weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
+        self,
+        repo_path: Optional[str] = None,
+        auth_token_key: Optional[str] = None,
+        process_executor: Optional[ProcessPoolExecutor] = None,
+        one_dev_client: Optional[OneDevClient] = None,
+        weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
     ) -> None:
         self.repo_path = repo_path
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
