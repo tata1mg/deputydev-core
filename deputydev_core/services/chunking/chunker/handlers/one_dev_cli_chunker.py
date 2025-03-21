@@ -2,18 +2,13 @@ from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
-from prompt_toolkit.shortcuts.progress_bar import (ProgressBar,
-                                                   ProgressBarCounter)
+from prompt_toolkit.shortcuts.progress_bar import ProgressBar, ProgressBarCounter
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
-from deputydev_core.services.chunking.chunker.handlers.vector_db_chunker import \
-    VectorDBChunker
-from deputydev_core.services.embedding.cli_embedding_manager import \
-    CLIEmbeddingManager
-from deputydev_core.services.repo.local_repo.base_local_repo_service import \
-    BaseLocalRepo
-from deputydev_core.services.repository.dataclasses.main import \
-    WeaviateSyncAndAsyncClients
+from deputydev_core.services.chunking.chunker.handlers.vector_db_chunker import VectorDBChunker
+from deputydev_core.services.embedding.cli_embedding_manager import CLIEmbeddingManager
+from deputydev_core.services.repo.local_repo.base_local_repo_service import BaseLocalRepo
+from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
 from deputydev_core.utils.app_logger import AppLogger
 
 

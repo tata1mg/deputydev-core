@@ -35,7 +35,7 @@ class ExtensionEmbeddingManager(BaseOneDevEmbeddingManager):
         exponential_backoff: float,
         store_embeddings: bool = True,
         progress_bar=None,
-        progress_step=0
+        progress_step=0,
     ) -> Tuple[int, float, List[List[str]]]:
         parallel_tasks = [self._get_embeddings_for_single_batch(batch, store_embeddings) for batch in parallel_batches]
         failed_batches: List[List[str]] = []
@@ -87,39 +87,30 @@ class ExtensionEmbeddingManager(BaseOneDevEmbeddingManager):
         )
         for batch in iterable_batches:
             if len(parallel_batches) >= max_parallel_tasks:
-                (
-                    tokens_used,
-                    exponential_backoff,
-                    parallel_batches,
-                ) = await self._process_parallel_batches(
+                (tokens_used, exponential_backoff, parallel_batches,) = await self._process_parallel_batches(
                     parallel_batches,
                     embeddings,
                     tokens_used,
                     exponential_backoff,
                     store_embeddings,
                     progress_bar_counter,
-                    len(texts)
+                    len(texts),
                 )
             # store current batch
             parallel_batches += [batch]
 
         while len(parallel_batches) > 0:
-            (
-                tokens_used,
-                exponential_backoff,
-                parallel_batches,
-            ) = await self._process_parallel_batches(
+            (tokens_used, exponential_backoff, parallel_batches,) = await self._process_parallel_batches(
                 parallel_batches,
                 embeddings,
                 tokens_used,
                 exponential_backoff,
                 store_embeddings,
                 progress_bar_counter,
-                len(texts)
+                len(texts),
             )
 
         if len(embeddings) != len(texts):
             raise ValueError("Mismatch in number of embeddings and texts")
 
         return np.array(embeddings), tokens_used
-

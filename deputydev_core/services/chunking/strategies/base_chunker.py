@@ -7,7 +7,5 @@ from deputydev_core.services.chunking.dataclass.main import NeoSpan
 
 class BaseChunker(ABC):
     @abstractmethod
-    def chunk_code(
-        self, tree, content: bytes, max_chars, coalesce, language
-    ) -> Union[List[ChunkInfo], List[NeoSpan]]:
+    def chunk_code(self, tree, content: bytes, max_chars, coalesce, language) -> Union[List[ChunkInfo], List[NeoSpan]]:
         pass
