@@ -6,8 +6,7 @@ from deputydev_core.services.auth_token_storage.cli_auth_token_storage_manager i
 from deputydev_core.services.auth_token_storage.extension_auth_token_storage_manager import (
     ExtensionAuthTokenStorageManager,
 )
-
-from deputydev_core.utils.constants.enums import Clients, Status, SharedMemoryKeys
+from deputydev_core.utils.constants.enums import Clients, SharedMemoryKeys, Status
 from deputydev_core.utils.shared_memory import SharedMemory
 
 

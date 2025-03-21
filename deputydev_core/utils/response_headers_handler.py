@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Callable, Dict, Any, Optional, Awaitable
+from typing import Any, Awaitable, Callable, Dict, Optional
 
 
 def handle_response_headers(
