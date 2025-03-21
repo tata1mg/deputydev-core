@@ -1,7 +1,7 @@
-import pickle
 import multiprocessing
+import pickle
 from multiprocessing import shared_memory
-from typing import Dict, Any
+from typing import Any
 
 
 class SharedMemory:
@@ -33,7 +33,7 @@ class SharedMemory:
                 # Creating new shared memory...
                 shm = shared_memory.SharedMemory(name=shm_name, create=True, size=len(data_bytes))
 
-            shm.buf[:len(data_bytes)] = data_bytes  # Write serialized data
+            shm.buf[: len(data_bytes)] = data_bytes  # Write serialized data
             shm.close()
 
     @classmethod

@@ -4,10 +4,12 @@ from typing import List, Optional, Tuple
 import numpy as np
 from numpy._typing import NDArray
 
-from deputydev_core.services.embedding.base_one_dev_embedding_manager import BaseOneDevEmbeddingManager
-from deputydev_core.utils.custom_progress_bar import CustomProgressBar
+from deputydev_core.services.embedding.base_one_dev_embedding_manager import (
+    BaseOneDevEmbeddingManager,
+)
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
+from deputydev_core.utils.custom_progress_bar import CustomProgressBar
 
 
 class ExtensionEmbeddingManager(BaseOneDevEmbeddingManager):

@@ -1,4 +1,6 @@
-from deputydev_core.services.chunking.strategies.metadata_chunking.base_metadata_chunker import BaseMetadataChunker
+from deputydev_core.services.chunking.strategies.metadata_chunking.base_metadata_chunker import (
+    BaseMetadataChunker,
+)
 from deputydev_core.services.chunking.utils.grammar_utils import LanguageIdentifiers
 
 

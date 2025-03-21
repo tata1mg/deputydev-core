@@ -1,9 +1,10 @@
 from functools import wraps
-from typing import Callable, Dict, Any, Optional, Awaitable
+from typing import Any, Awaitable, Callable, Dict, Optional
 
 
-def handle_response_headers(func: Callable[..., Awaitable[Dict[str, Any]]]) -> Callable[
-    ..., Awaitable[Optional[Dict[str, Any]]]]:
+def handle_response_headers(
+    func: Callable[..., Awaitable[Dict[str, Any]]]
+) -> Callable[..., Awaitable[Optional[Dict[str, Any]]]]:
     @wraps(func)
     async def wrapper(*args, **kwargs) -> Optional[Dict[str, Any]]:
         result, response_headers = await func(*args, **kwargs)
