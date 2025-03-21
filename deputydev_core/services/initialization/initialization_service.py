@@ -11,31 +11,38 @@ from deputydev_core.clients.http.service_clients.one_dev_client import OneDevCli
 from deputydev_core.models.dao.weaviate.base import Base as WeaviateBaseDAO
 from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
 from deputydev_core.models.dao.weaviate.chunks import Chunks
-from deputydev_core.models.dao.weaviate.weaviate_schema_details import WeaviateSchemaDetails
-from deputydev_core.services.chunking.chunker.handlers.one_dev_cli_chunker import OneDevCLIChunker
+from deputydev_core.models.dao.weaviate.weaviate_schema_details import (
+    WeaviateSchemaDetails,
+)
+from deputydev_core.services.chunking.chunker.handlers.one_dev_cli_chunker import (
+    OneDevCLIChunker,
+)
 from deputydev_core.services.chunking.vector_store.chunk_vector_store_cleanup_manager import (
     ChunkVectorStoreCleaneupManager,
 )
 from deputydev_core.services.embedding.cli_embedding_manager import CLIEmbeddingManager
-from deputydev_core.services.repo.local_repo.base_local_repo_service import BaseLocalRepo
+from deputydev_core.services.repo.local_repo.base_local_repo_service import (
+    BaseLocalRepo,
+)
 from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepoFactory
-from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
+)
 from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema_details_service import (
     WeaviateSchemaDetailsService,
 )
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
-from deputydev_core.utils.shared_memory import SharedMemory
 
 
 class InitializationManager:
     def __init__(
-            self,
-            repo_path: Optional[str] = None,
-            auth_token_key: Optional[str] = None,
-            process_executor: Optional[ProcessPoolExecutor] = None,
-            one_dev_client: Optional[OneDevClient] = None,
-            weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
+        self,
+        repo_path: Optional[str] = None,
+        auth_token_key: Optional[str] = None,
+        process_executor: Optional[ProcessPoolExecutor] = None,
+        one_dev_client: Optional[OneDevClient] = None,
+        weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
     ) -> None:
         self.repo_path = repo_path
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client

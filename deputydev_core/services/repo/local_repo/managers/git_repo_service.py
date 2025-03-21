@@ -9,7 +9,9 @@ from git.repo import Repo
 from git.util import Actor
 from giturlparse import parse as parse_git_url  # type: ignore
 
-from deputydev_core.services.repo.local_repo.base_local_repo_service import BaseLocalRepo
+from deputydev_core.services.repo.local_repo.base_local_repo_service import (
+    BaseLocalRepo,
+)
 from deputydev_core.utils.app_logger import AppLogger
 
 

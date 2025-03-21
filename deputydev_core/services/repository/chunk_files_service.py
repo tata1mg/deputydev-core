@@ -8,9 +8,14 @@ from weaviate.util import generate_uuid5
 
 from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
 from deputydev_core.models.dto.chunk_file_dto import ChunkFileDTO
-from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
+)
 from deputydev_core.utils.app_logger import AppLogger
-from deputydev_core.utils.constants.constants import CHUNKFILE_KEYWORD_PROPERTY_MAP, PropertyTypes
+from deputydev_core.utils.constants.constants import (
+    CHUNKFILE_KEYWORD_PROPERTY_MAP,
+    PropertyTypes,
+)
 
 
 class ChunkFilesService:
