@@ -12,6 +12,7 @@ class Clients(Enum):
     BACKEND = "BACKEND"
     VSCODE_EXT = "VSCODE_EXT"
     BINARY = "BINARY"
+    WEB = "WEB"
 
 
 class SharedMemoryKeys(Enum):
