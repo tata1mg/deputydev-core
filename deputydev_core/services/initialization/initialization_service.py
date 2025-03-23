@@ -204,11 +204,10 @@ class InitializationManager:
         # clean up the code if only process clean up is true
         # this was done for performance to allow clean up for certain types of events only
         # as this is resource intensive
-        if self.process_clean_up:
-            # start chunk cleanup process in background
-            self.chunk_cleanup_task = asyncio.create_task(
-                ChunkVectorStoreCleaneupManager(
-                    exclusion_chunk_hashes=[chunk.content_hash for chunk in all_chunks],
-                    weaviate_client=self.weaviate_client,
-                ).start_cleanup_for_chunk_and_hashes()
-            )
+        # start chunk cleanup process in background
+        self.chunk_cleanup_task = asyncio.create_task(
+            ChunkVectorStoreCleaneupManager(
+                exclusion_chunk_hashes=[chunk.content_hash for chunk in all_chunks],
+                weaviate_client=self.weaviate_client,
+            ).start_cleanup_for_chunk_and_hashes()
+        )
