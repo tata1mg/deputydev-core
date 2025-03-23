@@ -9,7 +9,7 @@ from deputydev_core.utils.app_logger import AppLogger
 
 class AutoCompleteServiceAsync(ABC):
     @abstractmethod
-    async def _build_filers(self, search_paths: List[SearchPath]) -> Any:
+    async def _build_filters(self, search_paths: List[SearchPath]) -> Any:
         raise NotImplementedError
 
     @abstractmethod

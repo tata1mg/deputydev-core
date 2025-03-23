@@ -19,7 +19,7 @@ class WeaviateAutocompleteAdapter(AutoCompleteServiceAsync):
         self.async_collection = weaviate_client.async_client.collections.get(ChunkFiles.collection_name)
         self.sync_collection = weaviate_client.sync_client.collections.get(ChunkFiles.collection_name)
 
-    async def _build_filers(self, search_paths: List[SearchPath]) -> Any:
+    async def _build_filters(self, search_paths: List[SearchPath]) -> Any:
         file_filters = []
         if search_paths and len(search_paths) > 0:
             file_filters = Filter.any_of(
@@ -40,7 +40,7 @@ class WeaviateAutocompleteAdapter(AutoCompleteServiceAsync):
         # keywords having search
         apply_pre_filter = len(request.search_paths) < ConfigManager.configs["AUTOCOMPLETE_SEARCH"]["PRE_FILTER_LIMIT"]
         if apply_pre_filter:
-            filters = await self._build_filers(request.search_paths)
+            filters = await self._build_filters(request.search_paths)
         else:
             request.limit = request.limit*10 #expected no of repos = 10 in users system
             filters = []
