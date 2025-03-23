@@ -89,6 +89,18 @@ class AuthTokenService:
             }
 
     @classmethod
+    async def delete_token(cls, client: str) -> Dict[str, Any]:
+        try:
+            storage_manager = cls.get_auth_token_storage_manager(client)
+            storage_manager.delete_auth_token()
+            return {"message": Status.SUCCESS.value}
+        except (ValueError, Exception) as e:
+            return {
+                "message": Status.FAILED.value,
+                "error": f"Failed to delete auth token: {e}",
+            }
+
+    @classmethod
     def get_auth_token(cls, client: str) -> str:
         if client == Clients.CLI.value:
             return SharedMemory.read(SharedMemoryKeys.CLI_AUTH_TOKEN.value)
