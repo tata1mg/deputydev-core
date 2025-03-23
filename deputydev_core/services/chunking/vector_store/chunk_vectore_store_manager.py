@@ -254,6 +254,7 @@ class ChunkVectorStoreManager:
         file_path_commit_hash_map: Dict[str, str],
         with_vector: bool,
         chunk_refresh_config: Optional[RefreshConfig] = None,
+        enable_refresh: bool = False
     ) -> Dict[str, List[ChunkInfo]]:
         """
         Get the stored chunks based on the file path and commit hash map.
@@ -266,7 +267,7 @@ class ChunkVectorStoreManager:
         file_wise_chunks: Dict[str, List[ChunkInfo]] = {}
 
         # use batch size of 1000
-        batch_size = 1000
+        batch_size = 2000
 
         for i in range(0, len(file_path_commit_hash_map), batch_size):
             # determine the batch
@@ -286,20 +287,20 @@ class ChunkVectorStoreManager:
             file_wise_chunk_info_objects = self._get_file_wise_chunk_info_objects_from_chunk_files_chunks_and_vectors(
                 valid_file_wise_chunk_files_chunks_and_vectors
             )
-
-            # start the refresh process if needed
-            refresh_task = await self._refresh_chunk_files_and_chunks(
-                file_wise_chunk_info_objects, chunk_refresh_config
-            )
-
-            # remove the embeddings if not required
-            if not with_vector:
-                asyncio.create_task(
-                    self._remove_embeddings_after_refresh(
-                        refresh_task=refresh_task,
-                        file_wise_chunks=file_wise_chunk_info_objects,
-                    )
+            if enable_refresh:
+                # start the refresh process if needed
+                refresh_task = await self._refresh_chunk_files_and_chunks(
+                    file_wise_chunk_info_objects, chunk_refresh_config
                 )
+
+                # remove the embeddings if not required
+                if not with_vector:
+                    asyncio.create_task(
+                        self._remove_embeddings_after_refresh(
+                            refresh_task=refresh_task,
+                            file_wise_chunks=file_wise_chunk_info_objects,
+                        )
+                    )
 
             # update the final dict
             file_wise_chunks.update(file_wise_chunk_info_objects)

@@ -158,11 +158,12 @@ class VectorDBChunker(BaseChunker):
             all_file_wise_chunks.update(file_wise_chunks_for_batch)
         return all_file_wise_chunks
 
-    async def create_chunks_and_docs(self) -> List[ChunkInfo]:
+    async def create_chunks_and_docs(self, enable_refresh=False) -> List[ChunkInfo]:
         """
         Converts the content of a list of files into chunks of code.
         Returns:
             List[ChunkInfo]: A list of code chunks extracted from the files.
+
         """
         # determine chunking timestamp
         chunking_timestamp = datetime.now().replace(tzinfo=timezone.utc)
@@ -182,6 +183,7 @@ class VectorDBChunker(BaseChunker):
                 async_refresh=self.use_async_refresh,
                 refresh_timestamp=chunking_timestamp,
             ),
+            enable_refresh=enable_refresh
         )
 
         # get the files that need to be chunked
