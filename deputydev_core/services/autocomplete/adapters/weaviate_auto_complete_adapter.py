@@ -71,7 +71,7 @@ class WeaviateAutocompleteAdapter(AutoCompleteServiceAsync):
         if not apply_pre_filter:
             file_path_hash_map = {paths.file_path: paths.file_hash for paths in request.search_paths}
             for record in records:
-                if record.properties["file_path"] in file_path_hash_map and file_path_hash_map[record.properties["file_hash"]] == record.properties["file_hash"]:
+                if record.properties["file_path"] in file_path_hash_map and file_path_hash_map[record.properties["file_path"]] == record.properties["file_hash"]:
                     final_records.append(record)
         else:
             final_records = records
