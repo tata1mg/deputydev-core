@@ -14,12 +14,14 @@ from deputydev_core.models.dao.weaviate.chunks import Chunks
 from deputydev_core.models.dao.weaviate.weaviate_schema_details import (
     WeaviateSchemaDetails,
 )
+from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.chunker.handlers.one_dev_cli_chunker import (
     OneDevCLIChunker,
 )
 from deputydev_core.services.chunking.vector_store.chunk_vector_store_cleanup_manager import (
     ChunkVectorStoreCleaneupManager,
 )
+from deputydev_core.services.embedding.base_one_dev_embedding_manager import BaseOneDevEmbeddingManager
 from deputydev_core.services.embedding.cli_embedding_manager import CLIEmbeddingManager
 from deputydev_core.services.repo.local_repo.base_local_repo_service import (
     BaseLocalRepo,
@@ -43,11 +45,14 @@ class InitializationManager:
         process_executor: Optional[ProcessPoolExecutor] = None,
         one_dev_client: Optional[OneDevClient] = None,
         weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
+        embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
     ) -> None:
         self.repo_path = repo_path
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
         self.local_repo = None
-        self.embedding_manager = CLIEmbeddingManager(auth_token_key=auth_token_key, one_dev_client=one_dev_client)
+        # it was done to make CLI
+        embedding_manager = embedding_manager or CLIEmbeddingManager
+        self.embedding_manager = embedding_manager(auth_token_key=auth_token_key, one_dev_client=one_dev_client)
         self.process_executor = process_executor
         self.chunk_cleanup_task = None
 
@@ -171,12 +176,10 @@ class InitializationManager:
         self,
         chunkable_files_and_hashes: Dict[str, str],
         progressbar: Optional[ProgressBar] = None,
+        enable_refresh: Optional[bool] = False
     ) -> None:
-        if not self.local_repo:
-            raise ValueError("Local repo is not initialized")
-
-        if not self.weaviate_client:
-            raise ValueError("Connect to vector store")
+        assert self.local_repo, "Local repo is not initialized"
+        assert self.weaviate_client, "Connect to vector store"
 
         all_chunks = await OneDevCLIChunker(
             local_repo=self.local_repo,
@@ -185,19 +188,26 @@ class InitializationManager:
             process_executor=self.process_executor,
             progress_bar=progressbar,
             chunkable_files_and_hashes=chunkable_files_and_hashes,
-        ).create_chunks_and_docs()
+        ).create_chunks_and_docs(enable_refresh = enable_refresh)
 
-        # start chunk cleanup
+        if enable_refresh:
+            self.process_chunks_cleanup(all_chunks)
+
+    def process_chunks_cleanup(self, all_chunks: List[ChunkInfo]):
+        """
+        Process chunk clean ups if process_clean_up is true
+
+        Parameters:
+            all_chunks (List[ChunkInfo):
+        """
+
+        # clean up the code if only process clean up is true
+        # this was done for performance to allow clean up for certain types of events only
+        # as this is resource intensive
+        # start chunk cleanup process in background
         self.chunk_cleanup_task = asyncio.create_task(
             ChunkVectorStoreCleaneupManager(
                 exclusion_chunk_hashes=[chunk.content_hash for chunk in all_chunks],
                 weaviate_client=self.weaviate_client,
             ).start_cleanup_for_chunk_and_hashes()
         )
-
-    async def cleanup(self):
-        if self.chunk_cleanup_task:
-            self.chunk_cleanup_task.cancel()
-        if self.weaviate_client:
-            self.weaviate_client.sync_client.close()
-            await self.weaviate_client.async_client.close()
