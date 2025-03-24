@@ -53,6 +53,7 @@ class FileChunkCreator:
         root_dir: str,
         use_new_chunking: bool = False,
         process_executor: Optional[ProcessPoolExecutor] = None,
+        set_config_in_new_process: bool = False
     ) -> Dict[str, List[ChunkInfo]]:
         """
         Converts the content of a list of files into chunks of code.
@@ -79,7 +80,7 @@ class FileChunkCreator:
                     root_dir,
                     file_hash,
                     use_new_chunking,
-                    ConfigManager.configs
+                    ConfigManager.configs if set_config_in_new_process else None
                 )
             file_wise_chunks[file] = chunks_from_file
 
