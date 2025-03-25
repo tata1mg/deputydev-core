@@ -45,7 +45,7 @@ class UnifiedDiffApplicator:
 
     def _get_file_content(self, abs_file_path: str) -> Optional[str]:
         try:
-            with open(abs_file_path, "r") as file_obj:
+            with open(abs_file_path, "r", encoding="utf-8", errors="ignore") as file_obj:
                 content = file_obj.read()
                 return content
         except FileNotFoundError:

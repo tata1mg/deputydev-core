@@ -61,7 +61,7 @@ class LineNumberedDiffApplicator:
             content = []
             # Attempt to read the file content, handling the case where the file doesn't exist
             try:
-                with open(abs_file_path, "r") as file_obj:
+                with open(abs_file_path, "r", encoding="utf-8", errors="ignore") as file_obj:
                     content = file_obj.readlines()
             except FileNotFoundError:
                 AppLogger.log_info(f"File not found: {abs_file_path}, a new file will be created")
