@@ -122,8 +122,6 @@ class RelativeIndenter:
                 cur_indent = ""
 
             out_line = cur_indent + "\n" + line[len_indent:]
-            # dump(len_indent, change, out_line)
-            # print(out_line)
             output.append(out_line)
             prev_indent = indent
 
@@ -204,7 +202,6 @@ def diff_lines(search_text: str, replace_text: str) -> List[str]:
 
     return udiff
 
-
 def search_and_replace(texts: List[str]) -> Optional[str]:
     """Search for search_text in original_text and replace it with
     replace_text. If search_text is not found, return None.
@@ -249,7 +246,7 @@ def relative_indent(texts: List[str]) -> Tuple[RelativeIndenter, List[str]]:
 
 def strip_blank_lines(texts: List[str]) -> List[str]:
     # strip leading and trailing blank lines
-    texts = [text.strip("\n") + "\n" for text in texts]
+    texts = [text.strip("\r\n") + "\n" for text in texts]
     return texts
 
 
