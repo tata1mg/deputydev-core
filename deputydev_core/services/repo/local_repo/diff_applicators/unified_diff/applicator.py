@@ -78,7 +78,6 @@ class UnifiedDiffApplicator:
         # do not do a repeated search and replace on a tiny bit of non-whitespace context
         # this is a heuristic to avoid doing a search and replace on a small amount of context
         if len(before_lines) < 10 and content.count(before) > 1:
-            print("before_lines < 10 and content.count(before) > 1")
             return None
 
         try:
@@ -131,7 +130,6 @@ class UnifiedDiffApplicator:
         Cut a fenced block into hunks, hunks are basically a list of lines that have one contiguous change between them
         """
         # add a end of diff marker, will help us to cut the last diff
-        print("".join(block))
         block.append("@@ @@")
 
         # search for the diff start marker, and if there is newline before it, we want strip it
@@ -349,11 +347,9 @@ class UnifiedDiffApplicator:
         # if the file does not exist and there is no before text, we can just create the file
         if not file_path.exists() and not before_text.strip():
             # file_path.touch()
-            print("file does not exist and there is no before text")
             content = ""
 
         if not file_path.exists() and before_text.strip():
-            print("file does not exist and there is before text")
             before_text = ""
             content = ""
 
@@ -403,7 +399,6 @@ class UnifiedDiffApplicator:
 
         # firstly, get the unique hunks
         edits = self.find_diff_hunks(filepath_to_diff_map)
-        print("edits", edits)
 
         # remove duplicates using a set
         seen: Set[str] = set()
@@ -437,7 +432,6 @@ class UnifiedDiffApplicator:
 
             try:
                 content = self.do_replace(full_path, content, hunk)
-                print("content", content)
             except SearchTextNotUnique:
                 errors.append(
                     NOT_UNIQUE_ERROR.format(
