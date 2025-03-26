@@ -122,8 +122,6 @@ class RelativeIndenter:
                 cur_indent = ""
 
             out_line = cur_indent + "\n" + line[len_indent:]
-            # dump(len_indent, change, out_line)
-            # print(out_line)
             output.append(out_line)
             prev_indent = indent
 
