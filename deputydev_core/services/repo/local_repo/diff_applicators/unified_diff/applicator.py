@@ -64,7 +64,7 @@ class UnifiedDiffApplicator:
 
     def _directly_apply_hunk(self, content: str, hunk: List[str]) -> Optional[str]:
         before_texts, after_texts = self._hunk_to_before_after(hunk)
-        before, after = "".join(before_texts), "".join(after_texts)
+        before, after = "".join(before_texts).rstrip("\r\n"), "".join(after_texts).rstrip("\r\n")
 
         # if the before text is not in the content, we cannot apply the diff
         if not before:
@@ -215,6 +215,9 @@ class UnifiedDiffApplicator:
         return before, after
 
     def _cleanup_pure_whitespace_lines(self, lines: List[str]) -> List[str]:
+        """
+        Remove any leading or trailing whitespace lines
+        """
         res = [line if line.strip() else line[-(len(line) - len(line.rstrip("\r\n")))] for line in lines]
         return res
 
@@ -237,7 +240,11 @@ class UnifiedDiffApplicator:
 
         # remove the first 2 lines as they are just the file paths
         diff = list(diff)[3:]
-        return diff
+
+        endline_normalized_diff: List[str] = []
+        for _line in diff:
+            endline_normalized_diff.append(_line.rstrip("\r\n") + "\n")
+        return endline_normalized_diff
 
     def _make_new_lines_explicit(self, content: str, hunk: List[str]) -> List[str]:
         before_texts, after_texts = self._hunk_to_before_after(hunk)
@@ -364,6 +371,14 @@ class UnifiedDiffApplicator:
         if new_content:
             return new_content
         return None
+    
+    def _normalize_endlines_content(self, content: str) -> str:
+        """
+        Normalize the endline characters in the content
+        """
+        content_lines = content.splitlines(keepends=True)
+        content_lines = [line.rstrip("\r\n") + "\n" for line in content_lines]
+        return "".join(content_lines)
 
     def get_final_content(self, filepath_to_diff_map: Dict[str, str]) -> Dict[str, str]:
         """
@@ -384,7 +399,6 @@ class UnifiedDiffApplicator:
 
         # firstly, get the unique hunks
         edits = self.find_diff_hunks(filepath_to_diff_map)
-        print("edits", edits)
 
         # remove duplicates using a set
         seen: Set[str] = set()
@@ -404,13 +418,14 @@ class UnifiedDiffApplicator:
             seen.add(this)
 
             unique_normalized_hunks.append((path, hunk))
-        print("unique_normalized_hunks", unique_normalized_hunks)
 
-        # apply the hunks
+        content: Optional[str] = None
         errors: List[str] = []
         for path, hunk in unique_normalized_hunks:
             full_path = os.path.join(self.repo_path, path)
-            content: Optional[str] = self._get_file_content(full_path)
+            if not content:
+                content = self._get_file_content(full_path)
+                content = self._normalize_endlines_content(content)
 
             original_lines, _ = self._hunk_to_before_after(hunk)
             original = "".join(original_lines)
@@ -440,11 +455,11 @@ class UnifiedDiffApplicator:
             # SUCCESS!
             final_file_contents[path] = content
 
-        # if errors:
-        #     errors_str = "\n\n".join(errors)
-        #     if len(errors) < len(unique_normalized_hunks):
-        #         errors_str += SOME_HUNKS_APPLIED_MESSAGE
-        #     raise ValueError(errors_str)
+        if errors:
+            errors_str = "\n\n".join(errors)
+            if len(errors) < len(unique_normalized_hunks):
+                errors_str += SOME_HUNKS_APPLIED_MESSAGE
+            print(errors_str)
 
         return final_file_contents
 
