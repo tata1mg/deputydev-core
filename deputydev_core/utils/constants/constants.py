@@ -16,6 +16,7 @@ EXTENSION_TO_LANGUAGE = {
     "kt": "kotlin",
     "go": "go",
     "json": "json",
+    "rb": "ruby",
 }
 TSX_EXTENSIONS = {"tsx": "tsx"}
 JAVA_EXTENSIONS = {"java": "java"}
