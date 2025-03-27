@@ -13,7 +13,7 @@ class AutoCompleteService(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _fuzzy_search(self,  request: AutoCompleteSearch) -> List[ChunkFileDTO]:
+    def _fuzzy_search(self, request: AutoCompleteSearch) -> List[ChunkFileDTO]:
         raise NotImplementedError
 
     def keyword_suggestions(self, request: AutoCompleteSearch) -> List[ChunkFileDTO]:

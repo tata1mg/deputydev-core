@@ -59,7 +59,7 @@ class OneDevExtensionChunker(VectorDBChunker):
             self.local_repo.repo_path,
             self.use_new_chunking,
             process_executor=self.process_executor,
-            set_config_in_new_process=True
+            set_config_in_new_process=True,
         )
 
         # WARNING: Do not change this to pass by value, it will increase memory usage

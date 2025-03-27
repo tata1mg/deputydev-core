@@ -202,6 +202,7 @@ def diff_lines(search_text: str, replace_text: str) -> List[str]:
 
     return udiff
 
+
 def search_and_replace(texts: List[str]) -> Optional[str]:
     """Search for search_text in original_text and replace it with
     replace_text. If search_text is not found, return None.
