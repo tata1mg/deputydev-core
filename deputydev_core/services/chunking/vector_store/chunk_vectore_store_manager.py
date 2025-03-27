@@ -254,7 +254,7 @@ class ChunkVectorStoreManager:
         file_path_commit_hash_map: Dict[str, str],
         with_vector: bool,
         chunk_refresh_config: Optional[RefreshConfig] = None,
-        enable_refresh: bool = False
+        enable_refresh: bool = False,
     ) -> Dict[str, List[ChunkInfo]]:
         """
         Get the stored chunks based on the file path and commit hash map.

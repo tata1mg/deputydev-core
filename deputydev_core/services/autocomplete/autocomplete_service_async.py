@@ -13,7 +13,7 @@ class AutoCompleteServiceAsync(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def _fuzzy_search(self,  request: AutoCompleteSearch) -> List[ChunkFileDTO]:
+    async def _fuzzy_search(self, request: AutoCompleteSearch) -> List[ChunkFileDTO]:
         raise NotImplementedError
 
     async def keyword_suggestions(self, request: AutoCompleteSearch) -> List[ChunkFileDTO]:
