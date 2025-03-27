@@ -183,7 +183,7 @@ class VectorDBChunker(BaseChunker):
                 async_refresh=self.use_async_refresh,
                 refresh_timestamp=chunking_timestamp,
             ),
-            enable_refresh=enable_refresh
+            enable_refresh=enable_refresh,
         )
 
         # get the files that need to be chunked

@@ -26,16 +26,17 @@ class ExtensionInitialisationManager(InitializationManager):
         process_executor: Optional[ProcessPoolExecutor] = None,
         one_dev_client: Optional[OneDevClient] = None,
         weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
-        embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None
+        embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
     ) -> None:
-        super().__init__(repo_path, auth_token_key, process_executor, one_dev_client,
-                         weaviate_client, ExtensionEmbeddingManager)
+        super().__init__(
+            repo_path, auth_token_key, process_executor, one_dev_client, weaviate_client, ExtensionEmbeddingManager
+        )
 
     async def prefill_vector_store(
         self,
         chunkable_files_and_hashes: Dict[str, str],
         progressbar: Optional[CustomProgressBar] = None,
-        enable_refresh: Optional[bool] = False
+        enable_refresh: Optional[bool] = False,
     ) -> None:
         assert self.local_repo, "Local repo is not initialized"
         assert self.weaviate_client, "Connect to vector store"
