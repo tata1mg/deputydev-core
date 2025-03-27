@@ -53,8 +53,8 @@ class AuthTokenStorageBase:
     @classmethod
     def delete_auth_token(cls):
         if os.path.exists(cls.token_file):
-            with open(cls.token_file, 'r') as file:
+            with open(cls.token_file, "r") as file:
                 tokens = json.load(file)
             tokens.pop(cls.key_name, None)
-            with open(cls.token_file, 'w') as file:
+            with open(cls.token_file, "w") as file:
                 json.dump(tokens, file)

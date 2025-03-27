@@ -176,7 +176,7 @@ class InitializationManager:
         self,
         chunkable_files_and_hashes: Dict[str, str],
         progressbar: Optional[ProgressBar] = None,
-        enable_refresh: Optional[bool] = False
+        enable_refresh: Optional[bool] = False,
     ) -> None:
         assert self.local_repo, "Local repo is not initialized"
         assert self.weaviate_client, "Connect to vector store"
@@ -188,7 +188,7 @@ class InitializationManager:
             process_executor=self.process_executor,
             progress_bar=progressbar,
             chunkable_files_and_hashes=chunkable_files_and_hashes,
-        ).create_chunks_and_docs(enable_refresh = enable_refresh)
+        ).create_chunks_and_docs(enable_refresh=enable_refresh)
 
         if enable_refresh:
             self.process_chunks_cleanup(all_chunks)

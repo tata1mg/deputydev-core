@@ -11,7 +11,7 @@ from .search_and_replace import (
     search_and_replace,
 )
 
-NO_MATCH_ERROR = """UnifiedDiffNoMatch: hunk failed to apply!
+NO_MATCH_ERROR = """UnifiedDiffNoMatch: edit failed to apply!
 
 {path} does not contain lines that match the diff you provided!
 Try again.
@@ -24,7 +24,7 @@ The diff needs to apply cleanly to the lines in {path}!
 """
 
 
-NOT_UNIQUE_ERROR = """UnifiedDiffNotUnique: hunk failed to apply!
+NOT_UNIQUE_ERROR = """UnifiedDiffNotUnique: edit failed to apply!
 
 {path} contains multiple sets of lines that match the diff you provided!
 Try again.
@@ -35,8 +35,6 @@ The diff needs to apply to a unique set of lines in {path}!
 ```
 {original}```
 """
-
-SOME_HUNKS_APPLIED_MESSAGE = "Note: some hunks did apply successfully. See the updated source code shown above.\n\n"
 
 
 class UnifiedDiffApplicator:
@@ -125,7 +123,7 @@ class UnifiedDiffApplicator:
                 if res:
                     return res
 
-    def _process_fenced_block(self, file_path_str: str, block: List[str]) -> List[Tuple[str, List[str]]]:
+    def _process_fenced_block(self, block: List[str]) -> List[List[str]]:
         """
         Cut a fenced block into hunks, hunks are basically a list of lines that have one contiguous change between them
         """
@@ -138,7 +136,7 @@ class UnifiedDiffApplicator:
                 block = block[i + 2 :]
                 break
 
-        edits: List[Tuple[str, List[str]]] = []
+        edits: List[List[str]] = []
 
         keeper = False  # denotes if we want to keep the hunk, if we find a + or - we want to keep the line
         hunk: List[str] = []
@@ -163,25 +161,27 @@ class UnifiedDiffApplicator:
                 continue
 
             hunk = hunk[:-1]
-            edits.append((file_path_str, hunk))
+            edits.append(hunk)
             hunk = []
             keeper = False
 
         return edits
 
-    def find_diff_hunks(self, filepath_to_diff_map: Dict[str, str]) -> List[Tuple[str, List[str]]]:
+    def get_file_wise_edits(self, filepath_to_diff_map: Dict[str, str]) -> Dict[str, List[List[str]]]:
 
-        edits: List[Tuple[str, List[str]]] = []
+        file_wise_edits: Dict[str, List[List[str]]] = {}
 
         for filepath, diff in filepath_to_diff_map.items():
+            # ensure the diff ends with a newline
             if not diff.endswith("\n"):
                 diff += "\n"
 
             # Split the diff into lines
             diff_lines = diff.splitlines(keepends=True)
-            edits += self._process_fenced_block(file_path_str=filepath, block=diff_lines)
+            file_edits = self._process_fenced_block(block=diff_lines)
+            file_wise_edits[filepath] = file_edits
 
-        return edits
+        return file_wise_edits
 
     def _hunk_to_before_after(self, hunk: List[str]) -> Tuple[List[str], List[str]]:
         """
@@ -371,7 +371,7 @@ class UnifiedDiffApplicator:
         if new_content:
             return new_content
         return None
-    
+
     def _normalize_endlines_content(self, content: str) -> str:
         """
         Normalize the endline characters in the content
@@ -379,6 +379,26 @@ class UnifiedDiffApplicator:
         content_lines = content.splitlines(keepends=True)
         content_lines = [line.rstrip("\r\n") + "\n" for line in content_lines]
         return "".join(content_lines)
+
+    def _get_unique_normalized_edits(self, edits: List[List[str]]) -> List[List[str]]:
+        """
+        Get the unique edits from the list of edits
+        """
+        seen: Set[str] = set()
+        unique_edits: List[List[str]] = []
+        for edit in edits:
+            edit = self._normalize_hunk(edit)
+            if not edit:
+                continue
+
+            this = "".join(edit)
+            if this in seen:
+                continue
+            seen.add(this)
+
+            unique_edits.append(edit)
+
+        return unique_edits
 
     def get_final_content(self, filepath_to_diff_map: Dict[str, str]) -> Dict[str, str]:
         """
@@ -396,69 +416,52 @@ class UnifiedDiffApplicator:
         """
 
         final_file_contents: Dict[str, str] = {}
+        errors: List[str] = []
 
         # firstly, get the unique hunks
-        edits = self.find_diff_hunks(filepath_to_diff_map)
+        edits = self.get_file_wise_edits(filepath_to_diff_map)
 
-        # remove duplicates using a set
-        seen: Set[str] = set()
+        for file_path, file_edits in edits.items():
+            unique_normalized_edits: List[List[str]] = self._get_unique_normalized_edits(file_edits)
+            full_path = os.path.join(self.repo_path, file_path)
+            original_content: Optional[str] = self._get_file_content(full_path)
+            running_content: Optional[str] = original_content
+            if running_content is not None:
+                running_content = self._normalize_endlines_content(running_content)
 
-        # store unique non-empty normalized hunks
-        unique_normalized_hunks: List[Tuple[str, List[str]]] = []
-        for path, hunk in edits:
-            hunk = self._normalize_hunk(hunk)
-            if not hunk:
-                continue
-
-            this = [path + "\n"] + hunk
-            this = "".join(this)
-
-            if this in seen:
-                continue
-            seen.add(this)
-
-            unique_normalized_hunks.append((path, hunk))
-
-        content: Optional[str] = None
-        errors: List[str] = []
-        for path, hunk in unique_normalized_hunks:
-            full_path = os.path.join(self.repo_path, path)
-            if not content:
-                content = self._get_file_content(full_path)
-                content = self._normalize_endlines_content(content)
-
-            original_lines, _ = self._hunk_to_before_after(hunk)
-            original = "".join(original_lines)
-
-            try:
-                content = self.do_replace(full_path, content, hunk)
-            except SearchTextNotUnique:
-                errors.append(
-                    NOT_UNIQUE_ERROR.format(
-                        path=path,
-                        original=original,
-                        num_lines=len(original.splitlines()),
+            for edit in unique_normalized_edits:
+                original_lines, _ = self._hunk_to_before_after(edit)
+                original = "".join(original_lines)
+                new_content: Optional[str] = None
+                try:
+                    new_content = self.do_replace(full_path, running_content, edit)
+                except SearchTextNotUnique:
+                    errors.append(
+                        NOT_UNIQUE_ERROR.format(
+                            path=file_path,
+                            original=original,
+                            num_lines=len(original.splitlines()),
+                        )
                     )
-                )
-                continue
+                    continue
 
-            if not content:
-                errors.append(
-                    NO_MATCH_ERROR.format(
-                        path=path,
-                        original=original,
-                        num_lines=len(original.splitlines()),
+                if not new_content:
+                    errors.append(
+                        NO_MATCH_ERROR.format(
+                            path=file_path,
+                            original=original,
+                            num_lines=len(original.splitlines()),
+                        )
                     )
-                )
-                continue
+                    continue
 
-            # SUCCESS!
-            final_file_contents[path] = content
+                running_content = new_content
+
+            if running_content is not None and original_content != running_content:
+                final_file_contents[file_path] = running_content
 
         if errors:
             errors_str = "\n\n".join(errors)
-            if len(errors) < len(unique_normalized_hunks):
-                errors_str += SOME_HUNKS_APPLIED_MESSAGE
             print(errors_str)
 
         return final_file_contents
