@@ -10,7 +10,7 @@ class TypescriptMetadataChunker(BaseMetadataChunker):
             "method_definition",
             "function_declaration",
             "generator_function_declaration",
-            "pair"
+            "pair",
         ],
         LanguageIdentifiers.CLASS_DEFINITION.value: [
             "class_declaration",
