@@ -10,17 +10,18 @@ from deputydev_core.models.dto.chunk_dto import (
     ChunkDTOWithScore,
     ChunkDTOWithVector,
 )
+from deputydev_core.services.repository.base_weaviate_repository import (
+    BaseWeaviateRepository,
+)
 from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
 from deputydev_core.utils.app_logger import AppLogger
 
 
-class ChunkService:
+class ChunkService(BaseWeaviateRepository):
     def __init__(self, weaviate_client: WeaviateSyncAndAsyncClients):
-        self.weaviate_client = weaviate_client
-        self.async_collection = weaviate_client.async_client.collections.get(Chunks.collection_name)
-        self.sync_collection = weaviate_client.sync_client.collections.get(Chunks.collection_name)
+        super().__init__(weaviate_client, Chunks.collection_name)
 
     async def perform_filtered_vector_hybrid_search(
         self,
@@ -31,6 +32,7 @@ class ChunkService:
         alpha: float = 0.7,
     ) -> List[ChunkDTOWithScore]:
         try:
+            await self.ensure_collection_connections()
             all_chunks = await self.async_collection.query.hybrid(
                 filters=Filter.by_property("chunk_hash").contains_any(chunk_hashes),
                 query=query,
@@ -58,6 +60,7 @@ class ChunkService:
         all_chunks: List[Tuple[ChunkDTO, List[float]]] = []
         MAX_RESULTS_PER_QUERY = 10000
         try:
+            await self.ensure_collection_connections()
             # Process chunk hashes in batches
             for i in range(0, len(chunk_hashes), BATCH_SIZE):
                 batch_hashes = chunk_hashes[i : i + BATCH_SIZE]
@@ -90,6 +93,7 @@ class ChunkService:
             raise
 
     async def bulk_insert(self, chunks: List[ChunkDTOWithVector]) -> None:
+        await self.ensure_collection_connections()
         with self.sync_collection.batch.dynamic() as _batch:
             for chunk in chunks:
                 _batch.add_object(
@@ -98,7 +102,8 @@ class ChunkService:
                     uuid=generate_uuid5(chunk.dto.chunk_hash),
                 )
 
-    def cleanup_old_chunks(self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]) -> None:
+    async def cleanup_old_chunks(self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]) -> None:
+        await self.ensure_collection_connections()
         batch_size = 1000
         while True:
             deletable_objects = self.sync_collection.query.fetch_objects(

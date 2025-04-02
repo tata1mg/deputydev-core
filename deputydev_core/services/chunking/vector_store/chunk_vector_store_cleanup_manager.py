@@ -23,11 +23,11 @@ class ChunkVectorStoreCleaneupManager:
     async def _cleanup_chunk_and_chunk_files_objects(self, last_used_lt: datetime) -> None:
         time_start = time.perf_counter()
         try:
-            ChunkService(weaviate_client=self.weaviate_client).cleanup_old_chunks(
+            await ChunkService(weaviate_client=self.weaviate_client).cleanup_old_chunks(
                 last_used_lt=last_used_lt,
                 exclusion_chunk_hashes=self.exclusion_chunk_hashes,
             )
-            ChunkFilesService(weaviate_client=self.weaviate_client).cleanup_old_chunk_files(
+            await ChunkFilesService(weaviate_client=self.weaviate_client).cleanup_old_chunk_files(
                 last_used_lt=last_used_lt,
                 exclusion_chunk_hashes=self.exclusion_chunk_hashes,
             )

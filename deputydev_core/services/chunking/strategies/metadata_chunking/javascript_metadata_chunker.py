@@ -1,9 +1,11 @@
+from typing import Dict, Optional
+
+from tree_sitter import Node
+
 from deputydev_core.services.chunking.strategies.metadata_chunking.base_metadata_chunker import (
     BaseMetadataChunker,
 )
 from deputydev_core.services.chunking.utils.grammar_utils import LanguageIdentifiers
-from tree_sitter import Node
-from typing import Dict, Optional
 
 
 class JavascriptMetadataChunker(BaseMetadataChunker):
