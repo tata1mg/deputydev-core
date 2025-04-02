@@ -5,7 +5,9 @@ from deputydev_core.clients.http.service_clients.one_dev_client import OneDevCli
 from deputydev_core.services.chunking.chunker.handlers.one_dev_extension_chunker import (
     OneDevExtensionChunker,
 )
-from deputydev_core.services.embedding.base_one_dev_embedding_manager import BaseOneDevEmbeddingManager
+from deputydev_core.services.embedding.base_one_dev_embedding_manager import (
+    BaseOneDevEmbeddingManager,
+)
 from deputydev_core.services.embedding.extension_embedding_manager import (
     ExtensionEmbeddingManager,
 )

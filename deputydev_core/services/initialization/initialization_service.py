@@ -21,7 +21,9 @@ from deputydev_core.services.chunking.chunker.handlers.one_dev_cli_chunker impor
 from deputydev_core.services.chunking.vector_store.chunk_vector_store_cleanup_manager import (
     ChunkVectorStoreCleaneupManager,
 )
-from deputydev_core.services.embedding.base_one_dev_embedding_manager import BaseOneDevEmbeddingManager
+from deputydev_core.services.embedding.base_one_dev_embedding_manager import (
+    BaseOneDevEmbeddingManager,
+)
 from deputydev_core.services.embedding.cli_embedding_manager import CLIEmbeddingManager
 from deputydev_core.services.repo.local_repo.base_local_repo_service import (
     BaseLocalRepo,
@@ -149,7 +151,7 @@ class InitializationManager:
         if not self.weaviate_client:
             raise ValueError("Connect to vector store failed")
 
-        schema_version = WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).get_schema_version()
+        schema_version = await WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).get_schema_version()
 
         is_schema_invalid = schema_version is None or schema_version != ConfigManager.configs["WEAVIATE_SCHEMA_VERSION"]
 
@@ -166,7 +168,7 @@ class InitializationManager:
         )
 
         if should_clean or is_schema_invalid:
-            WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).set_schema_version(
+            await WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).set_schema_version(
                 ConfigManager.configs["WEAVIATE_SCHEMA_VERSION"]
             )
 

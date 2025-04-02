@@ -1,9 +1,12 @@
-from abc import ABC, abstractmethod
 import time
-from typing import List, Any
+from abc import ABC, abstractmethod
+from typing import Any, List
 
 from deputydev_core.models.dto.chunk_file_dto import ChunkFileDTO
-from deputydev_core.services.autocomplete.dataclasses.main import AutoCompleteSearch, SearchPath
+from deputydev_core.services.autocomplete.dataclasses.main import (
+    AutoCompleteSearch,
+    SearchPath,
+)
 from deputydev_core.utils.app_logger import AppLogger
 
 
