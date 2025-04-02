@@ -1,23 +1,30 @@
-import keyword
-from typing import List, Any
+from typing import Any, List
+
+import weaviate.classes.query as wq
+from weaviate.classes.query import Filter
 
 from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
 from deputydev_core.models.dto.chunk_file_dto import ChunkFileDTO
-from deputydev_core.services.autocomplete.autocomplete_service_async import AutoCompleteServiceAsync
-from deputydev_core.services.autocomplete.dataclasses.main import SearchPath, AutoCompleteSearch, RequestScope
-from deputydev_core.services.repository.dataclasses.main import WeaviateSyncAndAsyncClients
-from weaviate.classes.query import Filter
-import weaviate.classes.query as wq
-
+from deputydev_core.services.autocomplete.autocomplete_service_async import (
+    AutoCompleteServiceAsync,
+)
+from deputydev_core.services.autocomplete.dataclasses.main import (
+    AutoCompleteSearch,
+    SearchPath,
+)
+from deputydev_core.services.repository.base_weaviate_repository import (
+    BaseWeaviateRepository,
+)
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
+)
 from deputydev_core.utils.config_manager import ConfigManager
 from deputydev_core.utils.constants.constants import CHUNKFILE_KEYWORD_PROPERTY_MAP
 
 
-class WeaviateAutocompleteAdapter(AutoCompleteServiceAsync):
+class WeaviateAutocompleteAdapter(AutoCompleteServiceAsync, BaseWeaviateRepository):
     def __init__(self, weaviate_client: WeaviateSyncAndAsyncClients):
-        self.weaviate_client = weaviate_client
-        self.async_collection = weaviate_client.async_client.collections.get(ChunkFiles.collection_name)
-        self.sync_collection = weaviate_client.sync_client.collections.get(ChunkFiles.collection_name)
+        super().__init__(weaviate_client, ChunkFiles.collection_name)
 
     async def _build_filters(self, search_paths: List[SearchPath]) -> Any:
         file_filters = []
@@ -36,6 +43,7 @@ class WeaviateAutocompleteAdapter(AutoCompleteServiceAsync):
         return file_filters
 
     async def _fuzzy_search(self, request: AutoCompleteSearch) -> List[ChunkFileDTO]:
+        await self.ensure_collection_connections()
         assert len(request.keyword) > 0
         # keywords having search
         apply_pre_filter = len(request.search_paths) < ConfigManager.configs["AUTOCOMPLETE_SEARCH"]["PRE_FILTER_LIMIT"]
