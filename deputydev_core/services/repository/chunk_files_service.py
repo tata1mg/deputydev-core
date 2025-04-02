@@ -8,6 +8,9 @@ from weaviate.util import generate_uuid5
 
 from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
 from deputydev_core.models.dto.chunk_file_dto import ChunkFileDTO
+from deputydev_core.services.repository.base_weaviate_repository import (
+    BaseWeaviateRepository,
+)
 from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
@@ -18,13 +21,12 @@ from deputydev_core.utils.constants.constants import (
 )
 
 
-class ChunkFilesService:
+class ChunkFilesService(BaseWeaviateRepository):
     def __init__(self, weaviate_client: WeaviateSyncAndAsyncClients):
-        self.weaviate_client = weaviate_client
-        self.async_collection = weaviate_client.async_client.collections.get(ChunkFiles.collection_name)
-        self.sync_collection = weaviate_client.sync_client.collections.get(ChunkFiles.collection_name)
+        super().__init__(weaviate_client, ChunkFiles.collection_name)
 
     async def get_chunk_files_by_commit_hashes(self, file_to_commit_hashes: Dict[str, str]) -> List[ChunkFileDTO]:
+        await self.ensure_collection_connections()
         BATCH_SIZE = 1000
         MAX_RESULTS_PER_QUERY = 10000
         all_chunk_files = []
@@ -70,6 +72,7 @@ class ChunkFilesService:
             raise ex
 
     async def bulk_insert(self, chunks: List[ChunkFileDTO]) -> None:
+        await self.ensure_collection_connections()
         with self.sync_collection.batch.dynamic() as _batch:
             for chunk in chunks:
                 chunk_file_uuid = generate_uuid5(
@@ -82,7 +85,8 @@ class ChunkFilesService:
                     uuid=chunk_file_uuid,
                 )
 
-    def cleanup_old_chunk_files(self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]) -> None:
+    async def cleanup_old_chunk_files(self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]) -> None:
+        await self.ensure_collection_connections()
         batch_size = 1000
         while True:
             deletable_objects = self.sync_collection.query.fetch_objects(
@@ -118,6 +122,7 @@ class ChunkFilesService:
         """
         try:
             start_time = time.time()
+            await self.ensure_collection_connections()
             file_filters = None
             if chunkable_files_and_hashes and len(chunkable_files_and_hashes) > 0:
                 file_filters = Filter.any_of(
@@ -175,6 +180,7 @@ class ChunkFilesService:
         """
         try:
             start_time = time.time()
+            await self.ensure_collection_connections()
             file_filters = None
             if chunkable_files_and_hashes and len(chunkable_files_and_hashes) > 0:
                 file_filters = Filter.any_of(
