@@ -112,8 +112,12 @@ class InitializationManager:
                 )
                 await async_client.connect()
 
-        if not async_client:
-            raise Exception("async client not initialized")
+            else:
+                AppLogger.log_error(
+                    f"Failed to connect to vector store: {str(_ex)}"
+                )
+                raise _ex
+
         return async_client
 
     def initialize_vector_db_sync(self) -> WeaviateClient:
