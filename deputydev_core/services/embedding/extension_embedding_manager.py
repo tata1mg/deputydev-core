@@ -57,6 +57,8 @@ class ExtensionEmbeddingManager(BaseOneDevEmbeddingManager):
         if failed_batches:
             await asyncio.sleep(exponential_backoff)
             exponential_backoff *= 2
+            if exponential_backoff > ConfigManager.configs["EMBEDDING"]["MAX_BACKOFF"]:
+                exponential_backoff = ConfigManager.configs["EMBEDDING"]["MAX_BACKOFF"]
             parallel_batches += failed_batches
         else:
             exponential_backoff = 0.2
