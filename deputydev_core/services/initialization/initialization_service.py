@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 from concurrent.futures import ProcessPoolExecutor
 from typing import Dict, List, Optional, Type
 
@@ -113,9 +114,8 @@ class InitializationManager:
                 await async_client.connect()
 
             else:
-                AppLogger.log_error(
-                    f"Failed to connect to vector store: {str(_ex)}"
-                )
+                AppLogger.log_info(traceback.format_exc())
+                AppLogger.log_error(f"Failed to connect to vector store: {str(_ex)}")
                 raise _ex
 
         return async_client
