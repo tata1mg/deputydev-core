@@ -81,6 +81,7 @@ class ChunkVectorStoreManager:
                         classes=chunk_classes,
                         functions=chunk_functions,
                         searchable_file_path=chunk.source_details.file_path,
+                        searchable_file_name=chunk.source_details.file_path.split("/")[-1],
                         meta_info=chunk.metadata,
                     )
                 )

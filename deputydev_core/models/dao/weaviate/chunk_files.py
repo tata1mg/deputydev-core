@@ -62,6 +62,15 @@ class ChunkFiles(Base):
             index_searchable=True,
         ),
         Property(
+            name="searchable_file_name",
+            data_type=DataType.TEXT,
+            vectorize_property_name=False,
+            skip_vectorization=True,
+            tokenization=Tokenization.TRIGRAM,
+            index_filterable=True,
+            index_searchable=True,
+        ),
+        Property(
             name="classes",
             data_type=DataType.TEXT_ARRAY,
             vectorize_property_name=False,
