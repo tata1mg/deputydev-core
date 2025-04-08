@@ -20,6 +20,7 @@ class ChunkFileDataWithSearchHelperKeys(ChunkFileData):
     classes: List[str]
     functions: List[str]
     searchable_file_path: str
+    searchable_file_name: str
 
 
 class ChunkFileDTO(ChunkFileDataWithSearchHelperKeys):

@@ -39,12 +39,13 @@ class PropertyTypes(Enum):
     FUNCTION = "functions"
     CLASS = "classes"
     FILE = "searchable_file_path"
+    FILE_NAME = "searchable_file_name"
 
 
 CHUNKFILE_KEYWORD_PROPERTY_MAP = {
-    "class": PropertyTypes.CLASS.value,
-    "function": PropertyTypes.FUNCTION.value,
-    "file": PropertyTypes.FILE.value,
+    "class": [PropertyTypes.CLASS.value],
+    "function": [PropertyTypes.FUNCTION.value],
+    "file": [PropertyTypes.FILE.value, PropertyTypes.FILE_NAME.value],
 }
 
 
