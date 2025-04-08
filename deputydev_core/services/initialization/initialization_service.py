@@ -39,6 +39,8 @@ from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
 
+from .constants import WEAVIATE_SCHEMA_VERSION
+
 
 class InitializationManager:
     def __init__(
@@ -157,7 +159,7 @@ class InitializationManager:
 
         schema_version = await WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).get_schema_version()
 
-        is_schema_invalid = schema_version is None or schema_version != ConfigManager.configs["WEAVIATE_SCHEMA_VERSION"]
+        is_schema_invalid = schema_version is None or schema_version != WEAVIATE_SCHEMA_VERSION
 
         if should_clean or is_schema_invalid:
             AppLogger.log_debug("Cleaning up the vector store")
@@ -173,7 +175,7 @@ class InitializationManager:
 
         if should_clean or is_schema_invalid:
             await WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).set_schema_version(
-                ConfigManager.configs["WEAVIATE_SCHEMA_VERSION"]
+                WEAVIATE_SCHEMA_VERSION
             )
 
         return self.weaviate_client
