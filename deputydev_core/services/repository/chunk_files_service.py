@@ -142,6 +142,7 @@ class ChunkFilesService(BaseWeaviateRepository):
                         Filter.by_property(PropertyTypes.FUNCTION.value).like(f"*{keyword}*"),
                         Filter.by_property(PropertyTypes.CLASS.value).like(f"*{keyword}*"),
                         Filter.by_property(PropertyTypes.FILE.value).like(f"*{keyword}*"),
+                        Filter.by_property(PropertyTypes.FILE_NAME.value).like(f"*{keyword}*"),
                     ]
                 )
                 combined_filter = Filter.all_of([file_filters, content_filters])
@@ -157,6 +158,7 @@ class ChunkFilesService(BaseWeaviateRepository):
                         PropertyTypes.FUNCTION.value,
                         PropertyTypes.CLASS.value,
                         PropertyTypes.FILE.value,
+                        PropertyTypes.FILE_NAME.value,
                     ],
                     filters=file_filters,
                     return_metadata=wq.MetadataQuery(score=True),
@@ -197,7 +199,8 @@ class ChunkFilesService(BaseWeaviateRepository):
             if len(keyword) < 3:
                 content_filters = Filter.any_of(
                     [
-                        Filter.by_property(CHUNKFILE_KEYWORD_PROPERTY_MAP[type]).like(f"*{keyword}*"),
+                        Filter.by_property(CHUNKFILE_KEYWORD_PROPERTY_MAP[type][i]).like(f"*{keyword}*")
+                        for i in range(len(CHUNKFILE_KEYWORD_PROPERTY_MAP[type]))
                     ]
                 )
                 combined_filter = Filter.all_of([file_filters, content_filters])
@@ -209,7 +212,7 @@ class ChunkFilesService(BaseWeaviateRepository):
             else:
                 results = await self.async_collection.query.bm25(
                     query=keyword,
-                    query_properties=[CHUNKFILE_KEYWORD_PROPERTY_MAP[type]],
+                    query_properties=CHUNKFILE_KEYWORD_PROPERTY_MAP[type],
                     filters=file_filters,
                     return_metadata=wq.MetadataQuery(score=True),
                     limit=limit,
