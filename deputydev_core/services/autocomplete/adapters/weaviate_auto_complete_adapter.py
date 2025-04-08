@@ -70,7 +70,11 @@ class WeaviateAutocompleteAdapter(AutoCompleteServiceAsync, BaseWeaviateReposito
         else:
             results = await self.async_collection.query.bm25(
                 query=request.keyword,
-                query_properties=CHUNKFILE_KEYWORD_PROPERTY_MAP.values(),
+                query_properties=[
+                    CHUNKFILE_KEYWORD_PROPERTY_MAP[typ][i]
+                    for typ in CHUNKFILE_KEYWORD_PROPERTY_MAP
+                    for i in range(len(CHUNKFILE_KEYWORD_PROPERTY_MAP[typ]))
+                ],
                 filters=filters or None,
                 return_metadata=wq.MetadataQuery(score=True),
                 limit=request.limit,
