@@ -56,8 +56,9 @@ class WeaviateAutocompleteAdapter(AutoCompleteServiceAsync, BaseWeaviateReposito
         if len(request.keyword) < 3:
             content_filters = Filter.any_of(
                 [
-                    Filter.by_property(CHUNKFILE_KEYWORD_PROPERTY_MAP[type]).like(f"*{request.keyword}*")
+                    Filter.by_property(CHUNKFILE_KEYWORD_PROPERTY_MAP[type][i]).like(f"*{request.keyword}*")
                     for type in CHUNKFILE_KEYWORD_PROPERTY_MAP
+                    for i in range(len(CHUNKFILE_KEYWORD_PROPERTY_MAP[type]))
                 ]
             )
             combined_filter = Filter.all_of([filters, content_filters]) if filters else content_filters
@@ -69,7 +70,7 @@ class WeaviateAutocompleteAdapter(AutoCompleteServiceAsync, BaseWeaviateReposito
         else:
             results = await self.async_collection.query.bm25(
                 query=request.keyword,
-                query_properties=list(CHUNKFILE_KEYWORD_PROPERTY_MAP.values()),
+                query_properties=CHUNKFILE_KEYWORD_PROPERTY_MAP.values(),
                 filters=filters or None,
                 return_metadata=wq.MetadataQuery(score=True),
                 limit=request.limit,
