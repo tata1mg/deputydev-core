@@ -1,6 +1,7 @@
 import asyncio
 import traceback
 from concurrent.futures import ProcessPoolExecutor
+from pathlib import Path
 from typing import Dict, List, Optional, Type
 
 from prompt_toolkit.shortcuts.progress_bar import ProgressBar
@@ -81,11 +82,14 @@ class InitializationManager:
             return self.weaviate_client.async_client
 
         async_client: Optional[WeaviateAsyncClient] = None
+        resolved_persistence_data_path = Path(ConfigManager.configs["WEAVIATE_EMBEDDED_DB_PATH"]).expanduser().resolve()
+        resolved_binary_path = Path(ConfigManager.configs["WEAVIATE_EMBEDDED_DB_BINARY_PATH"]).expanduser().resolve()
+
         try:
             async_client = WeaviateAsyncClient(
                 embedded_options=EmbeddedOptions(
-                    persistence_data_path=ConfigManager.configs["WEAVIATE_EMBEDDED_DB_PATH"],
-                    binary_path=ConfigManager.configs["WEAVIATE_EMBEDDED_DB_BINARY_PATH"],
+                    persistence_data_path=str(resolved_persistence_data_path),
+                    binary_path=str(resolved_binary_path),
                     hostname=ConfigManager.configs["WEAVIATE_HOST"],
                     port=ConfigManager.configs["WEAVIATE_HTTP_PORT"],
                     grpc_port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
