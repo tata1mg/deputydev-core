@@ -84,6 +84,8 @@ class InitializationManager:
         try:
             async_client = WeaviateAsyncClient(
                 embedded_options=EmbeddedOptions(
+                    persistence_data_path=ConfigManager.configs["WEAVIATE_EMBEDDED_DB_PATH"],
+                    binary_path=ConfigManager.configs["WEAVIATE_EMBEDDED_DB_BINARY_PATH"],
                     hostname=ConfigManager.configs["WEAVIATE_HOST"],
                     port=ConfigManager.configs["WEAVIATE_HTTP_PORT"],
                     grpc_port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
