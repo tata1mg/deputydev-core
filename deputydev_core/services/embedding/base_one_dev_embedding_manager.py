@@ -1,4 +1,3 @@
-import time
 from typing import List, Optional, Tuple
 
 from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
@@ -48,7 +47,6 @@ class BaseOneDevEmbeddingManager(BaseEmbeddingManager):
         self, batch: List[str], store_embeddings: bool = True
     ) -> Tuple[Optional[List[List[float]]], int, List[str]]:
         try:
-            time_start = time.perf_counter()
             embedding_result = await self.one_dev_client.create_embedding(
                 payload={"texts": batch, "store_embeddings": store_embeddings},
                 headers={
@@ -56,7 +54,6 @@ class BaseOneDevEmbeddingManager(BaseEmbeddingManager):
                     "Authorization": f"Bearer {SharedMemory.read(self.auth_token_key)}",
                 },
             )
-            AppLogger.log_debug(f"Time taken for embedding batch via API: {time.perf_counter() - time_start}")
             return (
                 embedding_result["embeddings"],
                 embedding_result["tokens_used"],
