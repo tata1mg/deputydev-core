@@ -227,7 +227,9 @@ class ChunkFilesService(BaseWeaviateRepository):
             AppLogger.log_error("Failed to search code symbols")
             raise ex
 
-    async def get_chunk_files_matching_exact_search_key_on_file_hash(self, search_key: str, search_type: str, file_path: str, file_hash: str) -> List[ChunkFileDTO]
+    async def get_chunk_files_matching_exact_search_key_on_file_hash(
+        self, search_key: str, search_type: str, file_path: str, file_hash: str
+    ) -> List[ChunkFileDTO]:
         file_filter = Filter.all_of(
             [
                 Filter.by_property("file_path").equal(file_path),
