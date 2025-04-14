@@ -237,23 +237,26 @@ class ChunkFilesService(BaseWeaviateRepository):
             ]
         )
 
-        search_type_key = CHUNKFILE_KEYWORD_PROPERTY_MAP.get(search_type)
-        if not search_type_key:
-            raise ValueError(f"Invalid search type: {search_type}")
-        search_filter = Filter.any_of(
-            [
-                Filter.by_property(search_type_key).equal(search_key),
-            ]
-        )
-        combined_filter = Filter.all_of([file_filter, search_filter])
+        search_filter = None
+        if search_type == "class":
+            search_filter = Filter.by_property(PropertyTypes.CLASS.value).contains_any([search_key])
+        elif search_type == "function":
+            search_filter = Filter.by_property(PropertyTypes.FUNCTION.value).contains_any([search_key])
+
+        combined_filter = Filter.all_of([file_filter, search_filter] if search_filter else [file_filter])
         results = await self.async_collection.query.fetch_objects(
             filters=combined_filter,
-            limit=1000,
+            limit=200,
         )
-        return [
+        all_chunk_file_dtos = [
             ChunkFileDTO(
                 **chunk_file_obj.properties,
                 id=str(chunk_file_obj.uuid),
             )
             for chunk_file_obj in results.objects
         ]
+        sorted_chunk_file_dtos = sorted(
+            all_chunk_file_dtos,
+            key=lambda x: x.start_line,
+        )
+        return sorted_chunk_file_dtos
