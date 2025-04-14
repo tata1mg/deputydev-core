@@ -226,3 +226,32 @@ class ChunkFilesService(BaseWeaviateRepository):
         except Exception as ex:
             AppLogger.log_error("Failed to search code symbols")
             raise ex
+
+    async def get_chunk_files_matching_exact_search_key_on_file_hash(self, search_key: str, search_type: str, file_path: str, file_hash: str) -> List[ChunkFileDTO]
+        file_filter = Filter.all_of(
+            [
+                Filter.by_property("file_path").equal(file_path),
+                Filter.by_property("file_hash").equal(file_hash),
+            ]
+        )
+
+        search_type_key = CHUNKFILE_KEYWORD_PROPERTY_MAP.get(search_type)
+        if not search_type_key:
+            raise ValueError(f"Invalid search type: {search_type}")
+        search_filter = Filter.any_of(
+            [
+                Filter.by_property(search_type_key).equal(search_key),
+            ]
+        )
+        combined_filter = Filter.all_of([file_filter, search_filter])
+        results = await self.async_collection.query.fetch_objects(
+            filters=combined_filter,
+            limit=1000,
+        )
+        return [
+            ChunkFileDTO(
+                **chunk_file_obj.properties,
+                id=str(chunk_file_obj.uuid),
+            )
+            for chunk_file_obj in results.objects
+        ]
