@@ -1,9 +1,10 @@
 import time
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import weaviate.classes.query as wq
 from weaviate.classes.query import Filter
+from weaviate.collections.classes.filters import _Filters
 from weaviate.util import generate_uuid5
 
 from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
@@ -227,15 +228,22 @@ class ChunkFilesService(BaseWeaviateRepository):
             AppLogger.log_error("Failed to search code symbols")
             raise ex
 
-    async def get_chunk_files_matching_exact_search_key_on_file_hash(
-        self, search_key: str, search_type: str, file_path: str, file_hash: str
+    async def get_chunk_files_matching_exact_search_key(
+        self, search_key: str, search_type: str, file_path_to_hash_map: Optional[Dict[str, str]] = None
     ) -> List[ChunkFileDTO]:
-        file_filter = Filter.all_of(
-            [
-                Filter.by_property("file_path").equal(file_path),
-                Filter.by_property("file_hash").equal(file_hash),
-            ]
-        )
+        file_filter = None
+        if file_path_to_hash_map:
+            file_filter = Filter.any_of(
+                [
+                    Filter.all_of(
+                        [
+                            Filter.by_property("file_path").equal(file_path),
+                            Filter.by_property("file_hash").equal(file_hash),
+                        ]
+                    )
+                    for file_path, file_hash in file_path_to_hash_map.items()
+                ]
+            )
 
         search_filter = None
         if search_type == "class":
@@ -243,7 +251,17 @@ class ChunkFilesService(BaseWeaviateRepository):
         elif search_type == "function":
             search_filter = Filter.by_property(PropertyTypes.FUNCTION.value).contains_any([search_key])
 
-        combined_filter = Filter.all_of([file_filter, search_filter] if search_filter else [file_filter])
+        combined_filter_list: List[_Filters] = []
+        if file_filter:
+            combined_filter_list.append(file_filter)
+        if search_filter:
+            combined_filter_list.append(search_filter)
+
+        if not combined_filter_list:
+            raise ValueError("No filters provided for search")
+
+        combined_filter = Filter.all_of(combined_filter_list)
+
         results = await self.async_collection.query.fetch_objects(
             filters=combined_filter,
             limit=200,
