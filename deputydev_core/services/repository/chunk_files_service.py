@@ -259,7 +259,7 @@ class ChunkFilesService(BaseWeaviateRepository):
 
         if not combined_filter_list:
             raise ValueError("No filters provided for search")
-        
+
         combined_filter = Filter.all_of(combined_filter_list)
 
         results = await self.async_collection.query.fetch_objects(
