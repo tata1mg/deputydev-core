@@ -1,6 +1,6 @@
 import time
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import weaviate.classes.query as wq
 from weaviate.classes.query import Filter
@@ -70,6 +70,63 @@ class ChunkFilesService(BaseWeaviateRepository):
         except Exception as ex:
             AppLogger.log_error("Failed to get chunk files by commit hashes")
             raise ex
+
+    async def get_only_import_chunk_files_by_commit_hashes(self, file_to_commit_hashes: Dict[str, str]) -> List[ChunkFileDTO]:
+        await self.ensure_collection_connections()
+        BATCH_SIZE = 1000
+        MAX_RESULTS_PER_QUERY = 10000
+        all_chunk_files = []
+        try:
+            # Convert dictionary items to list for batch processing
+            file_commit_pairs = list(file_to_commit_hashes.items())
+
+            # Process in smaller batches
+            for i in range(0, len(file_commit_pairs), BATCH_SIZE):
+                batch_pairs = file_commit_pairs[i : i + BATCH_SIZE]
+
+                # Single query per batch without offset pagination
+                batch_files = await self.async_collection.query.fetch_objects(
+                    filters=Filter.any_of(
+                        [
+                            Filter.all_of(
+                                [
+                                    Filter.by_property("file_path").equal(file_path),
+                                    Filter.by_property("file_hash").equal(commit_hash),
+                                    Filter.by_property("has_imports").equal(True),
+                                ]
+                            )
+                            for file_path, commit_hash in batch_pairs
+                        ]
+                    ),
+                    limit=MAX_RESULTS_PER_QUERY,
+                )
+
+                # Convert to DTOs efficiently
+                if batch_files.objects:
+                    batch_dtos = [
+                        ChunkFileDTO(
+                            **chunk_file_obj.properties,
+                            id=str(chunk_file_obj.uuid),
+                        )
+                        for chunk_file_obj in batch_files.objects
+                    ]
+                    all_chunk_files.extend(batch_dtos)
+
+            return all_chunk_files
+
+        except Exception as ex:
+            AppLogger.log_error("Failed to get chunk files by commit hashes")
+            raise ex
+
+    # async def get_file_path_to_chunk_hashes(self, chunk_files: List[ChunkFileDTO]) -> Dict[str, List[str]]:
+    #     file_to_hashes = {}
+    #     for chunk_file in chunk_files:
+    #         file_path = chunk_file.file_path
+    #         chunk_hash = chunk_file.chunk_hash
+    #         if file_path not in file_to_hashes:
+    #             file_to_hashes[file_path] = []
+    #         file_to_hashes[file_path].append(chunk_hash)
+    #     return file_to_hashes
 
     async def bulk_insert(self, chunks: List[ChunkFileDTO]) -> None:
         await self.ensure_collection_connections()
@@ -234,6 +291,41 @@ class ChunkFilesService(BaseWeaviateRepository):
             [
                 Filter.by_property("file_path").equal(file_path),
                 Filter.by_property("file_hash").equal(file_hash),
+            ]
+        )
+
+        search_filter = None
+        if search_type == "class":
+            search_filter = Filter.by_property(PropertyTypes.CLASS.value).contains_any([search_key])
+        elif search_type == "function":
+            search_filter = Filter.by_property(PropertyTypes.FUNCTION.value).contains_any([search_key])
+
+        combined_filter = Filter.all_of([file_filter, search_filter] if search_filter else [file_filter])
+        results = await self.async_collection.query.fetch_objects(
+            filters=combined_filter,
+            limit=200,
+        )
+        all_chunk_file_dtos = [
+            ChunkFileDTO(
+                **chunk_file_obj.properties,
+                id=str(chunk_file_obj.uuid),
+            )
+            for chunk_file_obj in results.objects
+        ]
+        sorted_chunk_file_dtos = sorted(
+            all_chunk_file_dtos,
+            key=lambda x: x.start_line,
+        )
+        return sorted_chunk_file_dtos
+
+    async def get_import_only_chunk_files_matching_exact_search_key_on_file_hash(
+        self, search_key: str, search_type: str, file_path: str, file_hash: str
+    ) -> List[ChunkFileDTO]:
+        file_filter = Filter.all_of(
+            [
+                Filter.by_property("file_path").equal(file_path),
+                Filter.by_property("file_hash").equal(file_hash),
+                Filter.by_property("has_imports").equal(True),
             ]
         )
 
