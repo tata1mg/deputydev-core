@@ -30,6 +30,19 @@ class ChunkInfo(BaseModel):
     metadata: Optional[ChunkMetadata] = None
     search_score: Optional[float] = 0  # vector search score
 
+    def __hash__(self) -> int:
+        """
+        Generate a hash based on the chunk's returnable fields:
+        - content
+        - embedding
+        - source_details
+        - metadata
+        - search_score
+
+        This ensures that chunks are considered equal if they have the same returnable values.
+        """
+        return hash((self.content, self.embedding, self.source_details, self.metadata, self.search_score))
+
     def get_chunk_content(self, add_ellipsis: bool = False, add_lines: bool = True):
         """
         Get a content of the chunk.
