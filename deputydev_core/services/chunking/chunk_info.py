@@ -12,8 +12,6 @@ class ChunkSourceDetails(BaseModel):
     start_line: int
     end_line: int
 
-    def __hash__(self) -> int:
-        return hash((self.file_path, self.file_hash, self.start_line, self.end_line))
 
 
 class ChunkInfo(BaseModel):
@@ -44,7 +42,7 @@ class ChunkInfo(BaseModel):
 
         This ensures that chunks are considered equal if they have the same returnable values.
         """
-        return hash((self.content, self.embedding, self.source_details, self.metadata, self.search_score))
+        return self.content_hash
 
     def get_chunk_content(self, add_ellipsis: bool = False, add_lines: bool = True):
         """
