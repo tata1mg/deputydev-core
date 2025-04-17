@@ -58,7 +58,7 @@ class VectorDBBasedSearch:
         }
 
         import_only_chunk_files = await ChunkFilesService(weaviate_client).get_only_import_chunk_files_by_commit_hashes(
-            new_file_path_to_hash_map_for_import_only
+            file_to_commit_hashes=new_file_path_to_hash_map_for_import_only
         )
 
         import_only_chunk_hashes = [chunk_file.chunk_hash for chunk_file in import_only_chunk_files]
