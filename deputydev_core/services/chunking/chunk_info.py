@@ -12,6 +12,9 @@ class ChunkSourceDetails(BaseModel):
     start_line: int
     end_line: int
 
+    def __hash__(self) -> int:
+        return hash((self.file_path, self.file_hash, self.start_line, self.end_line))
+
 
 class ChunkInfo(BaseModel):
     """
