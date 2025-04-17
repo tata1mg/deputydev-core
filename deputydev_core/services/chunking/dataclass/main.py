@@ -29,7 +29,7 @@ class ChunkMetadata(BaseModel):
     byte_size: Optional[int] = None
 
     def __hash__(self) -> int:
-        return hash((self.hierarchy, self.dechunk, self.import_only_chunk, self.all_functions, self.all_classes, self.byte_size))
+        return hash((tuple(self.hierarchy), self.dechunk, self.import_only_chunk, tuple(self.all_functions), tuple(self.all_classes), self.byte_size))
 
 
 @dataclass
