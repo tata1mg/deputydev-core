@@ -42,7 +42,7 @@ class ChunkInfo(BaseModel):
 
         This ensures that chunks are considered equal if they have the same returnable values.
         """
-        return self.content_hash
+        return int.from_bytes(self.content_hash.encode(), byteorder='big')
 
     def get_chunk_content(self, add_ellipsis: bool = False, add_lines: bool = True):
         """
