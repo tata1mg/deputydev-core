@@ -32,7 +32,12 @@ class ChunkInfo(BaseModel):
     search_score: Optional[float] = 0  # vector search score
 
     def __hash__(self) -> int:
-        return int.from_bytes(self.content_hash.encode(), byteorder='big')
+        return hash(self.content_hash)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ChunkInfo):
+            return False
+        return self.content_hash == other.content_hash
 
     def get_chunk_content(self, add_ellipsis: bool = False, add_lines: bool = True):
         """
