@@ -13,6 +13,7 @@ class ChunkSourceDetails(BaseModel):
     end_line: int
 
 
+
 class ChunkInfo(BaseModel):
     """
     Information about a chunk of code.
@@ -29,6 +30,14 @@ class ChunkInfo(BaseModel):
     source_details: ChunkSourceDetails
     metadata: Optional[ChunkMetadata] = None
     search_score: Optional[float] = 0  # vector search score
+
+    def __hash__(self) -> int:
+        return hash(self.content_hash)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ChunkInfo):
+            return False
+        return self.content_hash == other.content_hash
 
     def get_chunk_content(self, add_ellipsis: bool = False, add_lines: bool = True):
         """

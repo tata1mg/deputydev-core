@@ -108,5 +108,11 @@ class ChunkFiles(Base):
                 ),
             ],
         ),
+        Property(
+            name="has_imports",
+            data_type=DataType.BOOL,
+            vectorize_property_name=False,
+            skip_vectorization=True,
+        )
     ]
     collection_name = CHUNK_FILES_COLLECTION_NAME
