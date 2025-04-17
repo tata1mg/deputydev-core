@@ -106,6 +106,36 @@ class ChunkFiles(Base):
                         Property(name="is_breakable_node", data_type=DataType.BOOL),
                     ],
                 ),
+                Property(
+                    name="dechunk",
+                    data_type=DataType.BOOL,
+                    vectorize_property_name=False,
+                    skip_vectorization=True,
+                ),
+                Property(
+                    name="import_only_chunk",
+                    data_type=DataType.BOOL,
+                    vectorize_property_name=False,
+                    skip_vectorization=True,
+                ),
+                Property(
+                    name="all_functions",
+                    data_type=DataType.TEXT_ARRAY,
+                    vectorize_property_name=False,
+                    skip_vectorization=True,
+                ),
+                Property(
+                    name="all_classes",
+                    data_type=DataType.TEXT_ARRAY,
+                    vectorize_property_name=False,
+                    skip_vectorization=True,
+                ),
+                Property(
+                    name="byte_size",
+                    data_type=DataType.INT,
+                    vectorize_property_name=False,
+                    skip_vectorization=True,
+                ),
             ],
         ),
         Property(

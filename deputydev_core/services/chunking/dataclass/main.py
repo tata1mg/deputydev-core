@@ -16,8 +16,6 @@ class ChunkMetadataHierachyObject(BaseModel):
     value: str
     is_breakable_node: Optional[bool] = False
 
-    def __hash__(self) -> int:
-        return hash((self.type, self.value, self.is_breakable_node))
 
 
 class ChunkMetadata(BaseModel):
@@ -27,9 +25,6 @@ class ChunkMetadata(BaseModel):
     all_functions: Optional[List[str]] = []
     all_classes: Optional[List[str]] = []
     byte_size: Optional[int] = None
-
-    def __hash__(self) -> int:
-        return hash((tuple(self.hierarchy), self.dechunk, self.import_only_chunk, tuple(self.all_functions), tuple(self.all_classes), self.byte_size))
 
 
 @dataclass
