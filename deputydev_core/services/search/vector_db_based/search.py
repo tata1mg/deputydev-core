@@ -69,12 +69,12 @@ class VectorDBBasedSearch:
 
         chunk_info_set = set(chunk_info_list)
 
-        for chunk_dto in import_only_chunk_dtos:
+        for chunk_dto, _vector in import_only_chunk_dtos:
             for chunk_file in import_only_chunk_files:
-                if chunk_file.chunk_hash == chunk_dto[0].chunk_hash:
+                if chunk_file.chunk_hash == chunk_dto.chunk_hash:
                     chunk_info_set.add(
                         ChunkInfo(
-                            content=chunk_dto[0].text,
+                            content=chunk_dto.text,
                             source_details=ChunkSourceDetails(
                                 file_path=chunk_file.file_path,
                                 file_hash=chunk_file.file_hash,
