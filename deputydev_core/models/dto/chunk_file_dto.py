@@ -14,6 +14,7 @@ class ChunkFileData(BaseModel):
     end_line: int
     total_chunks: int
     meta_info: Optional[ChunkMetadata] = None
+    has_imports: Optional[bool] = None
 
 
 class ChunkFileDataWithSearchHelperKeys(ChunkFileData):

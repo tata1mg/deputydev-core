@@ -72,6 +72,53 @@ class ChunkFilesService(BaseWeaviateRepository):
             AppLogger.log_error("Failed to get chunk files by commit hashes")
             raise ex
 
+    async def get_only_import_chunk_files_by_commit_hashes(self, file_to_commit_hashes: Dict[str, str]) -> List[ChunkFileDTO]:
+        await self.ensure_collection_connections()
+        BATCH_SIZE = 1000
+        MAX_RESULTS_PER_QUERY = 10000
+        all_chunk_files = []
+        try:
+            # Convert dictionary items to list for batch processing
+            file_commit_pairs = list(file_to_commit_hashes.items())
+
+            # Process in smaller batches
+            for i in range(0, len(file_commit_pairs), BATCH_SIZE):
+                batch_pairs = file_commit_pairs[i : i + BATCH_SIZE]
+
+                # Single query per batch without offset pagination
+                batch_files = await self.async_collection.query.fetch_objects(
+                    filters=Filter.any_of(
+                        [
+                            Filter.all_of(
+                                [
+                                    Filter.by_property("file_path").equal(file_path),
+                                    Filter.by_property("file_hash").equal(commit_hash),
+                                    Filter.by_property("has_imports").equal(True),
+                                ]
+                            )
+                            for file_path, commit_hash in batch_pairs
+                        ]
+                    ),
+                    limit=MAX_RESULTS_PER_QUERY,
+                )
+
+                # Convert to DTOs efficiently
+                if batch_files.objects:
+                    batch_dtos = [
+                        ChunkFileDTO(
+                            **chunk_file_obj.properties,
+                            id=str(chunk_file_obj.uuid),
+                        )
+                        for chunk_file_obj in batch_files.objects
+                    ]
+                    all_chunk_files.extend(batch_dtos)
+
+            return all_chunk_files
+
+        except Exception as ex:
+            AppLogger.log_error("Failed to get chunk files by commit hashes")
+            raise ex
+
     async def bulk_insert(self, chunks: List[ChunkFileDTO]) -> None:
         await self.ensure_collection_connections()
         with self.sync_collection.batch.dynamic() as _batch:
@@ -80,7 +127,7 @@ class ChunkFilesService(BaseWeaviateRepository):
                     f"{chunk.file_path}{chunk.file_hash}{chunk.start_line}{chunk.end_line}"
                 )
                 chunk = chunk.model_dump(mode="json", exclude={"id"})
-                chunk["meta_info"] = {"hierarchy": chunk["meta_info"]["hierarchy"]} if chunk["meta_info"] else None
+                chunk["meta_info"] = {"hierarchy": chunk["meta_info"]["hierarchy"], "import_only_chunk": chunk["meta_info"]["import_only_chunk"]} if chunk["meta_info"] else None
                 _batch.add_object(
                     properties=chunk,
                     uuid=chunk_file_uuid,
