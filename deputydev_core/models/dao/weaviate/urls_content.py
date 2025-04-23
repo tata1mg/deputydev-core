@@ -6,15 +6,8 @@ from deputydev_core.models.dao.weaviate.constants.collection_names import (
 )
 
 
-class Chunks(Base):
+class UrlsContent(Base):
     properties = [
-        Property(
-            name="id",
-            data_type=DataType.NUMBER,
-            vectorize_property_name=False,
-            skip_vectorization=True,
-            index_filterable=True,
-        ),
         Property(
             name="name",
             data_type=DataType.TEXT,
@@ -50,12 +43,24 @@ class Chunks(Base):
             index_filterable=True,
         ),
         Property(
-            name="content_updation_identifier",
+            name="content_hash",
             vectorize_property_name=False,
             data_type=DataType.TEXT,
             tokenization=Tokenization.FIELD,
             skip_vectorization=True,
             index_filterable=True,
+        ),
+        Property(
+            name="cache_headers",
+            vectorize_property_name=False,
+            data_type=DataType.OBJECT,
+            tokenization=Tokenization.FIELD,
+            skip_vectorization=True,
+            index_filterable=True,
+            nested_properties=[
+                Property(name="etag", data_type=DataType.TEXT),
+                Property(name="last_modified", data_type=DataType.TEXT),
+            ],
         ),
     ]
 
