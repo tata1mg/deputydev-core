@@ -18,6 +18,7 @@ from deputydev_core.models.dao.weaviate.chunks import Chunks
 from deputydev_core.models.dao.weaviate.weaviate_schema_details import (
     WeaviateSchemaDetails,
 )
+from deputydev_core.models.dao.weaviate.urls_content import UrlsContent
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.chunker.handlers.one_dev_cli_chunker import (
     OneDevCLIChunker,
@@ -179,6 +180,7 @@ class InitializationManager:
                 self.__check_and_initialize_collection(collection=Chunks),
                 self.__check_and_initialize_collection(collection=ChunkFiles),
                 self.__check_and_initialize_collection(collection=WeaviateSchemaDetails),
+                self.__check_and_initialize_collection(collection=UrlsContent)
             ]
         )
 
