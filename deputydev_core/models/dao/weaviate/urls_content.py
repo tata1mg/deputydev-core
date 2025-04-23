@@ -54,7 +54,7 @@ class UrlsContent(Base):
             name="cache_headers",
             vectorize_property_name=False,
             data_type=DataType.OBJECT,
-            tokenization=Tokenization.FIELD,
+            tokenization=None,
             skip_vectorization=True,
             index_filterable=True,
             nested_properties=[
