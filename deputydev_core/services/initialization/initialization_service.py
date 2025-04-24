@@ -79,6 +79,7 @@ class InitializationManager:
                 references=collection.references if hasattr(collection, "references") else None,  # type: ignore
             )
 
+
     async def initialize_vector_db_async(self) -> WeaviateAsyncClient:
         if self.weaviate_client and self.weaviate_client.async_client:
             return self.weaviate_client.async_client
@@ -87,47 +88,50 @@ class InitializationManager:
         resolved_persistence_data_path = Path(ConfigManager.configs["WEAVIATE_EMBEDDED_DB_PATH"]).expanduser().resolve()
         resolved_binary_path = Path(ConfigManager.configs["WEAVIATE_EMBEDDED_DB_BINARY_PATH"]).expanduser().resolve()
 
-        try:
-            async_client = WeaviateAsyncClient(
-                embedded_options=EmbeddedOptions(
-                    persistence_data_path=str(resolved_persistence_data_path),
-                    binary_path=str(resolved_binary_path),
-                    hostname=ConfigManager.configs["WEAVIATE_HOST"],
+        # try:
+        #     async_client = WeaviateAsyncClient(
+        #         embedded_options=EmbeddedOptions(
+        #             persistence_data_path=str(resolved_persistence_data_path),
+        #             binary_path=str(resolved_binary_path),
+        #             hostname=ConfigManager.configs["WEAVIATE_HOST"],
+        #             port=ConfigManager.configs["WEAVIATE_HTTP_PORT"],
+        #             grpc_port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
+        #             version="1.27.0",
+        #             additional_env_vars={
+        #                 "LOG_LEVEL": "panic",
+        #             },
+        #         ),
+        #         additional_config=AdditionalConfig(timeout=Timeout(init=20)),
+        #     )
+        #     await async_client.connect()
+        # # except Exception as _ex:
+        #     if (
+        #         "Embedded DB did not start because processes are already listening on ports http:8079 and grpc:50050"
+        #         in str(_ex)
+        #     ):
+        async_client = WeaviateAsyncClient(
+            connection_params=ConnectionParams(
+                http=ProtocolParams(
+                    host=ConfigManager.configs["WEAVIATE_HOST"],
                     port=ConfigManager.configs["WEAVIATE_HTTP_PORT"],
-                    grpc_port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
-                    version="1.27.0",
-                    additional_env_vars={
-                        "LOG_LEVEL": "panic",
-                    },
+                    secure=False,
                 ),
-                additional_config=AdditionalConfig(timeout=Timeout(init=20)),
+                grpc=ProtocolParams(
+                    host=ConfigManager.configs["WEAVIATE_HOST"],
+                    port=50051,
+                    secure=False,
+                ),
+            ),
+            additional_config=AdditionalConfig(
+                timeout=Timeout(init=30, query=60, insert=120),  # Values in seconds
             )
-            await async_client.connect()
-        except Exception as _ex:
-            if (
-                "Embedded DB did not start because processes are already listening on ports http:8079 and grpc:50050"
-                in str(_ex)
-            ):
-                async_client = WeaviateAsyncClient(
-                    connection_params=ConnectionParams(
-                        http=ProtocolParams(
-                            host=ConfigManager.configs["WEAVIATE_HOST"],
-                            port=ConfigManager.configs["WEAVIATE_HTTP_PORT"],
-                            secure=False,
-                        ),
-                        grpc=ProtocolParams(
-                            host=ConfigManager.configs["WEAVIATE_HOST"],
-                            port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
-                            secure=False,
-                        ),
-                    )
-                )
-                await async_client.connect()
+        )
+        await async_client.connect()
 
-            else:
-                AppLogger.log_info(traceback.format_exc())
-                AppLogger.log_error(f"Failed to connect to vector store: {str(_ex)}")
-                raise _ex
+            # else:
+            #     AppLogger.log_info(traceback.format_exc())
+            #     AppLogger.log_error(f"Failed to connect to vector store: {str(_ex)}")
+            #     raise _ex
 
         return async_client
 
@@ -144,13 +148,18 @@ class InitializationManager:
                 ),
                 grpc=ProtocolParams(
                     host=ConfigManager.configs["WEAVIATE_HOST"],
-                    port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
+                    port=50051,
                     secure=False,
                 ),
+            ),
+            additional_config=AdditionalConfig(
+                timeout=Timeout(init=30, query=60, insert=120),  # Values in seconds
             )
         )
         sync_client.connect()
         return sync_client
+
+
 
     async def initialize_vector_db(self, should_clean: bool = False) -> WeaviateSyncAndAsyncClients:
         if self.weaviate_client:
