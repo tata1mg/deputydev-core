@@ -11,7 +11,7 @@ class UrlsContent(Base):
         Property(
             name="name",
             data_type=DataType.TEXT,
-            tokenization=Tokenization.WORD,
+            tokenization=Tokenization.TRIGRAM,
             vectorize_property_name=False,
             skip_vectorization=True,
             index_searchable=True,
@@ -20,7 +20,7 @@ class UrlsContent(Base):
         Property(
             name="url",
             data_type=DataType.TEXT,
-            tokenization=Tokenization.FIELD,
+            tokenization=Tokenization.TRIGRAM,
             vectorize_property_name=False,
             skip_vectorization=True,
             index_filterable=True,
@@ -29,7 +29,7 @@ class UrlsContent(Base):
         Property(
             name="content",
             data_type=DataType.TEXT,
-            tokenization=Tokenization.WORD,
+            tokenization=Tokenization.FIELD,
             vectorize_property_name=False,
             skip_vectorization=False,
             index_searchable=False,
