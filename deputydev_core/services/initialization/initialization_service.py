@@ -47,9 +47,9 @@ class InitializationManager:
     def get_local_repo(self, chunkable_files: List[str] = None) -> BaseLocalRepo:
         self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path, chunkable_files=chunkable_files)
         return self.local_repo
-    
+
     async def initialize_vector_db(self, should_clean: bool = False) -> WeaviateSyncAndAsyncClients:
-        return WeaviateInitializer().initialize(should_clean)
+        return WeaviateInitializer().initialize(should_clean=should_clean)
 
     async def prefill_vector_store(
         self,
