@@ -6,10 +6,9 @@ from typing import Dict, List, Optional, Type
 
 from prompt_toolkit.shortcuts.progress_bar import ProgressBar
 from weaviate import WeaviateAsyncClient, WeaviateClient
+from weaviate.config import AdditionalConfig, Timeout
 from weaviate.connect import ConnectionParams, ProtocolParams
 from weaviate.embedded import EmbeddedOptions
-from weaviate.config import AdditionalConfig
-from weaviate.config import Timeout
 
 from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
 from deputydev_core.models.dao.weaviate.base import Base as WeaviateBaseDAO
