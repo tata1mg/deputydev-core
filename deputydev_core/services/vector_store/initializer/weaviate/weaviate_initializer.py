@@ -1,5 +1,4 @@
 import asyncio
-import platform
 
 from typing import Optional, Type
 
@@ -14,7 +13,6 @@ from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema
 )
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.constants.weaviate import WEAVIATE_SCHEMA_VERSION
-from deputydev_core.utils.constants.weaviate import SupportedPlatforms
 from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
@@ -33,6 +31,7 @@ class WeaviateInitializer:
         weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None
      ) -> None:
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
+
     async def initialize(self, should_clean: bool = False) -> WeaviateSyncAndAsyncClients:
         self._spin_up_weaviate()
         self._sync_schema(should_clean)
@@ -90,12 +89,12 @@ class WeaviateInitializer:
                 ),
                 grpc=ProtocolParams(
                     host=ConfigManager.configs["WEAVIATE_HOST"],
-                    port=50051,
+                    port=50051,     # TODO: change this in BE config
                     secure=False,
                 ),
             ),
             additional_config=AdditionalConfig(
-                timeout=Timeout(init=30, query=60, insert=120),  # Values in seconds
+                timeout=Timeout(init=30, query=60, insert=120),  # Values in seconds, TODO: get these values from config
             )
         )
         sync_client.connect()

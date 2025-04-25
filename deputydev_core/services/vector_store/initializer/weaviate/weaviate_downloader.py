@@ -80,7 +80,7 @@ class WeaviateDownloader:
         if not cls._is_weaviate_running():
             AppLogger.log_info("Starting Weaviate binary")
             weaviate_process = await asyncio.create_subprocess_exec(
-                executable_path, "--host", "127.0.0.1", "--port", "8079", "--scheme", "http",
+                executable_path, "--host", "127.0.0.1", "--port", "8079", "--scheme", "http",   # TODO: host and port from BE
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
@@ -103,7 +103,7 @@ class WeaviateDownloader:
             return False
 
     @classmethod
-    async def wait_for_weaviate_ready(cls, timeout=60, interval=1):
+    async def wait_for_weaviate_ready(cls, timeout=60, interval=1):   # TODO: get timeout and interval from config
         """Check for weaviate to be up every given interval for a maximum of given timeout"""
 
         start = asyncio.get_event_loop().time()
