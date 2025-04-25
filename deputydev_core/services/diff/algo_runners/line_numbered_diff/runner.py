@@ -9,7 +9,7 @@ from deputydev_core.services.diff.dataclasses.main import (
 )
 
 
-class LineNumberedDiffApplicator(BaseDiffAlgoRunner):
+class LineNumberedDiffAlgoRunner(BaseDiffAlgoRunner):
     @classmethod
     def _apply_diff_in_file_content(cls, content: List[str], chunks: List[Tuple[int, int, str]]) -> List[str]:
         modified_content: List[str] = []

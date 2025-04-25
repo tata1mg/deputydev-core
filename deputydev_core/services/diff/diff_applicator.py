@@ -4,6 +4,12 @@ from typing import Dict, List, Type
 from deputydev_core.services.diff.algo_runners.base_diff_algo_runner import (
     BaseDiffAlgoRunner,
 )
+from deputydev_core.services.diff.algo_runners.line_numbered_diff.runner import (
+    LineNumberedDiffAlgoRunner,
+)
+from deputydev_core.services.diff.algo_runners.unified_diff.runner import (
+    UnifiedDiffAlgoRunner,
+)
 from deputydev_core.services.diff.dataclasses.main import (
     DiffTypes,
     FileDiffApplicationRequest,
@@ -17,8 +23,8 @@ class DiffApplicator:
     """
 
     _diff_algo_runners: Dict[DiffTypes, Type[BaseDiffAlgoRunner]] = {
-        DiffTypes.UDIFF: BaseDiffAlgoRunner,
-        DiffTypes.LINE_NUMBERED: BaseDiffAlgoRunner,
+        DiffTypes.UDIFF: UnifiedDiffAlgoRunner,
+        DiffTypes.LINE_NUMBERED: LineNumberedDiffAlgoRunner,
     }
 
     @classmethod

@@ -414,51 +414,49 @@ class UnifiedDiffAlgoRunner(BaseDiffAlgoRunner):
         Returns:
             A FileDiffApplicationResponse object containing the new file path and content
         """
-
         final_file_contents: Dict[str, str] = {}
         errors: List[str] = []
 
         # firstly, get the unique hunks
-        edits = cls._get_edits(file_path, diff_data.incremental_udiff)
+        file_edits = cls._get_edits(file_path, diff_data.incremental_udiff)
 
-        for file_edits in edits:
-            unique_normalized_edits: List[List[str]] = cls._get_unique_normalized_edits(file_edits)
-            full_path = os.path.join(repo_path, file_path)
-            original_content: Optional[str] = current_content if current_content else None
-            running_content: Optional[str] = original_content
-            if running_content is not None:
-                running_content = cls._normalize_endlines_content(running_content)
+        unique_normalized_edits: List[List[str]] = cls._get_unique_normalized_edits(file_edits)
+        full_path = os.path.join(repo_path, file_path)
+        original_content: Optional[str] = current_content if current_content else None
+        running_content: Optional[str] = original_content
+        if running_content is not None:
+            running_content = cls._normalize_endlines_content(running_content)
 
-            for edit in unique_normalized_edits:
-                original_lines, _ = cls._hunk_to_before_after(edit)
-                original = "".join(original_lines)
-                new_content: Optional[str] = None
-                try:
-                    new_content = cls.do_replace(full_path, running_content, edit)
-                except SearchTextNotUnique:
-                    errors.append(
-                        NOT_UNIQUE_ERROR.format(
-                            path=file_path,
-                            original=original,
-                            num_lines=len(original.splitlines()),
-                        )
+        for edit in unique_normalized_edits:
+            original_lines, _ = cls._hunk_to_before_after(edit)
+            original = "".join(original_lines)
+            new_content: Optional[str] = None
+            try:
+                new_content = cls.do_replace(full_path, running_content, edit)
+            except SearchTextNotUnique:
+                errors.append(
+                    NOT_UNIQUE_ERROR.format(
+                        path=file_path,
+                        original=original,
+                        num_lines=len(original.splitlines()),
                     )
-                    continue
+                )
+                continue
 
-                if not new_content:
-                    errors.append(
-                        NO_MATCH_ERROR.format(
-                            path=file_path,
-                            original=original,
-                            num_lines=len(original.splitlines()),
-                        )
+            if not new_content:
+                errors.append(
+                    NO_MATCH_ERROR.format(
+                        path=file_path,
+                        original=original,
+                        num_lines=len(original.splitlines()),
                     )
-                    continue
+                )
+                continue
 
-                running_content = new_content
+            running_content = new_content
 
-            if running_content is not None and original_content != running_content:
-                final_file_contents[file_path] = running_content
+        if running_content is not None and original_content != running_content:
+            final_file_contents[file_path] = running_content
 
         if errors:
             errors_str = "\n\n".join(errors)
