@@ -2,7 +2,7 @@ import asyncio
 import traceback
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
-from typing import Dict, List, Optional, Type
+from typing import Dict, List, Optional, Type, Union, Tuple
 
 from prompt_toolkit.shortcuts.progress_bar import ProgressBar
 from weaviate import WeaviateAsyncClient, WeaviateClient
@@ -48,13 +48,13 @@ from .constants import WEAVIATE_SCHEMA_VERSION
 
 class InitializationManager:
     def __init__(
-        self,
-        repo_path: Optional[str] = None,
-        auth_token_key: Optional[str] = None,
-        process_executor: Optional[ProcessPoolExecutor] = None,
-        one_dev_client: Optional[OneDevClient] = None,
-        weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
-        embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
+            self,
+            repo_path: Optional[str] = None,
+            auth_token_key: Optional[str] = None,
+            process_executor: Optional[ProcessPoolExecutor] = None,
+            one_dev_client: Optional[OneDevClient] = None,
+            weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
+            embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
     ) -> None:
         self.repo_path = repo_path
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
@@ -106,8 +106,8 @@ class InitializationManager:
             await async_client.connect()
         except Exception as _ex:
             if (
-                "Embedded DB did not start because processes are already listening on ports http:8079 and grpc:50050"
-                in str(_ex)
+                    "Embedded DB did not start because processes are already listening on ports http:8079 and grpc:50050"
+                    in str(_ex)
             ):
                 async_client = WeaviateAsyncClient(
                     connection_params=ConnectionParams(
@@ -153,7 +153,8 @@ class InitializationManager:
         sync_client.connect()
         return sync_client
 
-    async def initialize_vector_db(self, should_clean: bool = False) -> WeaviateSyncAndAsyncClients:
+    async def initialize_vector_db(self, should_clean: bool = False, send_back_is_db_cleaned: bool = False) -> Union[
+        Tuple[WeaviateSyncAndAsyncClients, bool], WeaviateSyncAndAsyncClients]:
         if self.weaviate_client:
             return self.weaviate_client
         async_client = await self.initialize_vector_db_async()
@@ -188,14 +189,16 @@ class InitializationManager:
             await WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).set_schema_version(
                 WEAVIATE_SCHEMA_VERSION
             )
-
-        return self.weaviate_client
+        if send_back_is_db_cleaned:
+            return self.weaviate_client, (should_clean or is_schema_invalid)
+        else:
+            return self.weaviate_client
 
     async def prefill_vector_store(
-        self,
-        chunkable_files_and_hashes: Dict[str, str],
-        progressbar: Optional[ProgressBar] = None,
-        enable_refresh: Optional[bool] = False,
+            self,
+            chunkable_files_and_hashes: Dict[str, str],
+            progressbar: Optional[ProgressBar] = None,
+            enable_refresh: Optional[bool] = False,
     ) -> None:
         assert self.local_repo, "Local repo is not initialized"
         assert self.weaviate_client, "Connect to vector store"

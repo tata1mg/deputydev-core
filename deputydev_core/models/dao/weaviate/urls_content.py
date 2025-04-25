@@ -62,6 +62,14 @@ class UrlsContent(Base):
                 Property(name="last_modified", data_type=DataType.TEXT),
             ],
         ),
+        Property(
+            name="backend_id",
+            vectorize_property_name=False,
+            data_type=DataType.INT,
+            tokenization=None,
+            skip_vectorization=True,
+            index_filterable=True,
+        ),
     ]
 
     collection_name = URLS_CONTENT
