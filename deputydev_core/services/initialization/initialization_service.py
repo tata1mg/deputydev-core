@@ -23,6 +23,7 @@ from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepo
 from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
+from deputydev_core.services.vector_store.initializer.weaviate.weaviate_initializer import WeaviateInitializer
 
 class InitializationManager:
     def __init__(
@@ -46,6 +47,9 @@ class InitializationManager:
     def get_local_repo(self, chunkable_files: List[str] = None) -> BaseLocalRepo:
         self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path, chunkable_files=chunkable_files)
         return self.local_repo
+    
+    async def initialize_vector_db(self, should_clean: bool = False) -> WeaviateSyncAndAsyncClients:
+        return WeaviateInitializer().initialize(should_clean)
 
     async def prefill_vector_store(
         self,
