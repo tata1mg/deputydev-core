@@ -72,7 +72,9 @@ class ChunkFilesService(BaseWeaviateRepository):
             AppLogger.log_error("Failed to get chunk files by commit hashes")
             raise ex
 
-    async def get_only_import_chunk_files_by_commit_hashes(self, file_to_commit_hashes: Dict[str, str]) -> List[ChunkFileDTO]:
+    async def get_only_import_chunk_files_by_commit_hashes(
+        self, file_to_commit_hashes: Dict[str, str]
+    ) -> List[ChunkFileDTO]:
         await self.ensure_collection_connections()
         BATCH_SIZE = 1000
         MAX_RESULTS_PER_QUERY = 10000
@@ -127,7 +129,14 @@ class ChunkFilesService(BaseWeaviateRepository):
                     f"{chunk.file_path}{chunk.file_hash}{chunk.start_line}{chunk.end_line}"
                 )
                 chunk = chunk.model_dump(mode="json", exclude={"id"})
-                chunk["meta_info"] = {"hierarchy": chunk["meta_info"]["hierarchy"], "import_only_chunk": chunk["meta_info"]["import_only_chunk"]} if chunk["meta_info"] else None
+                chunk["meta_info"] = (
+                    {
+                        "hierarchy": chunk["meta_info"]["hierarchy"],
+                        "import_only_chunk": chunk["meta_info"]["import_only_chunk"],
+                    }
+                    if chunk["meta_info"]
+                    else None
+                )
                 _batch.add_object(
                     properties=chunk,
                     uuid=chunk_file_uuid,
@@ -298,7 +307,7 @@ class ChunkFilesService(BaseWeaviateRepository):
         elif search_type == "function":
             search_filter = Filter.by_property(PropertyTypes.FUNCTION.value).contains_any([search_key])
         elif search_type == "file":
-            search_filter = Filter.by_property('file_path').equal(search_key)
+            search_filter = Filter.by_property("file_path").equal(search_key)
 
         combined_filter_list: List[_Filters] = []
         if file_filter:
