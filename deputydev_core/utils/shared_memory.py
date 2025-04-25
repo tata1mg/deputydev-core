@@ -16,11 +16,11 @@ class SharedMemory:
 
     @classmethod
     def create(cls, shm_name: str, data: Any) -> None:
-        set_context_values(**{shm_name: data})
+        set_context_values(**{shm_name: data})   # TODO: Rename class, since this is setting context values now
 
     @classmethod
     def read(cls, shm_name: str) -> Any:
-        return get_context_value(shm_name)
+        return get_context_value(shm_name)     # TODO: Rename class, since this is setting context values now
 
     # @classmethod
     # def create(cls, shm_name: str, data: Any) -> None:
