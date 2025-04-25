@@ -6,6 +6,7 @@ import aiohttp
 import shutil, stat
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.constants.weaviate import SupportedPlatforms
+
 class WeaviateDownloader:
     """Handles downloading and running the Weaviate binary.
     Abstracts OS-specific behavior.
@@ -93,6 +94,7 @@ class WeaviateDownloader:
                 weaviate_process.terminate()
                 await weaviate_process.wait()
                 raise Exception("Weaviate failed to start within timeout")
+
     @classmethod
     async def _is_weaviate_running(cls) -> bool:
         try:
