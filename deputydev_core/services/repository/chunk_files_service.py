@@ -297,6 +297,8 @@ class ChunkFilesService(BaseWeaviateRepository):
             search_filter = Filter.by_property(PropertyTypes.CLASS.value).contains_any([search_key])
         elif search_type == "function":
             search_filter = Filter.by_property(PropertyTypes.FUNCTION.value).contains_any([search_key])
+        elif search_type == "file":
+            search_filter = Filter.by_property('file_path').equal(search_key)
 
         combined_filter_list: List[_Filters] = []
         if file_filter:
