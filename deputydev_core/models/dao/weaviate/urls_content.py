@@ -31,7 +31,7 @@ class UrlsContent(Base):
             data_type=DataType.TEXT,
             tokenization=Tokenization.FIELD,
             vectorize_property_name=False,
-            skip_vectorization=False,
+            skip_vectorization=True,
             index_searchable=False,
             index_filterable=False,
         ),
