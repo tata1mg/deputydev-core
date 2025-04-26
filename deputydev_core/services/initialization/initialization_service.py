@@ -190,7 +190,7 @@ class InitializationManager:
                 WEAVIATE_SCHEMA_VERSION
             )
         if send_back_is_db_cleaned:
-            return self.weaviate_client, (should_clean or is_schema_invalid)
+            return self.weaviate_client, should_clean or is_schema_invalid
         else:
             return self.weaviate_client
 
