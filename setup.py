@@ -7,7 +7,7 @@ dependency_links = []
 
 setup(
     name="deputydev-core",
-    version="temp-0.0.3",
+    version="v0.0.2",
     author="1mg",
     author_email="devops@1mg.com",
     description="Core logic of deputydev",
