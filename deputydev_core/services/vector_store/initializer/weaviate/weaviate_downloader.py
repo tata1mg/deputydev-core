@@ -16,9 +16,9 @@ class WeaviateDownloader:
     async def download_and_run_weaviate(cls) -> asyncio.subprocess.Process:
         """Download and run the full Weaviate binary."""
 
-        if cls._should_download_full_binary():
+        if await cls._should_download_full_binary():
             try:
-                executable_path = cls._download_binary()
+                executable_path = await cls._download_binary()
                 cls._set_correct_permissions(executable_path)
                 weaviate_process = await cls._run_binary(executable_path)
                 return weaviate_process
@@ -78,7 +78,7 @@ class WeaviateDownloader:
     async def _run_binary(cls, executable_path) -> asyncio.subprocess.Process:
         """Run the binary if not already running"""
 
-        if not cls._is_weaviate_running():
+        if not await cls._is_weaviate_running():
             AppLogger.log_info("Starting Weaviate binary")
             weaviate_process = await asyncio.create_subprocess_exec(
                 executable_path, "--host", "127.0.0.1", "--port", "8079", "--scheme", "http",   # TODO: host and port from BE
@@ -114,7 +114,7 @@ class WeaviateDownloader:
             now = asyncio.get_event_loop().time()
             if now - start > timeout:
                 raise TimeoutError("Weaviate startup timed out")
-            if cls._is_weaviate_running():
+            if await cls._is_weaviate_running():
                 return True
 
             await asyncio.sleep(interval)
