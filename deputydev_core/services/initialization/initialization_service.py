@@ -49,7 +49,7 @@ class InitializationManager:
         return self.local_repo
 
     async def initialize_vector_db(self, should_clean: bool = False) -> WeaviateSyncAndAsyncClients:
-        return WeaviateInitializer().initialize(should_clean=should_clean)
+        return await WeaviateInitializer().initialize(should_clean=should_clean)
 
     async def prefill_vector_store(
         self,

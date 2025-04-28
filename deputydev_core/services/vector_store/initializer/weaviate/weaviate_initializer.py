@@ -34,8 +34,8 @@ class WeaviateInitializer:
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
 
     async def initialize(self, should_clean: bool = False) -> WeaviateSyncAndAsyncClients:
-        self._spin_up_weaviate()
-        self._sync_schema(should_clean=should_clean)
+        await self._spin_up_weaviate()
+        await self._sync_schema(should_clean=should_clean)
         return self.weaviate_client
 
     async def _spin_up_weaviate(self):
