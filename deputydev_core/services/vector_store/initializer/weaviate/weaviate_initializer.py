@@ -44,7 +44,7 @@ class WeaviateInitializer:
 
         weaviate_process = await WeaviateDownloader.download_and_run_weaviate()
         async_client = await self.get_async_client()
-        sync_client = await self.get_sync_client()
+        sync_client = self.get_sync_client()
 
         self.weaviate_client = WeaviateSyncAndAsyncClients(
             weaviate_process=weaviate_process,

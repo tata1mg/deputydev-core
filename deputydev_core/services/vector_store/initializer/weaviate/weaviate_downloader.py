@@ -124,6 +124,7 @@ class WeaviateDownloader:
         version = "v1.27.0"  # TODO: get from config
         os_type = cls._os_type()
         arch = cls._system_architecture()
+        filename = ""
 
         if os_type == SupportedPlatforms.MAC:
             filename = f"weaviate-{version}-darwin-all.zip"
