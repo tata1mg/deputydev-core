@@ -29,7 +29,7 @@ class WeaviateDownloader:
     @classmethod
     async def _should_download_full_binary(cls) -> bool:
         # TODO: Remove the check for windows if want to run full binary for mac and linux as well
-        return platform.system().lower() == SupportedPlatforms.WINDOWS and not await cls._is_weaviate_running()
+        return not await cls._is_weaviate_running()
 
     @classmethod
     async def _download_binary(cls) -> str:
