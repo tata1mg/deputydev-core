@@ -52,7 +52,7 @@ class WeaviateInitializer:
             sync_client=sync_client,
         )
 
-        if not self.weaviate_client.is_ready():  # TODO: To confirm why we were not checking is_ready here
+        if not await self.weaviate_client.is_ready():  # TODO: To confirm why we were not checking is_ready here
             raise ValueError("Connect to vector store failed")
 
     async def _sync_schema(self, should_clean: bool):
