@@ -1,10 +1,9 @@
 import asyncio
 
-from typing import Optional, Type
+from typing import Optional, Tuple, Type
 
 from weaviate import WeaviateAsyncClient, WeaviateClient
 from weaviate.connect import ConnectionParams, ProtocolParams
-from weaviate.embedded import EmbeddedOptions
 from weaviate.config import AdditionalConfig
 from weaviate.config import Timeout
 
@@ -28,30 +27,41 @@ from deputydev_core.services.vector_store.initializer.weaviate.weaviate_download
 
 
 class WeaviateInitializer:
-    def __init__(self, weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None) -> None:
-        self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
+    def __init__(self) -> None:
+        self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None
+        self.weaviate_process: Optional[asyncio.subprocess.Process] = None
 
-    async def initialize(self, should_clean: bool = False) -> WeaviateSyncAndAsyncClients:
+    async def initialize(self, should_clean: bool = False) -> Tuple[WeaviateSyncAndAsyncClients, Optional[asyncio.subprocess.Process]]:
         await self._spin_up_weaviate()
         await self._sync_schema(should_clean=should_clean)
-        return self.weaviate_client
+        if not self.weaviate_client or not await self.weaviate_client.is_ready():
+            raise ValueError("Connect to vector store failed")
+        return self.weaviate_client, self.weaviate_process
 
-    async def _spin_up_weaviate(self):
+    async def _change_weaviate_process(self, new_weaviate_process: asyncio.subprocess.Process) -> None:
+        if self.weaviate_process:
+            self.weaviate_process.kill()
+            await self.weaviate_process.wait()
+
+        self.weaviate_process = new_weaviate_process
+
+    async def _spin_up_weaviate(self) -> None:
         if self.weaviate_client:
-            return self.weaviate_client
+            return
 
-        weaviate_process = await WeaviateDownloader().download_and_run_weaviate()
+        new_weaviate_process = await WeaviateDownloader().download_and_run_weaviate()
         async_client = await self.get_async_client()
         sync_client = self.get_sync_client()
 
         self.weaviate_client = WeaviateSyncAndAsyncClients(
-            weaviate_process=weaviate_process,
             async_client=async_client,
             sync_client=sync_client,
         )
 
-        if not await self.weaviate_client.is_ready():  # TODO: To confirm why we were not checking is_ready here
-            raise ValueError("Connect to vector store failed")
+        if new_weaviate_process:
+            await self._change_weaviate_process(new_weaviate_process=new_weaviate_process)
+
+
 
     async def _sync_schema(self, should_clean: bool):
         schema_version = await WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).get_schema_version()

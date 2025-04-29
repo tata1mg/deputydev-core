@@ -169,12 +169,13 @@ class WeaviateDownloader:
 
             await asyncio.sleep(self.startup_healthcheck_interval)
 
-    async def _run_binary(self, executable_path: str) -> asyncio.subprocess.Process:
-        """Run the binary if not already running"""
+    async def _run_binary(self, executable_path: str) -> Optional[asyncio.subprocess.Process]:
+        """Run the binary if not already running, and return the new process"""
 
         if not await self._is_weaviate_running():
             AppLogger.log_info("Starting Weaviate binary")
             # TODO: Verify what all env variables were passed during embedding initialisation, and if they are required here
+            env = os.environ.copy()
             weaviate_process = await asyncio.create_subprocess_exec(
                 executable_path,
                 "--host",
@@ -185,6 +186,7 @@ class WeaviateDownloader:
                 "http",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                env=env,
             )
 
             try:
@@ -195,13 +197,13 @@ class WeaviateDownloader:
                 weaviate_process.terminate()
                 await weaviate_process.wait()
                 raise RuntimeError("Weaviate failed to start within timeout")
-            
+
         else:
             AppLogger.log_info("Weaviate is already running")
             return None
 
     async def download_and_run_weaviate(self) -> Optional[asyncio.subprocess.Process]:
-        """Download and run the full Weaviate binary."""
+        """Download and run the weaviate binary. Return the process if a new one was started"""
 
         try:
             executable_path = await self._download_binary()

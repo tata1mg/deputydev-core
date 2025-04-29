@@ -1,7 +1,5 @@
-import asyncio
 from pydantic import BaseModel, ConfigDict
 from weaviate import WeaviateAsyncClient, WeaviateClient
-from typing import ClassVar, Optional
 
 from deputydev_core.utils.app_logger import AppLogger
 
@@ -9,7 +7,6 @@ from deputydev_core.utils.app_logger import AppLogger
 class WeaviateSyncAndAsyncClients(BaseModel):
     sync_client: WeaviateClient
     async_client: WeaviateAsyncClient
-    weaviate_process: ClassVar[Optional[asyncio.subprocess.Process]]
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
