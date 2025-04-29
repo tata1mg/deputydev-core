@@ -174,6 +174,7 @@ class WeaviateDownloader:
 
         if not await self._is_weaviate_running():
             AppLogger.log_info("Starting Weaviate binary")
+            # TODO: Verify what all env variables were passed during embedding initialisation, and if they are required here
             weaviate_process = await asyncio.create_subprocess_exec(
                 executable_path,
                 "--host",
