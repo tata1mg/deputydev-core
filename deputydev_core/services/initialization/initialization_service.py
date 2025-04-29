@@ -1,3 +1,4 @@
+from ast import Tuple
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
 from typing import Dict, List, Optional, Type
@@ -49,8 +50,9 @@ class InitializationManager:
         self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path, chunkable_files=chunkable_files)
         return self.local_repo
 
-    async def initialize_vector_db(self, should_clean: bool = False) -> WeaviateSyncAndAsyncClients:
-        return await WeaviateInitializer().initialize(should_clean=should_clean)
+    async def initialize_vector_db(self, should_clean: bool = False) -> Tuple[WeaviateSyncAndAsyncClients, Optional[asyncio.subprocess.Process]]:
+        weaviate_initializer = WeaviateInitializer()
+        return await weaviate_initializer.initialize(should_clean=should_clean)
 
     async def prefill_vector_store(
         self,
