@@ -28,7 +28,6 @@ class WeaviateDownloader:
 
     @classmethod
     async def _should_download_full_binary(cls) -> bool:
-        # TODO: Remove the check for windows if want to run full binary for mac and linux as well
         return not await cls._is_weaviate_running()
 
     @classmethod
@@ -80,6 +79,7 @@ class WeaviateDownloader:
 
         if not await cls._is_weaviate_running():
             AppLogger.log_info("Starting Weaviate binary")
+            # TODO: Verify what all env variables were passed during embedding initialisation, and if they are required here
             weaviate_process = await asyncio.create_subprocess_exec(
                 executable_path, "--host", "127.0.0.1", "--port", "8079", "--scheme", "http",   # TODO: host and port from BE
                 stdout=asyncio.subprocess.PIPE,
@@ -125,7 +125,6 @@ class WeaviateDownloader:
         os_type = cls._os_type()
         arch = cls._system_architecture()
         filename = ""
-
         if os_type == SupportedPlatforms.MAC:
             filename = f"weaviate-{version}-darwin-all.zip"
         elif os_type == SupportedPlatforms.LINUX:
@@ -137,7 +136,7 @@ class WeaviateDownloader:
 
     @staticmethod
     def _os_type():
-        platform.system().lower()
+        return platform.system().lower()
 
     @staticmethod
     def _system_architecture():
