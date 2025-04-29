@@ -4,6 +4,7 @@ from multiprocessing import shared_memory
 from typing import Any
 from deputydev_core.utils.context_vars import set_context_values, get_context_value
 
+
 class SharedMemory:
     _locks = {}  # Dictionary for key-based locks
 
@@ -16,11 +17,11 @@ class SharedMemory:
 
     @classmethod
     def create(cls, shm_name: str, data: Any) -> None:
-        set_context_values(**{shm_name: data})   # TODO: Rename class, since this is setting context values now
+        set_context_values(**{shm_name: data})  # TODO: Rename class, since this is setting context values now
 
     @classmethod
     def read(cls, shm_name: str) -> Any:
-        return get_context_value(shm_name)     # TODO: Rename class, since this is setting context values now
+        return get_context_value(shm_name)  # TODO: Rename class, since this is setting context values now
 
     # @classmethod
     # def create(cls, shm_name: str, data: Any) -> None:

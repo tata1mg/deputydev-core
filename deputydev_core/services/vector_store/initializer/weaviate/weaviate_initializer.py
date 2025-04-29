@@ -28,9 +28,7 @@ from deputydev_core.services.vector_store.initializer.weaviate.weaviate_download
 
 
 class WeaviateInitializer:
-    def __init__(self,
-        weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None
-     ) -> None:
+    def __init__(self, weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None) -> None:
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
 
     async def initialize(self, should_clean: bool = False) -> WeaviateSyncAndAsyncClients:
@@ -42,7 +40,7 @@ class WeaviateInitializer:
         if self.weaviate_client:
             return self.weaviate_client
 
-        weaviate_process = await WeaviateDownloader.download_and_run_weaviate()
+        weaviate_process = await WeaviateDownloader().download_and_run_weaviate()
         async_client = await self.get_async_client()
         sync_client = await self.get_sync_client()
 
@@ -90,13 +88,13 @@ class WeaviateInitializer:
                 ),
                 grpc=ProtocolParams(
                     host=ConfigManager.configs["WEAVIATE_HOST"],
-                    port=50051,     # TODO: change this in BE config
+                    port=50051,  # TODO: change this in BE config
                     secure=False,
                 ),
             ),
             additional_config=AdditionalConfig(
                 timeout=Timeout(init=30, query=60, insert=120),  # Values in seconds, TODO: get these values from config
-            )
+            ),
         )
         sync_client.connect()
         return sync_client
@@ -120,7 +118,7 @@ class WeaviateInitializer:
             ),
             additional_config=AdditionalConfig(
                 timeout=Timeout(init=30, query=60, insert=120),  # TODO: get these values from config
-            )
+            ),
         )
         await async_client.connect()
         return async_client
