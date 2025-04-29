@@ -17,7 +17,6 @@ class ChunkMetadataHierachyObject(BaseModel):
     is_breakable_node: Optional[bool] = False
 
 
-
 class ChunkMetadata(BaseModel):
     hierarchy: List[ChunkMetadataHierachyObject]
     dechunk: Optional[bool] = False

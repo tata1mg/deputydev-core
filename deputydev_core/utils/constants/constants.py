@@ -35,7 +35,6 @@ ALL_EXTENSIONS = {
 }
 
 
-
 class PropertyTypes(Enum):
     FUNCTION = "functions"
     CLASS = "classes"

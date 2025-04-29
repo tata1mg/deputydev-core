@@ -25,6 +25,7 @@ from deputydev_core.services.repository.dataclasses.main import (
 )
 from deputydev_core.services.vector_store.initializer.weaviate.weaviate_initializer import WeaviateInitializer
 
+
 class InitializationManager:
     def __init__(
         self,
