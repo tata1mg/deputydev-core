@@ -1,5 +1,5 @@
 WEAVIATE_SCHEMA_VERSION = 12
 class SupportedPlatforms:
-    WINDOWS = "win32"
+    WINDOWS = "windows"
     LINUX = "linux"
     MAC = "darwin"
