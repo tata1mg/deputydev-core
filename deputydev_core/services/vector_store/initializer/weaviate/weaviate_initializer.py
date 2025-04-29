@@ -32,8 +32,8 @@ class WeaviateInitializer:
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
 
     async def initialize(self, should_clean: bool = False) -> WeaviateSyncAndAsyncClients:
-        self._spin_up_weaviate()
-        self._sync_schema(should_clean=should_clean)
+        await self._spin_up_weaviate()
+        await self._sync_schema(should_clean=should_clean)
         return self.weaviate_client
 
     async def _spin_up_weaviate(self):
@@ -42,7 +42,7 @@ class WeaviateInitializer:
 
         weaviate_process = await WeaviateDownloader().download_and_run_weaviate()
         async_client = await self.get_async_client()
-        sync_client = await self.get_sync_client()
+        sync_client = self.get_sync_client()
 
         self.weaviate_client = WeaviateSyncAndAsyncClients(
             weaviate_process=weaviate_process,
@@ -50,7 +50,7 @@ class WeaviateInitializer:
             sync_client=sync_client,
         )
 
-        if not self.weaviate_client.is_ready():  # TODO: To confirm why we were not checking is_ready here
+        if not await self.weaviate_client.is_ready():  # TODO: To confirm why we were not checking is_ready here
             raise ValueError("Connect to vector store failed")
 
     async def _sync_schema(self, should_clean: bool):
