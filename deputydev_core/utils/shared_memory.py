@@ -2,7 +2,8 @@ import multiprocessing
 import pickle
 from multiprocessing import shared_memory
 from typing import Any
-from deputydev_core.utils.context_vars import set_context_values, get_context_value
+
+from deputydev_core.utils.context_vars import get_context_value, set_context_values
 
 
 class SharedMemory:
