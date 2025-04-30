@@ -1,10 +1,25 @@
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
+<<<<<<< HEAD
 from typing import Dict, List, Optional, Tuple, Type
+=======
+from pathlib import Path
+from typing import Dict, List, Optional, Type, Union, Tuple
+>>>>>>> origin/main
 
 from prompt_toolkit.shortcuts.progress_bar import ProgressBar
 
 from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
+<<<<<<< HEAD
+=======
+from deputydev_core.models.dao.weaviate.base import Base as WeaviateBaseDAO
+from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
+from deputydev_core.models.dao.weaviate.chunks import Chunks
+from deputydev_core.models.dao.weaviate.weaviate_schema_details import (
+    WeaviateSchemaDetails,
+)
+from deputydev_core.models.dao.weaviate.urls_content import UrlsContent
+>>>>>>> origin/main
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.chunker.handlers.one_dev_cli_chunker import (
     OneDevCLIChunker,
@@ -30,13 +45,13 @@ from deputydev_core.services.repository.dataclasses.main import (
 
 class InitializationManager:
     def __init__(
-        self,
-        repo_path: Optional[str] = None,
-        auth_token_key: Optional[str] = None,
-        process_executor: Optional[ProcessPoolExecutor] = None,
-        one_dev_client: Optional[OneDevClient] = None,
-        weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
-        embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
+            self,
+            repo_path: Optional[str] = None,
+            auth_token_key: Optional[str] = None,
+            process_executor: Optional[ProcessPoolExecutor] = None,
+            one_dev_client: Optional[OneDevClient] = None,
+            weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
+            embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
     ) -> None:
         self.repo_path = repo_path
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
@@ -53,14 +68,20 @@ class InitializationManager:
 
     async def initialize_vector_db(
         self, should_clean: bool = False
-    ) -> Tuple[WeaviateSyncAndAsyncClients, Optional[asyncio.subprocess.Process]]:
+    ) -> Tuple[WeaviateSyncAndAsyncClients, Optional[asyncio.subprocess.Process], bool]:
+        """
+        Initialize the vector database.
+        This method will start the Weaviate process and create the necessary schema.
+        If the process is already running, it will skip starting it again.
+        """
+
         return await WeaviateInitializer().initialize(should_clean=should_clean)
 
     async def prefill_vector_store(
-        self,
-        chunkable_files_and_hashes: Dict[str, str],
-        progressbar: Optional[ProgressBar] = None,
-        enable_refresh: Optional[bool] = False,
+            self,
+            chunkable_files_and_hashes: Dict[str, str],
+            progressbar: Optional[ProgressBar] = None,
+            enable_refresh: Optional[bool] = False,
     ) -> None:
         assert self.local_repo, "Local repo is not initialized"
         assert self.weaviate_client, "Connect to vector store"
