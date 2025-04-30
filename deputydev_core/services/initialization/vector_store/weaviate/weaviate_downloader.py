@@ -157,7 +157,7 @@ class WeaviateDownloader:
                 ) as resp:
                     return resp.status == 200
         except Exception as e:
-            AppLogger.log_error(f"Error checking Weaviate status: {str(e)}")
+            AppLogger.log_debug(f"Error checking Weaviate status: {str(e)}")
             return False
 
     async def wait_for_weaviate_ready(self) -> bool:
