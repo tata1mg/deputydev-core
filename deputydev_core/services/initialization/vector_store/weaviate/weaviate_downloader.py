@@ -35,19 +35,19 @@ class WeaviateDownloader:
         WeaviateSupportedPlatforms.WINDOWS: WeaviateDownloadPlatformConfig(
             supported_archs=[WeaviateSupportedArchitecture.AMD64, WeaviateSupportedArchitecture.ARM64],
             combined_package=False,
-            package_ext=".zip",
+            package_ext="zip",
             extracted_file_name="weaviate.exe",
         ),
         WeaviateSupportedPlatforms.LINUX: WeaviateDownloadPlatformConfig(
             supported_archs=[WeaviateSupportedArchitecture.AMD64, WeaviateSupportedArchitecture.ARM64],
             combined_package=False,
-            package_ext=".tar.gz",
+            package_ext="tar.gz",
             extracted_file_name="weaviate",
         ),
         WeaviateSupportedPlatforms.MAC: WeaviateDownloadPlatformConfig(
             supported_archs=[WeaviateSupportedArchitecture.AMD64, WeaviateSupportedArchitecture.ARM64],
             combined_package=True,
-            package_ext=".zip",
+            package_ext="zip",
             extracted_file_name="weaviate",
         ),
     }
@@ -64,6 +64,7 @@ class WeaviateDownloader:
     ) -> None:
         self.weaviate_version = weaviate_version
         self.download_dir = os.path.expanduser(download_dir)
+        os.makedirs(self.download_dir, exist_ok=True)
         self.weaviate_host = weaviate_host
         self.weaviate_http_port = weaviate_http_port
         self.weaviate_grpc_port = weaviate_grpc_port
@@ -96,9 +97,9 @@ class WeaviateDownloader:
     ) -> str:
         """Get the download URL for the Weaviate binary based on OS and architecture."""
         return (
-            f"weaviate-{self.weaviate_version}-{os_type.value}-{arch.value}.{platform_config.package_ext}"
+            f"https://github.com/weaviate/weaviate/releases/download/{self.weaviate_version}/weaviate-{self.weaviate_version}-{os_type.value}-{arch.value}.{platform_config.package_ext}"
             if not platform_config.combined_package
-            else f"weaviate-{self.weaviate_version}-{os_type.value}-all{platform_config['package_ext']}"
+            else f"https://github.com/weaviate/weaviate/releases/download/{self.weaviate_version}/weaviate-{self.weaviate_version}-{os_type.value}-all.{platform_config.package_ext}"
         )
 
     async def _download_binary(self) -> str:
@@ -111,6 +112,7 @@ class WeaviateDownloader:
             raise RuntimeError(f"Unsupported architecture: {arch.value} for OS: {os_type.value}")
 
         weaviate_download_dir = os.path.join(self.download_dir, "weaviate_binary")
+        os.makedirs(weaviate_download_dir, exist_ok=True)
         weaviate_executable_path = os.path.join(weaviate_download_dir, selected_platform_config.extracted_file_name)
 
         if not os.path.exists(weaviate_executable_path):

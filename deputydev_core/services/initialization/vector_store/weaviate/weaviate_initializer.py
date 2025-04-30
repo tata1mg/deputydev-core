@@ -52,7 +52,7 @@ class WeaviateInitializer:
                 ),
                 grpc=ProtocolParams(
                     host=ConfigManager.configs["WEAVIATE_HOST"],
-                    port=50051,  # TODO: change this in BE config
+                    port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
                     secure=False,
                 ),
             ),
@@ -76,12 +76,12 @@ class WeaviateInitializer:
                 ),
                 grpc=ProtocolParams(
                     host=ConfigManager.configs["WEAVIATE_HOST"],
-                    port=50051,
+                    port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
                     secure=False,
                 ),
             ),
             additional_config=AdditionalConfig(
-                timeout=Timeout(init=30, query=60, insert=120),  # TODO: get these values from config
+                timeout=Timeout(init=30, query=60, insert=120),
             ),
         )
         await async_client.connect()
