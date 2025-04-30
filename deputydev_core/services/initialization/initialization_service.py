@@ -1,25 +1,10 @@
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
-<<<<<<< HEAD
 from typing import Dict, List, Optional, Tuple, Type
-=======
-from pathlib import Path
-from typing import Dict, List, Optional, Type, Union, Tuple
->>>>>>> origin/main
 
 from prompt_toolkit.shortcuts.progress_bar import ProgressBar
 
 from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
-<<<<<<< HEAD
-=======
-from deputydev_core.models.dao.weaviate.base import Base as WeaviateBaseDAO
-from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
-from deputydev_core.models.dao.weaviate.chunks import Chunks
-from deputydev_core.models.dao.weaviate.weaviate_schema_details import (
-    WeaviateSchemaDetails,
-)
-from deputydev_core.models.dao.weaviate.urls_content import UrlsContent
->>>>>>> origin/main
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.chunker.handlers.one_dev_cli_chunker import (
     OneDevCLIChunker,
