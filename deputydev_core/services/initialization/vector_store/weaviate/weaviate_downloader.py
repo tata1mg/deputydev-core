@@ -1,15 +1,19 @@
-import os
-from typing import Dict, Optional
-import requests
-import platform
 import asyncio
+import os
+import platform
+import shutil
+import stat
+from typing import Dict, Optional
+
 import aiohttp
-import shutil, stat
-from deputydev_core.services.vector_store.initializer.weaviate.dataclasses.weaviate_dataclasses import (
+import requests
+
+from deputydev_core.services.initialization.vector_store.weaviate.dataclasses.weaviate_dataclasses import (
     WeaviateDownloadPlatformConfig,
+    WeaviateSupportedArchitecture,
+    WeaviateSupportedPlatforms,
 )
 from deputydev_core.utils.app_logger import AppLogger
-from deputydev_core.utils.constants.weaviate import WeaviateSupportedPlatforms, WeaviateSupportedArchitecture
 
 
 class WeaviateDownloader:
@@ -59,13 +63,12 @@ class WeaviateDownloader:
         startup_healthcheck_interval: int,
     ) -> None:
         self.weaviate_version = weaviate_version
-        self.download_dir = download_dir or os.path.expanduser("~/.deputydev")
+        self.download_dir = os.path.expanduser(download_dir)
         self.weaviate_host = weaviate_host
         self.weaviate_http_port = weaviate_http_port
         self.weaviate_grpc_port = weaviate_grpc_port
         self.startup_timeout = startup_timeout
         self.startup_healthcheck_interval = startup_healthcheck_interval
-
 
     @staticmethod
     def _get_os_type() -> WeaviateSupportedPlatforms:
@@ -174,8 +177,12 @@ class WeaviateDownloader:
 
         if not await self._is_weaviate_running():
             AppLogger.log_info("Starting Weaviate binary")
-            # TODO: Verify what all env variables were passed during embedding initialisation, and if they are required here
             env = os.environ.copy()
+            env["CLUSTER_ADVERTISE_ADDR"] = f"{self.weaviate_host}"
+            env["LIMIT_RESOURCES"] = "true"
+            env["PERSISTENCE_DATA_PATH"] = os.path.join(self.download_dir, "weaviate_data")
+            env["GRPC_PORT"] = str(self.weaviate_grpc_port)
+            env["LOG_LEVEL"] = "panic"
             weaviate_process = await asyncio.create_subprocess_exec(
                 executable_path,
                 "--host",

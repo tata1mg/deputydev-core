@@ -1,7 +1,6 @@
-from ast import Tuple
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
-from typing import Dict, List, Optional, Type
+from typing import Dict, List, Optional, Tuple, Type
 
 from prompt_toolkit.shortcuts.progress_bar import ProgressBar
 
@@ -17,6 +16,9 @@ from deputydev_core.services.embedding.base_one_dev_embedding_manager import (
     BaseOneDevEmbeddingManager,
 )
 from deputydev_core.services.embedding.cli_embedding_manager import CLIEmbeddingManager
+from deputydev_core.services.initialization.vector_store.weaviate.weaviate_initializer import (
+    WeaviateInitializer,
+)
 from deputydev_core.services.repo.local_repo.base_local_repo_service import (
     BaseLocalRepo,
 )
@@ -24,7 +26,6 @@ from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepo
 from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
-from deputydev_core.services.vector_store.initializer.weaviate.weaviate_initializer import WeaviateInitializer
 
 
 class InitializationManager:
@@ -50,9 +51,10 @@ class InitializationManager:
         self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path, chunkable_files=chunkable_files)
         return self.local_repo
 
-    async def initialize_vector_db(self, should_clean: bool = False) -> Tuple[WeaviateSyncAndAsyncClients, Optional[asyncio.subprocess.Process]]:
-        weaviate_initializer = WeaviateInitializer()
-        return await weaviate_initializer.initialize(should_clean=should_clean)
+    async def initialize_vector_db(
+        self, should_clean: bool = False
+    ) -> Tuple[WeaviateSyncAndAsyncClients, Optional[asyncio.subprocess.Process]]:
+        return await WeaviateInitializer().initialize(should_clean=should_clean)
 
     async def prefill_vector_store(
         self,

@@ -1,7 +1,18 @@
+from enum import Enum
 from typing import List
+
 from pydantic import BaseModel
 
-from deputydev_core.utils.constants.weaviate import WeaviateSupportedArchitecture
+
+class WeaviateSupportedPlatforms(Enum):
+    WINDOWS = "windows"
+    LINUX = "linux"
+    MAC = "darwin"
+
+
+class WeaviateSupportedArchitecture(Enum):
+    ARM64 = "arm64"
+    AMD64 = "amd64"
 
 
 class WeaviateDownloadPlatformConfig(BaseModel):
