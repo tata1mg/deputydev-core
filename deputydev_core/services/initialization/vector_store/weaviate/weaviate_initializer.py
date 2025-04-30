@@ -25,6 +25,7 @@ from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema
 )
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
+from deputydev_core.models.dao.weaviate.urls_content import UrlsContent
 
 
 class WeaviateInitializer:
@@ -122,7 +123,7 @@ class WeaviateInitializer:
                 references=collection.references if hasattr(collection, "references") else None,  # type: ignore
             )
 
-    async def _sync_schema(self, should_clean: bool):
+    async def _sync_schema_and_return_cleanup_status(self, should_clean: bool) -> bool:
         schema_version = await WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).get_schema_version()
 
         is_schema_invalid = schema_version is None or schema_version != WEAVIATE_SCHEMA_VERSION
@@ -137,6 +138,7 @@ class WeaviateInitializer:
                 self.__check_and_initialize_collection(collection=Chunks),
                 self.__check_and_initialize_collection(collection=ChunkFiles),
                 self.__check_and_initialize_collection(collection=WeaviateSchemaDetails),
+                self.__check_and_initialize_collection(collection=UrlsContent)
             ]
         )
 
@@ -145,11 +147,17 @@ class WeaviateInitializer:
                 WEAVIATE_SCHEMA_VERSION
             )
 
+        return new_schema_creation
+
     async def initialize(
         self, should_clean: bool = False
-    ) -> Tuple[WeaviateSyncAndAsyncClients, Optional[asyncio.subprocess.Process]]:
+    ) -> Tuple[WeaviateSyncAndAsyncClients, Optional[asyncio.subprocess.Process], bool]:
+        """
+        Initialize the Weaviate client and schema. If the schema version is not the same as the current version,
+        the schema will be cleaned and recreated.
+        """
         await self._spin_up_and_establish_weaviate_connection()
-        await self._sync_schema(should_clean=should_clean)
+        new_schema_created = await self._sync_schema_and_return_cleanup_status(should_clean=should_clean)
         if not self.weaviate_client or not await self.weaviate_client.is_ready():
             raise ValueError("Connect to vector store failed")
-        return self.weaviate_client, self.weaviate_process
+        return self.weaviate_client, self.weaviate_process, new_schema_created
