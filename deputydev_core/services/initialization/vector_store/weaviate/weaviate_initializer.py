@@ -35,7 +35,7 @@ class WeaviateInitializer:
 
     async def _change_weaviate_process(self, new_weaviate_process: asyncio.subprocess.Process) -> None:
         if self.weaviate_process:
-            self.weaviate_process.kill()
+            self.weaviate_process.terminate()
             await self.weaviate_process.wait()
 
         self.weaviate_process = new_weaviate_process
