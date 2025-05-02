@@ -23,7 +23,7 @@ class WeaviateDownloader:
     extracting it, and running it. It also includes methods for checking if Weaviate is running and waiting
     for it to be ready.
     Attributes:
-        download_dir (str): Directory to download the Weaviate binary.
+        base_dir (str): Base directory to maintain weaviate binary and data.
         weaviate_version (str): Version of Weaviate to download.
         weaviate_host (str): Hostname for the Weaviate instance.
         weaviate_http_port (int): HTTP port for the Weaviate instance.
@@ -55,7 +55,7 @@ class WeaviateDownloader:
 
     def __init__(
         self,
-        download_dir: str,
+        base_dir: str,
         weaviate_version: str,
         weaviate_host: str,
         weaviate_http_port: int,
@@ -65,7 +65,7 @@ class WeaviateDownloader:
         env_variables: dict[str, Any]
     ) -> None:
         self.weaviate_version = weaviate_version
-        self.download_dir = os.path.expanduser(download_dir)
+        self.base_dir = os.path.expanduser(base_dir)
         self.weaviate_host = weaviate_host
         self.weaviate_http_port = weaviate_http_port
         self.weaviate_grpc_port = weaviate_grpc_port
@@ -113,7 +113,7 @@ class WeaviateDownloader:
         if arch not in selected_platform_config.supported_archs:
             raise RuntimeError(f"Unsupported architecture: {arch.value} for OS: {os_type.value}")
 
-        weaviate_binary_base_dir = os.path.join(self.download_dir, "weaviate_binary")
+        weaviate_binary_base_dir = os.path.join(self.base_dir, "weaviate_binary")
         weaviate_download_dir = os.path.join(weaviate_binary_base_dir, self.weaviate_version)
         os.makedirs(weaviate_download_dir, exist_ok=True)
         weaviate_executable_path = os.path.join(weaviate_download_dir, selected_platform_config.extracted_file_name)
@@ -187,7 +187,7 @@ class WeaviateDownloader:
             env = os.environ.copy()
             env["CLUSTER_ADVERTISE_ADDR"] = self.env_variables["CLUSTER_ADVERTISE_ADDR"]
             env["LIMIT_RESOURCES"] = self.env_variables["LIMIT_RESOURCES"]
-            env["PERSISTENCE_DATA_PATH"] = os.path.join(self.download_dir, "weaviate_data")
+            env["PERSISTENCE_DATA_PATH"] = os.path.join(self.base_dir, "weaviate_data")
             env["GRPC_PORT"] = str(self.weaviate_grpc_port)
             env["LOG_LEVEL"] = self.env_variables["LOG_LEVEL"]
             weaviate_process = await asyncio.create_subprocess_exec(

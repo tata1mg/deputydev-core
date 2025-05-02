@@ -97,7 +97,7 @@ class WeaviateInitializer:
             return
 
         new_weaviate_process = await WeaviateDownloader(
-            download_dir=ConfigManager.configs["WEAVIATE_DOWNLOAD_DIR"],
+            base_dir=ConfigManager.configs["WEAVIATE_BASE_DIR"],
             weaviate_version=ConfigManager.configs["WEAVIATE_VERSION"],
             weaviate_host=ConfigManager.configs["WEAVIATE_HOST"],
             weaviate_http_port=ConfigManager.configs["WEAVIATE_HTTP_PORT"],
