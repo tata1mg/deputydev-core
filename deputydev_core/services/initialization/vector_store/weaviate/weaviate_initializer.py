@@ -44,6 +44,8 @@ class WeaviateInitializer:
         if self.weaviate_client and self.weaviate_client.sync_client:
             return self.weaviate_client.sync_client
 
+        timeouts = ConfigManager.configs["WEAVIATE_CLIENT_TIMEOUTS"]
+
         sync_client = WeaviateClient(
             connection_params=ConnectionParams(
                 http=ProtocolParams(
@@ -57,8 +59,8 @@ class WeaviateInitializer:
                     secure=False,
                 ),
             ),
-            additional_config=AdditionalConfig(
-                timeout=Timeout(init=30, query=60, insert=120),  # Values in seconds, TODO: get these values from config
+             additional_config=AdditionalConfig(
+                timeout=Timeout(init=timeouts["INIT"], query=timeouts["QUERY"], insert=timeouts["INSERT"]),
             ),
         )
         sync_client.connect()
@@ -67,6 +69,8 @@ class WeaviateInitializer:
     async def get_async_client(self) -> WeaviateAsyncClient:
         if self.weaviate_client and self.weaviate_client.async_client:
             return self.weaviate_client.async_client
+
+        timeouts = ConfigManager.configs["WEAVIATE_CLIENT_TIMEOUTS"]
 
         async_client = WeaviateAsyncClient(
             connection_params=ConnectionParams(
@@ -82,7 +86,7 @@ class WeaviateInitializer:
                 ),
             ),
             additional_config=AdditionalConfig(
-                timeout=Timeout(init=30, query=60, insert=120),
+                timeout=Timeout(init=timeouts["INIT"], query=timeouts["QUERY"], insert=timeouts["INSERT"]),
             ),
         )
         await async_client.connect()
@@ -100,6 +104,7 @@ class WeaviateInitializer:
             weaviate_grpc_port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
             startup_timeout=ConfigManager.configs["WEAVIATE_STARTUP_TIMEOUT"],
             startup_healthcheck_interval=ConfigManager.configs["WEAVIATE_STARTUP_HEALTHCHECK_INTERVAL"],
+            env_variables=ConfigManager.configs["WEAVIATE_ENV_VARIABLES"]
         ).download_and_run_weaviate()
         async_client = await self.get_async_client()
         sync_client = self.get_sync_client()

@@ -3,7 +3,7 @@ import os
 import platform
 import shutil
 import stat
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 import aiohttp
 import requests
@@ -14,6 +14,7 @@ from deputydev_core.services.initialization.vector_store.weaviate.dataclasses.we
     WeaviateSupportedPlatforms,
 )
 from deputydev_core.utils.app_logger import AppLogger
+from deputydev_core.utils.os_utils import clean_directory_except
 
 
 class WeaviateDownloader:
@@ -61,15 +62,16 @@ class WeaviateDownloader:
         weaviate_grpc_port: int,
         startup_timeout: int,
         startup_healthcheck_interval: int,
+        env_variables: dict[str, Any]
     ) -> None:
         self.weaviate_version = weaviate_version
         self.download_dir = os.path.expanduser(download_dir)
-        os.makedirs(self.download_dir, exist_ok=True)
         self.weaviate_host = weaviate_host
         self.weaviate_http_port = weaviate_http_port
         self.weaviate_grpc_port = weaviate_grpc_port
         self.startup_timeout = startup_timeout
         self.startup_healthcheck_interval = startup_healthcheck_interval
+        self.env_variables = env_variables
 
     @staticmethod
     def _get_os_type() -> WeaviateSupportedPlatforms:
@@ -111,7 +113,8 @@ class WeaviateDownloader:
         if arch not in selected_platform_config.supported_archs:
             raise RuntimeError(f"Unsupported architecture: {arch.value} for OS: {os_type.value}")
 
-        weaviate_download_dir = os.path.join(self.download_dir, "weaviate_binary")
+        weaviate_binary_base_dir = os.path.join(self.download_dir, "weaviate_binary")
+        weaviate_download_dir = os.path.join(weaviate_binary_base_dir, self.weaviate_version)
         os.makedirs(weaviate_download_dir, exist_ok=True)
         weaviate_executable_path = os.path.join(weaviate_download_dir, selected_platform_config.extracted_file_name)
 
@@ -130,6 +133,8 @@ class WeaviateDownloader:
                 f.write(response.content)
             shutil.unpack_archive(archive_path, weaviate_download_dir)
             os.remove(archive_path)
+
+            clean_directory_except(weaviate_binary_base_dir, weaviate_download_dir)
 
             AppLogger.log_info("Weaviate binary downloaded and extracted successfully")
         else:
@@ -180,11 +185,11 @@ class WeaviateDownloader:
         if not await self._is_weaviate_running():
             AppLogger.log_info("Starting Weaviate binary")
             env = os.environ.copy()
-            env["CLUSTER_ADVERTISE_ADDR"] = f"{self.weaviate_host}"
-            env["LIMIT_RESOURCES"] = "true"
+            env["CLUSTER_ADVERTISE_ADDR"] = self.env_variables["CLUSTER_ADVERTISE_ADDR"]
+            env["LIMIT_RESOURCES"] = self.env_variables["LIMIT_RESOURCES"]
             env["PERSISTENCE_DATA_PATH"] = os.path.join(self.download_dir, "weaviate_data")
             env["GRPC_PORT"] = str(self.weaviate_grpc_port)
-            env["LOG_LEVEL"] = "panic"
+            env["LOG_LEVEL"] = self.env_variables["LOG_LEVEL"]
             weaviate_process = await asyncio.create_subprocess_exec(
                 executable_path,
                 "--host",
