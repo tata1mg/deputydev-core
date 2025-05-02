@@ -6,7 +6,7 @@ from deputydev_core.services.embedding.base_embedding_manager import (
 )
 from deputydev_core.services.tiktoken import TikToken
 from deputydev_core.utils.app_logger import AppLogger
-from deputydev_core.utils.shared_memory import SharedMemory
+from deputydev_core.utils.context_value import ContextValue
 
 
 class BaseOneDevEmbeddingManager(BaseEmbeddingManager):
@@ -51,7 +51,7 @@ class BaseOneDevEmbeddingManager(BaseEmbeddingManager):
                 payload={"texts": batch, "store_embeddings": store_embeddings},
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {SharedMemory.read(self.auth_token_key)}",
+                    "Authorization": f"Bearer {ContextValue.get(self.auth_token_key)}",
                 },
             )
             return (
