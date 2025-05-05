@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple, Optional
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.reranker.base_chunk_reranker import BaseChunkReranker
@@ -8,10 +8,11 @@ class HeuristicBasedChunkReranker(BaseChunkReranker):
     async def rerank(
         self,
         focus_chunks: List[ChunkInfo],
-        related_codebase_chunks: List[ChunkInfo],
+        relevant_chunks: List[ChunkInfo],
         query: str,
-    ) -> List[ChunkInfo]:
-        ranked_snippets_list = focus_chunks + related_codebase_chunks
+        is_llm_reranking_enabled: bool,
+    ) ->  List[ChunkInfo]:
+        ranked_snippets_list = focus_chunks + relevant_chunks
         chunks_in_order: List[ChunkInfo] = []
         source_to_chunks: Dict[str, List[ChunkInfo]] = {}
         for chunk in ranked_snippets_list:

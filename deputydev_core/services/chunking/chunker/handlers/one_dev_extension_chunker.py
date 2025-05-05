@@ -1,6 +1,6 @@
 from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union, Any
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.chunker.handlers.vector_db_chunker import (
@@ -11,6 +11,9 @@ from deputydev_core.services.chunking.vector_store.chunk_vectore_store_manager i
 )
 from deputydev_core.services.embedding.extension_embedding_manager import (
     ExtensionEmbeddingManager,
+)
+from deputydev_core.services.embedding.pr_review_embedding_manager import (
+    PRReviewEmbeddingManager,
 )
 from deputydev_core.services.repo.local_repo.base_local_repo_service import (
     BaseLocalRepo,
@@ -27,7 +30,7 @@ class OneDevExtensionChunker(VectorDBChunker):
         local_repo: BaseLocalRepo,
         process_executor: ProcessPoolExecutor,
         weaviate_client: WeaviateSyncAndAsyncClients,
-        embedding_manager: ExtensionEmbeddingManager,
+        embedding_manager:  Union[ExtensionEmbeddingManager, PRReviewEmbeddingManager],
         chunkable_files_and_hashes: Dict[str, str],
         progress_bar: Optional[CustomProgressBar] = None,
         use_new_chunking: bool = True,
@@ -86,9 +89,11 @@ class OneDevExtensionChunker(VectorDBChunker):
         """
 
         all_file_wise_chunks: Dict[str, List[ChunkInfo]] = {}
-        self.progress_bar.initialise(total_files_to_process=sum([len(files) for files in batched_files_to_store]))
+        if self.progress_bar:
+            self.progress_bar.initialise(total_files_to_process=sum([len(files) for files in batched_files_to_store]))
         for batch_files in batched_files_to_store:
-            self.progress_bar.set_current_batch_percentage(len(batch_files))
+            if self.progress_bar:
+                self.progress_bar.set_current_batch_percentage(len(batch_files))
             # get the chunks for the batch
             file_wise_chunks_for_batch = await self.get_file_wise_chunks_for_single_file_batch(
                 files_to_chunk_batch=batch_files,
