@@ -186,7 +186,7 @@ class WeaviateDownloader:
             AppLogger.log_info("Starting Weaviate binary")
             env = os.environ.copy()
             env["CLUSTER_ADVERTISE_ADDR"] = self.env_variables["CLUSTER_ADVERTISE_ADDR"]
-            env["LIMIT_RESOURCES"] = self.env_variables["LIMIT_RESOURCES"]
+            env["LIMIT_RESOURCES"] = str(self.env_variables["LIMIT_RESOURCES"])
             env["PERSISTENCE_DATA_PATH"] = os.path.join(self.base_dir, "weaviate_data")
             env["GRPC_PORT"] = str(self.weaviate_grpc_port)
             env["LOG_LEVEL"] = self.env_variables["LOG_LEVEL"]
