@@ -5,6 +5,7 @@ class ConfigConsumer(Enum):
     VSCODE_EXT = "VSCODE_EXT"
     CLI = "CLI"
     BINARY = "BINARY"
+    PR_REVIEW = "PR_REVIEW"
 
 
 class Clients(Enum):
@@ -13,6 +14,7 @@ class Clients(Enum):
     VSCODE_EXT = "VSCODE_EXT"
     BINARY = "BINARY"
     WEB = "WEB"
+    REVIEW = "REVIEW"
 
 
 class SharedMemoryKeys(Enum):

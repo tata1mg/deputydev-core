@@ -11,6 +11,8 @@ setup(
     author="1mg",
     author_email="devops@1mg.com",
     description="Core logic of deputydev",
-    packages=find_packages(exclude="requirements"),
+    # packages=find_packages(exclude="requirements"),
+    packages=find_packages(where="."),  # Tell it where to find packages
+    package_dir={"": "."},  # Root directory
     install_requires=base_requirements,
 )
