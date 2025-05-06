@@ -13,7 +13,6 @@ class ChunkSourceDetails(BaseModel):
     end_line: int
 
 
-
 class ChunkInfo(BaseModel):
     """
     Information about a chunk of code.

@@ -113,6 +113,6 @@ class ChunkFiles(Base):
             data_type=DataType.BOOL,
             vectorize_property_name=False,
             skip_vectorization=True,
-        )
+        ),
     ]
     collection_name = CHUNK_FILES_COLLECTION_NAME
