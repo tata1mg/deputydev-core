@@ -53,7 +53,8 @@ class VectorDBBasedSearch:
                     break
 
         new_file_path_to_hash_map_for_import_only: Dict[str, str] = {
-            chunk_info.source_details.file_path: chunk_info.source_details.file_hash for chunk_info in chunk_info_list
+            chunk_info.source_details.file_path: chunk_info.source_details.file_hash
+            for chunk_info in chunk_info_list
         }
 
         import_only_chunk_files = await ChunkFilesService(weaviate_client).get_only_import_chunk_files_by_commit_hashes(
@@ -88,6 +89,8 @@ class VectorDBBasedSearch:
 
         updated_chunk_info_list = list(chunk_info_set)
 
-        updated_chunk_info_list.sort(key=lambda x: (x.source_details.file_path, x.source_details.start_line))
+        updated_chunk_info_list.sort(
+            key=lambda x: (x.source_details.file_path, x.source_details.start_line)
+        )
 
         return updated_chunk_info_list, 0

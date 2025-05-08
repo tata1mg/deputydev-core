@@ -15,7 +15,7 @@ class Clients(Enum):
     WEB = "WEB"
 
 
-class ContextValueKeys(Enum):
+class SharedMemoryKeys(Enum):
     BINARY_CONFIG = "BINARY_CONFIG"
     CLI_AUTH_TOKEN = "CLI_AUTH_TOKEN"
     EXTENSION_AUTH_TOKEN = "EXTENSION_AUTH_TOKEN"
