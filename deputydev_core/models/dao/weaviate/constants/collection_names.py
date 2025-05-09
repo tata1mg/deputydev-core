@@ -1,3 +1,4 @@
 CHUNKS_COLLECTION_NAME = "chunks"
 CHUNK_FILES_COLLECTION_NAME = "chunk_files"
 WEAVIATE_SCHEMA_DETAILS_COLLECTION_NAME = "weaviate_schema_details"
+URLS_CONTENT = "urls_content"
