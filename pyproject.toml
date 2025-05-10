@@ -1,60 +1,37 @@
-[tool]
-python = "3.11.9"
-
-[tool.poetry]
+[project]
 name = "deputydev-core"
 version = "3.0.0"
-description = "deputydev helper"
-authors = ["DeputyDev <deputydev@1mg.com>"]
+description = "Core library for DeputyDev"
+authors = [{ name = "DeputyDev", email = "deputydev@1mg.com" }]
 readme = "README.md"
+requires-python = ">=3.11, <3.13"
 
-[tool.poetry.dependencies]
-numpy = "1.26.2"
-prompt-toolkit = "3.0.48"
-weaviate-client = "4.10.3"
-pydantic = "2.10.3"
-xxhash = "3.5.0"
-GitPython = "3.1.27"
-giturlparse = "0.12.0"
-PyYAML = "6.0.2"
-tiktoken = "0.7.0"
-tree-sitter-languages = "1.10.2"
-tree-sitter = "0.21.0"
-tree-sitter-javascript = "0.21.0"
-aiohttp = ">=3.11.12"
-diff-match-patch = "20241021"
+dependencies = [
+    "numpy==1.26.2",
+    "prompt-toolkit==3.0.48",
+    "weaviate-client==4.10.3",
+    "pydantic==2.10.3",
+    "xxhash==3.5.0",
+    "GitPython==3.1.27",
+    "giturlparse==0.12.0",
+    "PyYAML==6.0.2",
+    "tiktoken==0.7.0",
+    "tree-sitter-languages==1.10.2",
+    "tree-sitter==0.21.0",
+    "tree-sitter-javascript==0.21.0",
+    "aiohttp>=3.11.12",
+    "diff-match-patch==20241021"
+]
 
-[tool.black]
-version = "^24.8.0"
+[dependency-groups]
+dev = [
+    "ruff>=0.11.9",
+]
+
+[tool.ruff]
 line-length = 120
-target-version = ["py37", "py38", "py39", "py310"]
-include = '\.pyi?$'
 
-[tool.pytest]
-version = "6.2.5"
-addopts = "-p no:warnings"
-
-[tool.isort]
-profile = "black"
-
-[tool.flake8]
-version = "^7.1.1"
-max-line-length = 120
-extend-ignore = "E203"
-
-[tool.pylint]
-version = "2.11.1"
-# A comma-separated list of package or module names from where C extensions may
-# be loaded. Extensions are loading into the active Python interpreter and may
-# run arbitrary code.
-extension-pkg-whitelist = "ujson"
-
-# Specify a score threshold to be exceeded before program exits with error.
-fail-under=8.5
-
-ignore = "tests"
-disable = ["C0114","C0115","W0212","C0116","C0305","W0703","C0301","R0903","R1705","E0402"]
-
-[tool.bandit]
-exclude_dirs = ["tests"]
-skips = ["B608"]
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
