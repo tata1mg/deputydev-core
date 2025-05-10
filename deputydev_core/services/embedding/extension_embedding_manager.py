@@ -91,7 +91,11 @@ class ExtensionEmbeddingManager(BaseOneDevEmbeddingManager):
         )
         for batch in iterable_batches:
             if len(parallel_batches) >= max_parallel_tasks:
-                (tokens_used, exponential_backoff, parallel_batches,) = await self._process_parallel_batches(
+                (
+                    tokens_used,
+                    exponential_backoff,
+                    parallel_batches,
+                ) = await self._process_parallel_batches(
                     parallel_batches,
                     embeddings,
                     tokens_used,
@@ -104,7 +108,11 @@ class ExtensionEmbeddingManager(BaseOneDevEmbeddingManager):
             parallel_batches += [batch]
 
         while len(parallel_batches) > 0:
-            (tokens_used, exponential_backoff, parallel_batches,) = await self._process_parallel_batches(
+            (
+                tokens_used,
+                exponential_backoff,
+                parallel_batches,
+            ) = await self._process_parallel_batches(
                 parallel_batches,
                 embeddings,
                 tokens_used,

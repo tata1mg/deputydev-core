@@ -141,7 +141,6 @@ class ChunkingManger:
         weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
         chunking_handler: Optional[BaseChunker] = None,
     ) -> Tuple[List[ChunkInfo], int]:
-
         AppLogger.log_info("Completed chunk creation")
         if focus_chunks:
             query = cls.build_focus_query(query, focus_chunks)

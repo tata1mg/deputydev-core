@@ -1,4 +1,4 @@
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Tuple
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
 from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
@@ -18,7 +18,6 @@ class VectorDBBasedSearch:
         weaviate_client: WeaviateSyncAndAsyncClients,
         max_chunks_to_return: int,
     ) -> Tuple[List[ChunkInfo], int]:
-
         chunk_files = await ChunkFilesService(weaviate_client).get_chunk_files_by_commit_hashes(
             whitelisted_file_commits
         )

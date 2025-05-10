@@ -335,7 +335,6 @@ class UnifiedDiffAlgoRunner(BaseDiffAlgoRunner):
 
     @classmethod
     def do_replace(cls, file_path_str: str, content: Optional[str], hunk: List[str]) -> Optional[str]:
-
         # get the file path as a Path object
         file_path = Path(file_path_str)
         before_texts, after_texts = cls._hunk_to_before_after(hunk)
