@@ -19,7 +19,6 @@ from ..base_chunker import BaseChunker
 
 
 class BaseMetadataChunker(BaseChunker):
-
     language_identifiers = {}
 
     def chunk_code(self, tree, content: bytes, max_chars, coalesce, language) -> List[NeoSpan]:
