@@ -399,6 +399,29 @@ class UnifiedDiffAlgoRunner(BaseDiffAlgoRunner):
         return unique_edits
 
     @classmethod
+    def clean_patch(cls, patch: str) -> str:
+        """
+        Clean the patch by removing the first part and keeping only the relevant diff section.
+        Args:
+            patch: The patch string to clean
+        Returns:
+            The cleaned patch string
+        """
+        # Keep everything from the first '---' onward
+        start_index = patch.find("---")
+        if start_index == -1:
+            # If '---' is not found, return an empty string
+            return ""
+
+        # Remove everything from the last '```' (inclusive)
+        end_index = patch.rfind("```")
+        if end_index != -1:
+            text = patch[start_index:end_index]
+        else:
+            text = patch[start_index:]
+        return text.strip()
+
+    @classmethod
     async def apply_diff(
         cls, file_path: str, repo_path: str, current_content: str, diff_data: UdiffData
     ) -> FileDiffApplicationResponse:
@@ -417,7 +440,8 @@ class UnifiedDiffAlgoRunner(BaseDiffAlgoRunner):
         errors: List[str] = []
 
         # firstly, get the unique hunks
-        file_edits = cls._get_edits(file_path, diff_data.incremental_udiff)
+        cleaned_diff_data = cls.clean_patch(diff_data.incremental_udiff)
+        file_edits = cls._get_edits(file_path, cleaned_diff_data)
 
         unique_normalized_edits: List[List[str]] = cls._get_unique_normalized_edits(file_edits)
         full_path = os.path.join(repo_path, file_path)
