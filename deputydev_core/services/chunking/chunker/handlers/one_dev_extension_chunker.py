@@ -1,6 +1,6 @@
 from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Union, Any
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.chunker.handlers.vector_db_chunker import (
@@ -30,7 +30,7 @@ class OneDevExtensionChunker(VectorDBChunker):
         local_repo: BaseLocalRepo,
         process_executor: ProcessPoolExecutor,
         weaviate_client: WeaviateSyncAndAsyncClients,
-        embedding_manager:  Union[ExtensionEmbeddingManager, PRReviewEmbeddingManager],
+        embedding_manager: Union[ExtensionEmbeddingManager, PRReviewEmbeddingManager],
         chunkable_files_and_hashes: Dict[str, str],
         progress_bar: Optional[CustomProgressBar] = None,
         use_new_chunking: bool = True,

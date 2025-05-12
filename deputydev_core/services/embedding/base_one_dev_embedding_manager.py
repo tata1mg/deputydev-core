@@ -1,7 +1,6 @@
 from typing import List, Optional, Tuple, Union
 
 from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
-from deputydev_core.clients.http.service_clients.one_dev_review_client import OneDevReviewClient
 from deputydev_core.services.embedding.base_embedding_manager import (
     BaseEmbeddingManager,
 )
@@ -11,7 +10,7 @@ from deputydev_core.utils.shared_memory import SharedMemory
 
 
 class BaseOneDevEmbeddingManager(BaseEmbeddingManager):
-    def __init__(self, one_dev_client: Union[OneDevClient, OneDevReviewClient], auth_token_key: Optional[str] = None):
+    def __init__(self, one_dev_client: OneDevClient, auth_token_key: Optional[str] = None):
         self.auth_token_key = auth_token_key
         self.one_dev_client = one_dev_client
 
@@ -31,7 +30,7 @@ class BaseOneDevEmbeddingManager(BaseEmbeddingManager):
                 )
                 continue
 
-            if current_batch_token_count + text_token_count > target_tokens_per_batch and len(current_batch)<32:
+            if current_batch_token_count + text_token_count > target_tokens_per_batch:
                 batches.append(current_batch)
                 current_batch = [text]
                 current_batch_token_count = text_token_count

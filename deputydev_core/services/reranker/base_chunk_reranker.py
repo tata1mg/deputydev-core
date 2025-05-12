@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 

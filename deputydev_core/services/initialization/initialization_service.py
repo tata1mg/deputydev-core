@@ -48,13 +48,13 @@ from .constants import WEAVIATE_SCHEMA_VERSION
 
 class InitializationManager:
     def __init__(
-            self,
-            repo_path: Optional[str] = None,
-            auth_token_key: Optional[str] = None,
-            process_executor: Optional[ProcessPoolExecutor] = None,
-            one_dev_client: Optional[OneDevClient] = None,
-            weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
-            embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
+        self,
+        repo_path: Optional[str] = None,
+        auth_token_key: Optional[str] = None,
+        process_executor: Optional[ProcessPoolExecutor] = None,
+        one_dev_client: Optional[OneDevClient] = None,
+        weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
+        embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
     ) -> None:
         self.repo_path = repo_path
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
@@ -195,10 +195,10 @@ class InitializationManager:
             return self.weaviate_client
 
     async def prefill_vector_store(
-            self,
-            chunkable_files_and_hashes: Dict[str, str],
-            progressbar: Optional[ProgressBar] = None,
-            enable_refresh: Optional[bool] = False,
+        self,
+        chunkable_files_and_hashes: Dict[str, str],
+        progressbar: Optional[ProgressBar] = None,
+        enable_refresh: Optional[bool] = False,
     ) -> None:
         assert self.local_repo, "Local repo is not initialized"
         assert self.weaviate_client, "Connect to vector store"
