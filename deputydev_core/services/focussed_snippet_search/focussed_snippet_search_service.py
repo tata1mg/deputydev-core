@@ -4,20 +4,28 @@ from typing import Dict, List, Set
 from deputydev_core.models.dto.chunk_dto import ChunkDTO
 from deputydev_core.models.dto.chunk_file_dto import ChunkFileDTO
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
-
+from deputydev_core.services.focussed_snippet_search.dataclass.main import (
+    ChunkDetails,
+    ChunkInfoAndHash,
+    FocusChunksParams,
+    FocussedSnippetSearchParams,
+    FocussedSnippetSearchResponse,
+    SearchTerm,
+)
+from deputydev_core.services.relevant_chunks.relevant_chunk_service import (
+    RelevantChunksService,
+)
 from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
 from deputydev_core.services.repository.chunk_service import ChunkService
+from deputydev_core.services.shared_chunks.shared_chunks_manager import (
+    SharedChunksManager,
+)
 from deputydev_core.utils.constants.constants import CHUNKFILE_KEYWORD_PROPERTY_MAP
 
-from deputydev_core.services.batch_chunk_search.dataclass.main import BatchSearchParams, SearchTerm, BatchSearchResponse, ChunkDetails, ChunkInfoAndHash, FocusChunksParams
 
-from deputydev_core.services.relevant_chunks.relevant_chunk_service import RelevantChunksService
-from deputydev_core.services.shared_chunks.shared_chunks_manager import SharedChunksManager
-
-
-class BatchSearchService:
+class FocussedSnippetSearchService:
     @classmethod
-    async def search_code(cls, payload: BatchSearchParams, weaviate_client, initialization_manager):
+    async def search_code(cls, payload: FocussedSnippetSearchParams, weaviate_client, initialization_manager):
         """
         Search for code based on multiple search terms.
         """
@@ -25,12 +33,12 @@ class BatchSearchService:
         search_terms = payload.search_terms
 
         try:
-            chunkable_files_and_hashes = await SharedChunksManager.initialize_chunks(
-                repo_path
-            )
+            chunkable_files_and_hashes = await SharedChunksManager.initialize_chunks(repo_path)
 
             # initialization_manager = ExtensionInitialisationManager(repo_path=repo_path)
-            weaviate_client = await initialization_manager.initialize_vector_db()
+            weaviate_client, _new_weaviate_process, _schema_cleaned = (
+                await initialization_manager.initialize_vector_db()
+            )
 
             chunk_files_service = ChunkFilesService(weaviate_client)
             chunk_service = ChunkService(weaviate_client)
@@ -41,13 +49,9 @@ class BatchSearchService:
 
             all_chunk_hashes = cls.extract_chunk_hashes(chunk_files_results)
 
-            chunks_by_hash = await cls.fetch_chunks_by_hashes(
-                all_chunk_hashes, chunk_service
-            )
+            chunks_by_hash = await cls.fetch_chunks_by_hashes(all_chunk_hashes, chunk_service)
 
-            final_results = cls.map_chunks_to_results(
-                search_terms, chunk_files_results, chunks_by_hash
-            )
+            final_results = cls.map_chunks_to_results(search_terms, chunk_files_results, chunks_by_hash)
 
             # update final chunks in results
             updated_results = asyncio.gather(
@@ -63,8 +67,8 @@ class BatchSearchService:
 
     @classmethod
     async def update_chunks_list(
-        cls, payload: BatchSearchResponse, repo_path: str, initialization_manager
-    ) -> BatchSearchResponse:
+        cls, payload: FocussedSnippetSearchResponse, repo_path: str, initialization_manager
+    ) -> FocussedSnippetSearchResponse:
         if payload.type not in ["class", "function"] or not payload.chunks:
             return payload
 
@@ -85,7 +89,7 @@ class BatchSearchService:
                     for _ in payload.chunks
                 ],
             ),
-            initialization_manager
+            initialization_manager,
         )
 
         if not new_chunks:
@@ -97,19 +101,15 @@ class BatchSearchService:
         return payload
 
     @classmethod
-    async def search_chunk_files(
-        cls, search_terms, chunkable_files_and_hashes, chunk_files_service
-    ):
+    async def search_chunk_files(cls, search_terms, chunkable_files_and_hashes, chunk_files_service):
 
         tasks = [
-            cls.process_file_search(
-                idx, chunk_files_service, term, chunkable_files_and_hashes
-            )
+            cls.process_file_search(idx, chunk_files_service, term, chunkable_files_and_hashes)
             for idx, term in enumerate(search_terms)
         ]
-        results = await asyncio.gather(*tasks)
+        results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        return {idx: chunks for idx, chunks in results}
+        return {idx: chunks for idx, chunks in results if not isinstance(results, Exception)}
 
     @classmethod
     async def process_file_search(
@@ -142,9 +142,7 @@ class BatchSearchService:
             chunkable_files_and_hashes=chunkable_files_and_hashes,
             limit=5,
         )
-        sorted_chunks = sorted(
-            chunks, key=lambda x: getattr(x.metadata, "score", 0.0), reverse=True
-        )
+        sorted_chunks = sorted(chunks, key=lambda x: getattr(x.metadata, "score", 0.0), reverse=True)
 
         return idx, sorted_chunks
 
@@ -181,9 +179,7 @@ class BatchSearchService:
         if not chunk_hashes:
             return {}
 
-        chunks_with_vectors = await chunk_service.get_chunks_by_chunk_hashes(
-            list(chunk_hashes)
-        )
+        chunks_with_vectors = await chunk_service.get_chunks_by_chunk_hashes(list(chunk_hashes))
 
         return {chunk.chunk_hash: chunk for chunk, _ in chunks_with_vectors}
 
@@ -193,7 +189,7 @@ class BatchSearchService:
         search_terms: List[SearchTerm],
         chunk_files_results: Dict[int, List[ChunkFileDTO]],
         chunks_by_hash: Dict[str, ChunkDTO],
-    ) -> List[BatchSearchResponse]:
+    ) -> List[FocussedSnippetSearchResponse]:
         """
         Map chunks to search results.
 
@@ -206,7 +202,7 @@ class BatchSearchService:
             List of code search results
         """
 
-        final_results: List[BatchSearchResponse] = []
+        final_results: List[FocussedSnippetSearchResponse] = []
 
         for idx, request in enumerate(search_terms):
             chunk_files = chunk_files_results.get(idx, [])
@@ -214,7 +210,7 @@ class BatchSearchService:
             # Skip if no results
             if not chunk_files:
                 final_results.append(
-                    BatchSearchResponse(
+                    FocussedSnippetSearchResponse(
                         keyword=request.keyword,
                         type=request.type,
                         file_path=request.file_path,
@@ -226,9 +222,7 @@ class BatchSearchService:
             # Map chunks
             chunk_results: List[ChunkInfo] = []
             for chunk_file in chunk_files:
-                chunk_file_dto = ChunkFileDTO(
-                    **chunk_file.properties, id=str(chunk_file.uuid)
-                )
+                chunk_file_dto = ChunkFileDTO(**chunk_file.properties, id=str(chunk_file.uuid))
                 # Get the corresponding chunk text
                 chunk = chunks_by_hash.get(chunk_file_dto.chunk_hash)
                 if chunk:
@@ -246,7 +240,7 @@ class BatchSearchService:
 
             # Create result
             final_results.append(
-                BatchSearchResponse(
+                FocussedSnippetSearchResponse(
                     keyword=request.keyword,
                     type=request.type,
                     file_path=request.file_path,

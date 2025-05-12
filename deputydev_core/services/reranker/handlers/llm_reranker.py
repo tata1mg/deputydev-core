@@ -1,19 +1,15 @@
-from typing import List, Optional, Tuple, Any
+from typing import Any, List, Optional, Tuple
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.chunking_manager import ChunkingManger
-from deputydev_core.utils.config_manager import ConfigManager
-from deputydev_core.utils.constants.enums import SharedMemoryKeys
-from deputydev_core.utils.shared_memory import SharedMemory
-
-from deputydev_core.utils.chunk_utils import filter_chunks_by_denotation, jsonify_chunks
 from deputydev_core.services.reranker.base_chunk_reranker import BaseChunkReranker
+from deputydev_core.utils.chunk_utils import filter_chunks_by_denotation, jsonify_chunks
+from deputydev_core.utils.config_manager import ConfigManager
+from deputydev_core.utils.context_value import ContextValue
 
 
 class RerankerService(BaseChunkReranker):
-    def __init__(
-        self, session_id: Optional[int] = None, session_type: Optional[str] = None
-    ) -> None:
+    def __init__(self, session_id: Optional[int] = None, session_type: Optional[str] = None) -> None:
         self.session_id = session_id
         self.session_type = session_type
 
@@ -23,27 +19,20 @@ class RerankerService(BaseChunkReranker):
         relevant_chunks: List[ChunkInfo],
         query: str,
         is_llm_reranking_enabled: bool,
-        one_dev_client: Optional[Any] = None
+        one_dev_client: Optional[Any] = None,
+        auth_token_key: str = None,
     ) -> Tuple[List[ChunkInfo], Optional[int]]:
-        relevant_chunks = ChunkingManger.exclude_focused_chunks(
-            relevant_chunks, focus_chunks
-        )
+        relevant_chunks = ChunkingManger.exclude_focused_chunks(relevant_chunks, focus_chunks)
         if is_llm_reranking_enabled:
             payload = {
                 "query": query,
                 "relevant_chunks": jsonify_chunks(relevant_chunks),
                 "focus_chunks": jsonify_chunks(focus_chunks),
             }
-            if self.session_type and self.session_type=="PR_REVIEW":
-                # TODO not pass auth token in headers from shared memory
-                headers = {
-                    "Content-Type": "application/json",
-                }
-            else:
-                headers = {
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {SharedMemory.read(SharedMemoryKeys.EXTENSION_AUTH_TOKEN.value)}",
-                }
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {ContextValue.get(auth_token_key)}",
+            }
             if self.session_id:
                 headers["X-Session-Id"] = str(self.session_id)
 
@@ -60,18 +49,14 @@ class RerankerService(BaseChunkReranker):
                 returned_session_id,
             )
         else:
-            filtered_and_ranked_chunks = self.get_default_chunks(
-                focus_chunks, relevant_chunks
-            )
+            filtered_and_ranked_chunks = self.get_default_chunks(focus_chunks, relevant_chunks)
             return filtered_and_ranked_chunks, None
 
     @classmethod
     def get_default_chunks(
         cls, focus_chunks: List[ChunkInfo], related_codebase_chunks: List[ChunkInfo]
     ) -> List[ChunkInfo]:
-        max_default_chunks_to_return = ConfigManager.config["CHUNKING"][
-            "DEFAULT_MAX_CHUNKS_CODE_GENERATION"
-        ]
+        max_default_chunks_to_return = ConfigManager.config["CHUNKING"]["DEFAULT_MAX_CHUNKS_CODE_GENERATION"]
         chunks = focus_chunks + related_codebase_chunks
         chunks.sort(key=lambda chunk: chunk.search_score, reverse=True)
         return chunks[:max_default_chunks_to_return]

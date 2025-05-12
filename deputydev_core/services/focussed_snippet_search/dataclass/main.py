@@ -1,6 +1,7 @@
 from typing import List, Optional, Union
 
 from pydantic import BaseModel
+
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.dataclass.main import ChunkMetadata
 
@@ -11,15 +12,17 @@ class SearchTerm(BaseModel):
     file_path: Optional[str] = None
 
 
-class BatchSearchParams(BaseModel):
+class FocussedSnippetSearchParams(BaseModel):
     repo_path: str
     search_terms: List[SearchTerm]
 
-class BatchSearchResponse(BaseModel):
+
+class FocussedSnippetSearchResponse(BaseModel):
     keyword: str
     type: str
     file_path: Optional[str] = None
     chunks: List[ChunkInfo]
+
 
 class ChunkDetails(BaseModel):
     start_line: int
@@ -56,5 +59,3 @@ class ChunkInfoAndHash(BaseModel):
         if not isinstance(other, ChunkInfoAndHash):
             return False
         return self.chunk_hash == other.chunk_hash
-
-
