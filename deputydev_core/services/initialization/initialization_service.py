@@ -6,10 +6,9 @@ from typing import Dict, List, Optional, Type, Union, Tuple
 
 from prompt_toolkit.shortcuts.progress_bar import ProgressBar
 from weaviate import WeaviateAsyncClient, WeaviateClient
+from weaviate.config import AdditionalConfig, Timeout
 from weaviate.connect import ConnectionParams, ProtocolParams
 from weaviate.embedded import EmbeddedOptions
-from weaviate.config import AdditionalConfig
-from weaviate.config import Timeout
 
 from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
 from deputydev_core.models.dao.weaviate.base import Base as WeaviateBaseDAO
@@ -106,8 +105,8 @@ class InitializationManager:
             await async_client.connect()
         except Exception as _ex:
             if (
-                    "Embedded DB did not start because processes are already listening on ports http:8079 and grpc:50050"
-                    in str(_ex)
+                "Embedded DB did not start because processes are already listening on ports http:8079 and grpc:50050"
+                in str(_ex)
             ):
                 async_client = WeaviateAsyncClient(
                     connection_params=ConnectionParams(
@@ -153,8 +152,9 @@ class InitializationManager:
         sync_client.connect()
         return sync_client
 
-    async def initialize_vector_db(self, should_clean: bool = False, send_back_is_db_cleaned: bool = False) -> Union[
-        Tuple[WeaviateSyncAndAsyncClients, bool], WeaviateSyncAndAsyncClients]:
+    async def initialize_vector_db(
+        self, should_clean: bool = False, send_back_is_db_cleaned: bool = False
+    ) -> Union[Tuple[WeaviateSyncAndAsyncClients, bool], WeaviateSyncAndAsyncClients]:
         if self.weaviate_client:
             return self.weaviate_client
         async_client = await self.initialize_vector_db_async()
@@ -181,7 +181,7 @@ class InitializationManager:
                 self.__check_and_initialize_collection(collection=Chunks),
                 self.__check_and_initialize_collection(collection=ChunkFiles),
                 self.__check_and_initialize_collection(collection=WeaviateSchemaDetails),
-                self.__check_and_initialize_collection(collection=UrlsContent)
+                self.__check_and_initialize_collection(collection=UrlsContent),
             ]
         )
 

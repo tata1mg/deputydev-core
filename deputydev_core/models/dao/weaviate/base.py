@@ -5,7 +5,6 @@ from weaviate.classes.config import DataType, Property, ReferenceProperty
 
 
 class Base(ABC):
-
     properties: List[Property]
     references: List[ReferenceProperty]
     collection_name: str
