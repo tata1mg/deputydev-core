@@ -4,7 +4,7 @@ from typing import List, Optional
 from fuzzywuzzy import fuzz
 
 
-class FilePathSearchService:
+class FilePathSearch:
     def __init__(self, repo_path: str):
         self.repo_path = repo_path
 

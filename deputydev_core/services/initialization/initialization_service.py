@@ -4,6 +4,7 @@ from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Dict, List, Optional, Type, Union, Tuple
 
+from abc import ABC, abstractmethod
 from prompt_toolkit.shortcuts.progress_bar import ProgressBar
 from weaviate import WeaviateAsyncClient, WeaviateClient
 from weaviate.config import AdditionalConfig, Timeout
@@ -41,19 +42,21 @@ from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema
 )
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
+from deputydev_core.utils.constants.enums import ContextValueKeys
+from deputydev_core.utils.context_value import ContextValue
 
 from .constants import WEAVIATE_SCHEMA_VERSION
 
 
-class InitializationManager:
+class InitializationManager(ABC):
     def __init__(
         self,
-        repo_path: Optional[str] = None,
-        auth_token_key: Optional[str] = None,
-        process_executor: Optional[ProcessPoolExecutor] = None,
-        one_dev_client: Optional[OneDevClient] = None,
-        weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
-        embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
+            repo_path: Optional[str] = None,
+            auth_token_key: Optional[str] = None,
+            process_executor: Optional[ProcessPoolExecutor] = None,
+            one_dev_client: Optional[OneDevClient] = None,
+            weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
+            embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
     ) -> None:
         self.repo_path = repo_path
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
@@ -176,13 +179,15 @@ class InitializationManager:
             AppLogger.log_debug("Cleaning up the vector store")
             self.weaviate_client.sync_client.collections.delete_all()
 
+        collections_to_initialize = self.get_required_collections() or [
+            Chunks,
+            ChunkFiles,
+            WeaviateSchemaDetails,
+            UrlsContent,
+        ]
+
         await asyncio.gather(
-            *[
-                self.__check_and_initialize_collection(collection=Chunks),
-                self.__check_and_initialize_collection(collection=ChunkFiles),
-                self.__check_and_initialize_collection(collection=WeaviateSchemaDetails),
-                self.__check_and_initialize_collection(collection=UrlsContent),
-            ]
+            *[self.__check_and_initialize_collection(collection=collection) for collection in collections_to_initialize]
         )
 
         if should_clean or is_schema_invalid:
@@ -233,3 +238,25 @@ class InitializationManager:
                 weaviate_client=self.weaviate_client,
             ).start_cleanup_for_chunk_and_hashes()
         )
+
+    async def clean_weaviate_collections(self) -> None:
+        """
+        Cleans all collections from Weaviate using the sync client.
+        Initializes the vector DB clients if not already available.
+        """
+        if not self.weaviate_client:
+            await self.initialize_vector_db()
+
+        if not self.weaviate_client.sync_client:
+            raise ValueError("Weaviate sync client is not initialized")
+
+        AppLogger.log_debug("Cleaning up Weaviate sync collections")
+        self.weaviate_client.sync_client.collections.delete_all()
+
+    @abstractmethod
+    def get_required_collections(self) -> List[Type[WeaviateBaseDAO]]:
+        """
+        Return the list of collections required for this initialization manager.
+        Must be implemented by subclasses.
+        """
+        pass
