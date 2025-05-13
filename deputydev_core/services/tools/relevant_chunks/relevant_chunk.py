@@ -3,13 +3,13 @@ from typing import Any, Dict, List
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
 from deputydev_core.services.chunking.chunking_manager import ChunkingManger
-from deputydev_core.services.focussed_snippet_search.dataclass.main import (
+from deputydev_core.services.tools.focussed_snippet_search.dataclass.main import (
     ChunkDetails,
     ChunkInfoAndHash,
     CodeSnippetDetails,
     FocusChunksParams,
 )
-from deputydev_core.services.relevant_chunks.dataclass.main import RelevantChunksParams
+from deputydev_core.services.tools.relevant_chunks.dataclass.main import RelevantChunksParams
 from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepoFactory
 from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
 from deputydev_core.services.repository.chunk_service import ChunkService
@@ -22,12 +22,12 @@ from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.chunk_utils import jsonify_chunks
 from deputydev_core.utils.config_manager import ConfigManager
 from deputydev_core.utils.weaviate import (
-    initialise_weaviate_client,
+    get_weaviate_client,
     weaviate_connection,
 )
 
 
-class RelevantChunksService:
+class RelevantChunks:
     def __init__(self, repo_path):
         self.repo_path = repo_path
 
@@ -50,7 +50,7 @@ class RelevantChunksService:
         if weaviate_client:
             weaviate_client = weaviate_client
         else:
-            weaviate_client, _new_weaviate_process, _schema_cleaned = (
+            weaviate_client = (
                 await initialization_manager.initialize_vector_db()
             )
         if payload.perform_chunking and ConfigManager.configs["RELEVANT_CHUNKS"]["CHUNKING_ENABLED"]:
@@ -139,7 +139,7 @@ class RelevantChunksService:
         chunkable_files_and_hashes = await local_repo.get_chunkable_files_and_commit_hashes()
 
         await SharedChunksManager.update_chunks(repo_path, chunkable_files_and_hashes)
-        weaviate_client = await initialise_weaviate_client(initialization_manager)
+        weaviate_client = await get_weaviate_client(initialization_manager)
         if (
             payload.search_item_type != "directory"
             and isinstance(payload.chunks[0], ChunkDetails)

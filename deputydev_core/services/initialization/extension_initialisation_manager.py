@@ -1,7 +1,14 @@
 from concurrent.futures import ProcessPoolExecutor
-from typing import Dict, Optional, Type
+from typing import Dict, Optional, Type, List
 
 from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
+from deputydev_core.models.dao.weaviate.base import Base as WeaviateBaseDAO
+from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
+from deputydev_core.models.dao.weaviate.chunks import Chunks
+from deputydev_core.models.dao.weaviate.urls_content import UrlsContent
+from deputydev_core.models.dao.weaviate.weaviate_schema_details import (
+    WeaviateSchemaDetails,
+)
 from deputydev_core.services.chunking.chunker.handlers.one_dev_extension_chunker import (
     OneDevExtensionChunker,
 )
@@ -54,3 +61,6 @@ class ExtensionInitialisationManager(InitializationManager):
 
         if enable_refresh:
             self.process_chunks_cleanup(all_chunks)
+
+    def get_required_collections(self) -> List[Type[WeaviateBaseDAO]]:
+        return [Chunks, ChunkFiles, WeaviateSchemaDetails, UrlsContent]

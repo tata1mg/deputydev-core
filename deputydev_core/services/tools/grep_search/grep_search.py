@@ -8,7 +8,7 @@ from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDe
 from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepoFactory
 
 
-class GrepSearchService:
+class GrepSearch:
     """
     Class to grep files in directory.
     """

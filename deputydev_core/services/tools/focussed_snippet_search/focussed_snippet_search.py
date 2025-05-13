@@ -4,7 +4,7 @@ from typing import Dict, List, Set
 from deputydev_core.models.dto.chunk_dto import ChunkDTO
 from deputydev_core.models.dto.chunk_file_dto import ChunkFileDTO
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
-from deputydev_core.services.focussed_snippet_search.dataclass.main import (
+from deputydev_core.services.tools.focussed_snippet_search.dataclass.main import (
     ChunkDetails,
     ChunkInfoAndHash,
     FocusChunksParams,
@@ -12,8 +12,8 @@ from deputydev_core.services.focussed_snippet_search.dataclass.main import (
     FocussedSnippetSearchResponse,
     SearchTerm,
 )
-from deputydev_core.services.relevant_chunks.relevant_chunk_service import (
-    RelevantChunksService,
+from deputydev_core.services.tools.relevant_chunks.relevant_chunk import (
+    RelevantChunks,
 )
 from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
 from deputydev_core.services.repository.chunk_service import ChunkService
@@ -23,7 +23,7 @@ from deputydev_core.services.shared_chunks.shared_chunks_manager import (
 from deputydev_core.utils.constants.constants import CHUNKFILE_KEYWORD_PROPERTY_MAP
 
 
-class FocussedSnippetSearchService:
+class FocussedSnippetSearch:
     @classmethod
     async def search_code(cls, payload: FocussedSnippetSearchParams, weaviate_client, initialization_manager):
         """
@@ -32,38 +32,38 @@ class FocussedSnippetSearchService:
         repo_path = payload.repo_path
         search_terms = payload.search_terms
 
-        try:
-            chunkable_files_and_hashes = await SharedChunksManager.initialize_chunks(repo_path)
+        # try:
+        chunkable_files_and_hashes = await SharedChunksManager.initialize_chunks(repo_path)
 
-            # initialization_manager = ExtensionInitialisationManager(repo_path=repo_path)
-            weaviate_client, _new_weaviate_process, _schema_cleaned = (
-                await initialization_manager.initialize_vector_db()
-            )
+        # initialization_manager = ExtensionInitialisationManager(repo_path=repo_path)
+        weaviate_client = (
+            await initialization_manager.initialize_vector_db()
+        )
 
-            chunk_files_service = ChunkFilesService(weaviate_client)
-            chunk_service = ChunkService(weaviate_client)
+        chunk_files_service = ChunkFilesService(weaviate_client)
+        chunk_service = ChunkService(weaviate_client)
 
-            chunk_files_results = await cls.search_chunk_files(
-                search_terms, chunkable_files_and_hashes, chunk_files_service
-            )
+        chunk_files_results = await cls.search_chunk_files(
+            search_terms, chunkable_files_and_hashes, chunk_files_service
+        )
 
-            all_chunk_hashes = cls.extract_chunk_hashes(chunk_files_results)
+        all_chunk_hashes = cls.extract_chunk_hashes(chunk_files_results)
 
-            chunks_by_hash = await cls.fetch_chunks_by_hashes(all_chunk_hashes, chunk_service)
+        chunks_by_hash = await cls.fetch_chunks_by_hashes(all_chunk_hashes, chunk_service)
 
-            final_results = cls.map_chunks_to_results(search_terms, chunk_files_results, chunks_by_hash)
+        final_results = cls.map_chunks_to_results(search_terms, chunk_files_results, chunks_by_hash)
 
-            # update final chunks in results
-            updated_results = asyncio.gather(
-                *[cls.update_chunks_list(result, repo_path, initialization_manager) for result in final_results]
-            )
-            final_results = await updated_results
-            return {"response": [result.model_dump() for result in final_results]}
+        # update final chunks in results
+        updated_results = asyncio.gather(
+            *[cls.update_chunks_list(result, repo_path, initialization_manager) for result in final_results]
+        )
+        final_results = await updated_results
+        return {"response": [result.model_dump() for result in final_results]}
 
-        finally:
-            if weaviate_client:
-                weaviate_client.sync_client.close()
-                await weaviate_client.async_client.close()
+        # finally:
+        #     if weaviate_client:
+        #         weaviate_client.sync_client.close()
+        #         await weaviate_client.async_client.close()
 
     @classmethod
     async def update_chunks_list(
@@ -73,7 +73,7 @@ class FocussedSnippetSearchService:
             return payload
 
         # get focus chunks
-        new_chunks = await RelevantChunksService(repo_path=repo_path).get_focus_chunks(
+        new_chunks = await RelevantChunks(repo_path=repo_path).get_focus_chunks(
             FocusChunksParams(
                 repo_path=repo_path,
                 search_item_name=payload.keyword,
