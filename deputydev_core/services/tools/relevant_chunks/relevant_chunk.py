@@ -23,7 +23,6 @@ from deputydev_core.utils.chunk_utils import jsonify_chunks
 from deputydev_core.utils.config_manager import ConfigManager
 from deputydev_core.utils.weaviate import (
     get_weaviate_client,
-    weaviate_connection,
 )
 
 
@@ -46,7 +45,7 @@ class RelevantChunks:
         query_vector = await embedding_manager.embed_text_array(texts=[query], store_embeddings=False)
         chunkable_files_and_hashes = await local_repo.get_chunkable_files_and_commit_hashes()
         await SharedChunksManager.update_chunks(repo_path, chunkable_files_and_hashes)
-        weaviate_client = await weaviate_connection()
+        weaviate_client = await get_weaviate_client(initialization_manager)
         if weaviate_client:
             weaviate_client = weaviate_client
         else:
@@ -81,7 +80,6 @@ class RelevantChunks:
             query=query,
             relevant_chunks=relevant_chunks,
             is_llm_reranking_enabled=ConfigManager.configs["CHUNKING"]["IS_LLM_RERANKING_ENABLED"],
-            # is_llm_reranking_enabled=False,
             focus_chunks=focus_chunks_details,
             one_dev_client=one_dev_client,
             auth_token_key=auth_token_key,

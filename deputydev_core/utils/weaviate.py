@@ -1,13 +1,13 @@
 from sanic import Sanic
+from typing import TYPE_CHECKING
 
-from deputydev_core.services.initialization.initialization_service import (
-    InitializationManager,
-)
-from deputydev_core.services.repository.dataclasses.main import (
-    WeaviateSyncAndAsyncClients,
-)
-from deputydev_core.utils.constants.enums import ContextValueKeys
-from deputydev_core.utils.context_value import ContextValue
+if TYPE_CHECKING:
+    from deputydev_core.services.repository.dataclasses.main import (
+        WeaviateSyncAndAsyncClients,
+    )
+    from deputydev_core.services.initialization.initialization_service import (
+        InitializationManager,
+    )
 
 
 async def weaviate_connection():
