@@ -239,20 +239,6 @@ class InitializationManager(ABC):
             ).start_cleanup_for_chunk_and_hashes()
         )
 
-    async def clean_weaviate_collections(self) -> None:
-        """
-        Cleans all collections from Weaviate using the sync client.
-        Initializes the vector DB clients if not already available.
-        """
-        if not self.weaviate_client:
-            await self.initialize_vector_db()
-
-        if not self.weaviate_client.sync_client:
-            raise ValueError("Weaviate sync client is not initialized")
-
-        AppLogger.log_debug("Cleaning up Weaviate sync collections")
-        self.weaviate_client.sync_client.collections.delete_all()
-
     @abstractmethod
     def get_required_collections(self) -> List[Type[WeaviateBaseDAO]]:
         """

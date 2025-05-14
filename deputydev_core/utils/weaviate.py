@@ -1,13 +1,12 @@
 from sanic import Sanic
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from deputydev_core.services.repository.dataclasses.main import (
+from deputydev_core.utils.app_logger import AppLogger
+from deputydev_core.services.initialization.initialization_service import (
+        InitializationManager,
+)
+from deputydev_core.services.repository.dataclasses.main import (
         WeaviateSyncAndAsyncClients,
     )
-    from deputydev_core.services.initialization.initialization_service import (
-        InitializationManager,
-    )
+
 
 
 async def weaviate_connection():
@@ -23,10 +22,23 @@ async def weaviate_connection():
         return weaviate_clients
 
 
-async def get_weaviate_client(initialization_manager: "InitializationManager") -> "WeaviateSyncAndAsyncClients":
+async def get_weaviate_client(initialization_manager: InitializationManager) -> "WeaviateSyncAndAsyncClients":
     weaviate_client = await weaviate_connection()
     if weaviate_client:
         weaviate_client = weaviate_client
     else:
         weaviate_client = await initialization_manager.initialize_vector_db()
     return weaviate_client
+
+async def clean_weaviate_collections(initialization_manager: InitializationManager) -> None:
+    """
+    Cleans all collections from Weaviate using the sync client.
+    Initializes the vector DB clients if not already available.
+    """
+    weaviate_client = await get_weaviate_client(initialization_manager)
+
+    if not weaviate_client.sync_client:
+        raise ValueError("Weaviate sync client is not initialized")
+
+    AppLogger.log_debug("Cleaning up Weaviate sync collections")
+    weaviate_client.sync_client.collections.delete_all()
