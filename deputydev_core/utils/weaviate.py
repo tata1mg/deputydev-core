@@ -11,6 +11,8 @@ from deputydev_core.services.repository.dataclasses.main import (
 
 async def weaviate_connection():
     app = Sanic.get_app()
+    if not hasattr(app.ctx, "weaviate_client"):
+        return
     if app.ctx.weaviate_client:
         weaviate_clients: "WeaviateSyncAndAsyncClients" = app.ctx.weaviate_client
         if not weaviate_clients.async_client.is_connected():
