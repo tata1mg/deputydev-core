@@ -45,13 +45,11 @@ class RelevantChunks:
         query_vector = await embedding_manager.embed_text_array(texts=[query], store_embeddings=False)
         chunkable_files_and_hashes = await local_repo.get_chunkable_files_and_commit_hashes()
         await SharedChunksManager.update_chunks(repo_path, chunkable_files_and_hashes)
-        weaviate_client = await get_weaviate_client(initialization_manager)
-        if weaviate_client:
-            weaviate_client = weaviate_client
-        else:
-            weaviate_client = (
-                await initialization_manager.initialize_vector_db()
-            )
+        weaviate_client = initialization_manager.weaviate_client
+
+        if not weaviate_client:
+            weaviate_client = await get_weaviate_client(initialization_manager)
+
         if payload.perform_chunking and ConfigManager.configs["RELEVANT_CHUNKS"]["CHUNKING_ENABLED"]:
             await initialization_manager.prefill_vector_store(chunkable_files_and_hashes)
         max_relevant_chunks = ConfigManager.configs["CHUNKING"]["NUMBER_OF_CHUNKS"]
