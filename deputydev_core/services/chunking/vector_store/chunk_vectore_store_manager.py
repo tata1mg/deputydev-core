@@ -83,9 +83,11 @@ class ChunkVectorStoreManager:
                         searchable_file_path=chunk.source_details.file_path,
                         searchable_file_name=chunk.source_details.file_path.split("/")[-1],
                         meta_info=chunk.metadata,
-                        has_imports=chunk.metadata.import_only_chunk
-                        if chunk.metadata and chunk.metadata.import_only_chunk
-                        else False,
+                        has_imports=(
+                            chunk.metadata.import_only_chunk
+                            if chunk.metadata and chunk.metadata.import_only_chunk
+                            else False
+                        ),
                     )
                 )
 

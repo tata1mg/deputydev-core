@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
 from deputydev_core.services.embedding.base_embedding_manager import (
@@ -10,7 +10,7 @@ from deputydev_core.utils.context_value import ContextValue
 
 
 class BaseOneDevEmbeddingManager(BaseEmbeddingManager):
-    def __init__(self, auth_token_key: str, one_dev_client: OneDevClient):
+    def __init__(self, one_dev_client: OneDevClient, auth_token_key: Optional[str] = None):
         self.auth_token_key = auth_token_key
         self.one_dev_client = one_dev_client
 
