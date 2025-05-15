@@ -39,8 +39,12 @@ class RerankerService(BaseChunkReranker):
             if self.session_type:
                 headers["X-Session-Type"] = self.session_type
             data = await one_dev_client.llm_reranking(payload, headers=headers)
-            filtered_and_ranked_chunks_denotations = data["reranked_denotations"]
+            filtered_and_ranked_chunks_denotations = data.get("reranked_denotations") if data else None
             returned_session_id = data["session_id"]
+
+            if not filtered_and_ranked_chunks_denotations:
+                return relevant_chunks + focus_chunks, returned_session_id
+
             return (
                 filter_chunks_by_denotation(
                     relevant_chunks + focus_chunks,
