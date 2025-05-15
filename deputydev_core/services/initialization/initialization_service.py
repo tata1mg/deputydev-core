@@ -4,7 +4,6 @@ from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Dict, List, Optional, Type, Union, Tuple
 
-from abc import ABC, abstractmethod
 from prompt_toolkit.shortcuts.progress_bar import ProgressBar
 from weaviate import WeaviateAsyncClient, WeaviateClient
 from weaviate.config import AdditionalConfig, Timeout
@@ -48,7 +47,7 @@ from deputydev_core.utils.context_value import ContextValue
 from .constants import WEAVIATE_SCHEMA_VERSION
 
 
-class InitializationManager(ABC):
+class InitializationManager:
     def __init__(
         self,
             repo_path: Optional[str] = None,
@@ -239,10 +238,6 @@ class InitializationManager(ABC):
             ).start_cleanup_for_chunk_and_hashes()
         )
 
-    @abstractmethod
     def get_required_collections(self) -> List[Type[WeaviateBaseDAO]]:
-        """
-        Return the list of collections required for this initialization manager.
-        Must be implemented by subclasses.
-        """
-        pass
+        return [Chunks, ChunkFiles, WeaviateSchemaDetails, UrlsContent]
+
