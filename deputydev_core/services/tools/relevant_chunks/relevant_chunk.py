@@ -49,7 +49,7 @@ class RelevantChunks:
         if weaviate_client:
             weaviate_client = weaviate_client
         else:
-            weaviate_client = (
+            weaviate_client, _new_weaviate_process, _schema_cleaned = (
                 await initialization_manager.initialize_vector_db()
             )
         if payload.perform_chunking and ConfigManager.configs["RELEVANT_CHUNKS"]["CHUNKING_ENABLED"]:

@@ -36,7 +36,7 @@ class FocussedSnippetSearch:
         chunkable_files_and_hashes = await SharedChunksManager.initialize_chunks(repo_path)
 
         # initialization_manager = ExtensionInitialisationManager(repo_path=repo_path)
-        weaviate_client = (
+        weaviate_client, _new_weaviate_process, _schema_cleaned = (
             await initialization_manager.initialize_vector_db()
         )
 
