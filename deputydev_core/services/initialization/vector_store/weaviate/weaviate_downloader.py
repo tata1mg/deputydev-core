@@ -73,12 +73,7 @@ class WeaviateDownloader:
         self.startup_healthcheck_interval = startup_healthcheck_interval
         self.env_variables = env_variables
 
-    @staticmethod
-    def _get_os_type() -> WeaviateSupportedPlatforms:
-        try:
-            return WeaviateSupportedPlatforms(platform.system().lower())
-        except Exception:
-            raise RuntimeError(f"Unsupported OS: {platform.system().lower()}")
+
 
     @staticmethod
     def _get_system_architecture() -> WeaviateSupportedArchitecture:

@@ -1,10 +1,6 @@
 import asyncio
 from typing import Optional, Tuple, Type
 
-from weaviate import WeaviateAsyncClient, WeaviateClient
-from weaviate.config import AdditionalConfig, Timeout
-from weaviate.connect import ConnectionParams, ProtocolParams
-
 from deputydev_core.models.dao.weaviate.base import Base as WeaviateBaseDAO
 from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
 from deputydev_core.models.dao.weaviate.chunks import Chunks
@@ -14,15 +10,14 @@ from deputydev_core.models.dao.weaviate.weaviate_schema_details import (
 from deputydev_core.services.initialization.vector_store.weaviate.constants.weaviate_constants import (
     WEAVIATE_SCHEMA_VERSION,
 )
-from deputydev_core.services.initialization.vector_store.weaviate.weaviate_downloader import (
-    WeaviateDownloader,
-)
+
 from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
 from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema_details_service import (
     WeaviateSchemaDetailsService,
 )
+from deputydev_core.services.initialization.vector_store.weaviate.weaviate_connector_factory import WeaviateConnectorFactory
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
 from deputydev_core.models.dao.weaviate.urls_content import UrlsContent
@@ -40,63 +35,12 @@ class WeaviateInitializer:
 
         self.weaviate_process = new_weaviate_process
 
-    def get_sync_client(self) -> WeaviateClient:
-        if self.weaviate_client and self.weaviate_client.sync_client:
-            return self.weaviate_client.sync_client
-
-        timeouts = ConfigManager.configs["WEAVIATE_CLIENT_TIMEOUTS"]
-
-        sync_client = WeaviateClient(
-            connection_params=ConnectionParams(
-                http=ProtocolParams(
-                    host=ConfigManager.configs["WEAVIATE_HOST"],
-                    port=ConfigManager.configs["WEAVIATE_HTTP_PORT"],
-                    secure=False,
-                ),
-                grpc=ProtocolParams(
-                    host=ConfigManager.configs["WEAVIATE_HOST"],
-                    port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
-                    secure=False,
-                ),
-            ),
-             additional_config=AdditionalConfig(
-                timeout=Timeout(init=timeouts["INIT"], query=timeouts["QUERY"], insert=timeouts["INSERT"]),
-            ),
-        )
-        sync_client.connect()
-        return sync_client
-
-    async def get_async_client(self) -> WeaviateAsyncClient:
-        if self.weaviate_client and self.weaviate_client.async_client:
-            return self.weaviate_client.async_client
-
-        timeouts = ConfigManager.configs["WEAVIATE_CLIENT_TIMEOUTS"]
-
-        async_client = WeaviateAsyncClient(
-            connection_params=ConnectionParams(
-                http=ProtocolParams(
-                    host=ConfigManager.configs["WEAVIATE_HOST"],
-                    port=ConfigManager.configs["WEAVIATE_HTTP_PORT"],
-                    secure=False,
-                ),
-                grpc=ProtocolParams(
-                    host=ConfigManager.configs["WEAVIATE_HOST"],
-                    port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
-                    secure=False,
-                ),
-            ),
-            additional_config=AdditionalConfig(
-                timeout=Timeout(init=timeouts["INIT"], query=timeouts["QUERY"], insert=timeouts["INSERT"]),
-            ),
-        )
-        await async_client.connect()
-        return async_client
-
     async def _spin_up_and_establish_weaviate_connection(self) -> None:
         if self.weaviate_client:
             return
 
-        new_weaviate_process = await WeaviateDownloader(
+        connector_class = WeaviateConnectorFactory.get_compatible_connector()
+        connector = connector_class(
             base_dir=ConfigManager.configs["WEAVIATE_BASE_DIR"],
             weaviate_version=ConfigManager.configs["WEAVIATE_VERSION"],
             weaviate_host=ConfigManager.configs["WEAVIATE_HOST"],
@@ -105,14 +49,9 @@ class WeaviateInitializer:
             startup_timeout=ConfigManager.configs["WEAVIATE_STARTUP_TIMEOUT"],
             startup_healthcheck_interval=ConfigManager.configs["WEAVIATE_STARTUP_HEALTHCHECK_INTERVAL"],
             env_variables=ConfigManager.configs["WEAVIATE_ENV_VARIABLES"]
-        ).download_and_run_weaviate()
-        async_client = await self.get_async_client()
-        sync_client = self.get_sync_client()
-
-        self.weaviate_client = WeaviateSyncAndAsyncClients(
-            async_client=async_client,
-            sync_client=sync_client,
         )
+        new_weaviate_process = await connector.initialize()
+        self.weaviate_client = connector.weaviate_client
 
         if new_weaviate_process:
             await self._change_weaviate_process(new_weaviate_process=new_weaviate_process)
