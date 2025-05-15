@@ -1,6 +1,8 @@
 import os
 import shutil
+import platform
 from deputydev_core.utils.app_logger import AppLogger
+from deputydev_core.utils.constants.constants import SupportedPlatforms
 
 def clean_directory_except(target_dir: str, except_path: str):
     try:
@@ -16,3 +18,9 @@ def clean_directory_except(target_dir: str, except_path: str):
                 shutil.rmtree(item_path)
     except Exception as e:
         AppLogger.log_debug(f"Error cleaning directory - {target_dir}: {str(e)}")
+
+def get_supported_os() -> SupportedPlatforms:
+    try:
+        return SupportedPlatforms(platform.system().lower())
+    except Exception:
+        raise RuntimeError(f"Unsupported OS: {platform.system().lower()}")

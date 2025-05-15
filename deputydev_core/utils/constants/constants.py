@@ -79,3 +79,8 @@ class LocalFiles(Enum):
 class TimeFormat(Enum):
     SECONDS = "SECONDS"
     MINUTES = "MINUTES"
+
+class SupportedPlatforms(Enum):
+    WINDOWS = "windows"
+    LINUX = "linux"
+    MAC = "darwin"
