@@ -29,7 +29,7 @@ async def get_weaviate_client(initialization_manager: InitializationManager) -> 
     if weaviate_client:
         weaviate_client = weaviate_client
     else:
-        weaviate_client = await initialization_manager.initialize_vector_db()
+        weaviate_client, _new_weaviate_process, _schema_cleaned = await initialization_manager.initialize_vector_db()
     return weaviate_client
 
 async def clean_weaviate_collections(initialization_manager: InitializationManager) -> None:

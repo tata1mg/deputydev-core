@@ -36,9 +36,9 @@ class GrepSearch:
         abs_path = Path(os.path.join(self.repo_path, directory_path)).resolve()
         is_git_repo = LocalRepoFactory._is_git_repo(self.repo_path)
         if is_git_repo:
-            command_template = 'git --git-dir="{repo_path}/.git" --work-tree="{repo_path}" grep -rnC 2 \'{search_term}\' -- {directory_path}'
+            command_template = 'git --git-dir={repo_path}/.git --work-tree="{repo_path}" grep -rnC 2 "{search_term}" -- "{directory_path}"'
         else:
-            command_template = "grep -rnC 2 '{search_term}' \"{abs_path}\" {exclude_flags}"
+            command_template = 'grep -rnC 2 "{search_term}" "{abs_path}" {exclude_flags}'
 
         exclude_dirs = [
             "node_modules",
@@ -57,7 +57,7 @@ class GrepSearch:
             "tmp",
             "packages",
         ]
-        exclude_flags = " ".join(f"--exclude-dir={d}" for d in exclude_dirs)
+        exclude_flags = " ".join(f'--exclude-dir="{d}"' for d in exclude_dirs)
 
         for search_term in search_terms:
             command = command_template.format(
