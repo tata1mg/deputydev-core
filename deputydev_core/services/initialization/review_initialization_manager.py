@@ -1,5 +1,7 @@
+import asyncio
+
 from concurrent.futures import ProcessPoolExecutor
-from typing import Dict, Optional, Type, List
+from typing import Dict, Optional, Type, List, Tuple, Union
 
 from prompt_toolkit.shortcuts.progress_bar import ProgressBar
 from weaviate import WeaviateAsyncClient, WeaviateClient
@@ -43,3 +45,29 @@ class ReviewInitialisationManager(InitializationManager):
 
     def get_required_collections(self) -> List[Type[WeaviateBaseDAO]]:
         return [Chunks, ChunkFiles, WeaviateSchemaDetails]
+
+    async def initialize_vector_db(
+        self, should_clean: bool = False, send_back_is_db_cleaned: bool = False
+    ) -> Union[Tuple[WeaviateSyncAndAsyncClients, bool], WeaviateSyncAndAsyncClients]:
+        if not self.weaviate_client:
+            async_client = await self.initialize_vector_db_async()
+            sync_client = self.initialize_vector_db_sync()
+
+            self.weaviate_client = WeaviateSyncAndAsyncClients(
+                async_client=async_client,
+                sync_client=sync_client,
+            )
+
+            if not self.weaviate_client:
+                raise ValueError("Connect to vector store failed")
+
+        collections_to_initialize = self.get_required_collections()
+
+        await asyncio.gather(
+            *[
+                self._check_and_initialize_collection(collection=collection)
+                for collection in collections_to_initialize
+            ]
+        )
+
+        return self.weaviate_client
