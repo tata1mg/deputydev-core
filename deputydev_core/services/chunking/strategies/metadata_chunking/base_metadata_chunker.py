@@ -112,6 +112,10 @@ class BaseMetadataChunker(BaseChunker):
         """
         Recursively extract the name from a node, handling different possible structures
         """
+        # —— FIRST, TRY THE BUILT-IN FIELD NAME —— 
+        name_field = node.child_by_field_name("name")
+        if name_field:
+            return name_field.text.decode("utf-8")
         # Direct identifier check
         if (
             node.type
@@ -218,17 +222,20 @@ class BaseMetadataChunker(BaseChunker):
         if node.type not in grammar[LanguageIdentifiers.FUNCTION_CLASS_WRAPPER.value]:
             if self.is_class_node(node, grammar):
                 class_name = self.extract_name(node, grammar)
-                hierarchy.append(ChunkMetadataHierachyObject(type=ChunkNodeType.CLASS.value, value=class_name))
-                all_classes.append(class_name)
+                if class_name is not None:
+                    hierarchy.append(ChunkMetadataHierachyObject(type=ChunkNodeType.CLASS.value, value=class_name))
+                    all_classes.append(class_name)
 
             elif self.is_function_node(node, grammar):
                 func_name = self.extract_name(node, grammar)
-                hierarchy.append(ChunkMetadataHierachyObject(type=ChunkNodeType.FUNCTION.value, value=func_name))
-                all_functions.append(func_name)
+                if func_name is not None:
+                    hierarchy.append(ChunkMetadataHierachyObject(type=ChunkNodeType.FUNCTION.value, value=func_name))
+                    all_functions.append(func_name)
             elif self.is_namespace_node(node, grammar):
                 namespace_name = self.extract_name(node, grammar)
                 # namespace type will not be fixed to class or functon so using node actual type
-                hierarchy.append(ChunkMetadataHierachyObject(type=node.type, value=namespace_name))
+                if namespace_name is not None:
+                    hierarchy.append(ChunkMetadataHierachyObject(type=node.type, value=namespace_name))
 
         current_chunk = create_chunk_with_decorators(
             start_point=node.start_point,
