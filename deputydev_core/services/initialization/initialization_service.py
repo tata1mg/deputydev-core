@@ -71,7 +71,7 @@ class InitializationManager(ABC):
         self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path, chunkable_files=chunkable_files)
         return self.local_repo
 
-    async def __check_and_initialize_collection(self, collection: Type[WeaviateBaseDAO]) -> None:
+    async def _check_and_initialize_collection(self, collection: Type[WeaviateBaseDAO]) -> None:
         if not self.weaviate_client:
             raise ValueError("Weaviate client is not initialized")
         exists = await self.weaviate_client.async_client.collections.exists(collection.collection_name)
@@ -187,7 +187,7 @@ class InitializationManager(ABC):
         ]
 
         await asyncio.gather(
-            *[self.__check_and_initialize_collection(collection=collection) for collection in collections_to_initialize]
+            *[self._check_and_initialize_collection(collection=collection) for collection in collections_to_initialize]
         )
 
         if should_clean or is_schema_invalid:
