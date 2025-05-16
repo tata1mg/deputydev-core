@@ -83,9 +83,11 @@ class ChunkVectorStoreManager:
                         searchable_file_path=chunk.source_details.file_path,
                         searchable_file_name=chunk.source_details.file_path.split("/")[-1],
                         meta_info=chunk.metadata,
-                        has_imports=chunk.metadata.import_only_chunk
-                        if chunk.metadata and chunk.metadata.import_only_chunk
-                        else False,
+                        has_imports=(
+                            chunk.metadata.import_only_chunk
+                            if chunk.metadata and chunk.metadata.import_only_chunk
+                            else False
+                        ),
                     )
                 )
 
@@ -100,6 +102,7 @@ class ChunkVectorStoreManager:
         AppLogger.log_debug(
             f"Inserting {len(all_chunks_to_store)} chunks and {len(all_chunk_files_to_store)} chunk_files took {time_end - time_start} seconds"
         )
+        await asyncio.sleep(0.2)
 
     def get_symbols_from_hierarchy(self, hierarchy) -> Tuple[List[str], List[str]]:
         """Extract functions and classes from hierarchy"""
