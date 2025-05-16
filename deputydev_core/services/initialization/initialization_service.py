@@ -48,12 +48,12 @@ from .constants import WEAVIATE_SCHEMA_VERSION
 class InitializationManager:
     def __init__(
         self,
-        repo_path: Optional[str] = None,
-        auth_token_key: Optional[str] = None,
-        process_executor: Optional[ProcessPoolExecutor] = None,
-        one_dev_client: Optional[OneDevClient] = None,
-        weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
-        embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
+            repo_path: Optional[str] = None,
+            auth_token_key: Optional[str] = None,
+            process_executor: Optional[ProcessPoolExecutor] = None,
+            one_dev_client: Optional[OneDevClient] = None,
+            weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
+            embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
     ) -> None:
         self.repo_path = repo_path
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
@@ -68,7 +68,7 @@ class InitializationManager:
         self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path, chunkable_files=chunkable_files)
         return self.local_repo
 
-    async def __check_and_initialize_collection(self, collection: Type[WeaviateBaseDAO]) -> None:
+    async def _check_and_initialize_collection(self, collection: Type[WeaviateBaseDAO]) -> None:
         if not self.weaviate_client:
             raise ValueError("Weaviate client is not initialized")
         exists = await self.weaviate_client.async_client.collections.exists(collection.collection_name)
@@ -176,13 +176,15 @@ class InitializationManager:
             AppLogger.log_debug("Cleaning up the vector store")
             self.weaviate_client.sync_client.collections.delete_all()
 
+        collections_to_initialize = self.get_required_collections() or [
+            Chunks,
+            ChunkFiles,
+            WeaviateSchemaDetails,
+            UrlsContent,
+        ]
+
         await asyncio.gather(
-            *[
-                self.__check_and_initialize_collection(collection=Chunks),
-                self.__check_and_initialize_collection(collection=ChunkFiles),
-                self.__check_and_initialize_collection(collection=WeaviateSchemaDetails),
-                self.__check_and_initialize_collection(collection=UrlsContent),
-            ]
+            *[self._check_and_initialize_collection(collection=collection) for collection in collections_to_initialize]
         )
 
         if should_clean or is_schema_invalid:
@@ -233,3 +235,7 @@ class InitializationManager:
                 weaviate_client=self.weaviate_client,
             ).start_cleanup_for_chunk_and_hashes()
         )
+
+    def get_required_collections(self) -> List[Type[WeaviateBaseDAO]]:
+        return [Chunks, ChunkFiles, WeaviateSchemaDetails, UrlsContent]
+
