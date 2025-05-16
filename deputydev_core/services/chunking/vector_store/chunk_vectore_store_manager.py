@@ -102,6 +102,7 @@ class ChunkVectorStoreManager:
         AppLogger.log_debug(
             f"Inserting {len(all_chunks_to_store)} chunks and {len(all_chunk_files_to_store)} chunk_files took {time_end - time_start} seconds"
         )
+        await asyncio.sleep(0.5)
 
     def get_symbols_from_hierarchy(self, hierarchy) -> Tuple[List[str], List[str]]:
         """Extract functions and classes from hierarchy"""

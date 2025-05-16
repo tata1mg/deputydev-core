@@ -21,24 +21,21 @@ from deputydev_core.services.shared_chunks.shared_chunks_manager import (
     SharedChunksManager,
 )
 from deputydev_core.utils.constants.constants import CHUNKFILE_KEYWORD_PROPERTY_MAP
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
+)
 
 
 class FocussedSnippetSearch:
     @classmethod
-    async def search_code(cls, payload: FocussedSnippetSearchParams, weaviate_client, initialization_manager):
+    async def search_code(cls, payload: FocussedSnippetSearchParams, weaviate_client: WeaviateSyncAndAsyncClients , initialization_manager):
         """
         Search for code based on multiple search terms.
         """
         repo_path = payload.repo_path
         search_terms = payload.search_terms
 
-        # try:
         chunkable_files_and_hashes = await SharedChunksManager.initialize_chunks(repo_path)
-
-        # initialization_manager = ExtensionInitialisationManager(repo_path=repo_path)
-        weaviate_client = (
-            await initialization_manager.initialize_vector_db()
-        )
 
         chunk_files_service = ChunkFilesService(weaviate_client)
         chunk_service = ChunkService(weaviate_client)
@@ -60,10 +57,6 @@ class FocussedSnippetSearch:
         final_results = await updated_results
         return {"response": [result.model_dump() for result in final_results]}
 
-        # finally:
-        #     if weaviate_client:
-        #         weaviate_client.sync_client.close()
-        #         await weaviate_client.async_client.close()
 
     @classmethod
     async def update_chunks_list(
