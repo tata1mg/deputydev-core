@@ -41,8 +41,6 @@ from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema
 )
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
-from deputydev_core.utils.constants.enums import ContextValueKeys
-from deputydev_core.utils.context_value import ContextValue
 
 from .constants import WEAVIATE_SCHEMA_VERSION
 
