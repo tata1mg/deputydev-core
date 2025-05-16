@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
 from deputydev_core.services.embedding.base_embedding_manager import (

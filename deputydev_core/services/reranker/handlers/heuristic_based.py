@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.reranker.base_chunk_reranker import BaseChunkReranker
