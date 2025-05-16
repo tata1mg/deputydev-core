@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from typing import List, Tuple
 
@@ -94,13 +95,24 @@ class ChunkService(BaseWeaviateRepository):
 
     async def bulk_insert(self, chunks: List[ChunkDTOWithVector]) -> None:
         await self.ensure_collection_connections()
-        with self.sync_collection.batch.dynamic() as _batch:
-            for chunk in chunks:
-                _batch.add_object(
-                    properties=chunk.dto.model_dump(mode="json", exclude={"id"}),
-                    vector=chunk.vector,
-                    uuid=generate_uuid5(chunk.dto.chunk_hash),
-                )
+
+        BATCH_SIZE = 100
+        try:
+            for i in range(0, len(chunks), BATCH_SIZE):
+                batch = chunks[i:i + BATCH_SIZE]
+                with self.sync_collection.batch.dynamic() as _batch:
+                    for chunk in batch:
+                        _batch.add_object(
+                            properties=chunk.dto.model_dump(mode="json", exclude={"id"}),
+                            vector=chunk.vector,
+                            uuid=generate_uuid5(chunk.dto.chunk_hash),
+                        )
+                await asyncio.sleep(0.1)
+        except Exception as e:
+            AppLogger.log_warn(
+                f"Failed to insert chunks in bulk: Batch Size{BATCH_SIZE}  Exception: {str(e)}",
+            )
+
 
     async def cleanup_old_chunks(self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]) -> None:
         await self.ensure_collection_connections()
