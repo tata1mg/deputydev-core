@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 class DiffTypes(str, Enum):
     UDIFF = "UDIFF"
     LINE_NUMBERED = "LINE_NUMBERED"
+    SEARCH_AND_REPLACE = "SEARCH_AND_REPLACE"
 
 
 class UdiffData(BaseModel):
@@ -16,10 +17,17 @@ class UdiffData(BaseModel):
 
 class LineNumberedData(BaseModel):
     type: Literal[DiffTypes.LINE_NUMBERED]
-    diff_chunks: List[Tuple[int, int, str]]  # List of tuples (start_line, end_line, replacement_text)
+    # List of tuples (start_line, end_line, replacement_text)
+    diff_chunks: List[Tuple[int, int, str]]
 
 
-DiffData = Annotated[Union[UdiffData, LineNumberedData], Field(discriminator="type")]
+class SearchAndReplaceData(BaseModel):
+    type: Literal[DiffTypes.SEARCH_AND_REPLACE]
+    search_and_replace_blocks: str
+
+
+DiffData = Annotated[Union[UdiffData, LineNumberedData,
+                           SearchAndReplaceData], Field(discriminator="type")]
 
 
 class FileDiffApplicationRequest(BaseModel):
