@@ -1,12 +1,8 @@
 import asyncio
 
 from concurrent.futures import ProcessPoolExecutor
-from typing import Dict, Optional, Type, List, Tuple, Union
+from typing import Optional, Type, List, Tuple, Union
 
-from prompt_toolkit.shortcuts.progress_bar import ProgressBar
-from weaviate import WeaviateAsyncClient, WeaviateClient
-from weaviate.connect import ConnectionParams, ProtocolParams
-from weaviate.embedded import EmbeddedOptions
 
 from deputydev_core.models.dao.weaviate.base import Base as WeaviateBaseDAO
 from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles

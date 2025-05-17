@@ -80,7 +80,7 @@ class SharedChunksManager:
             return data
         except FileNotFoundError:
             return None
-        except Exception as e:
+        except Exception:
             return None
 
     @classmethod
