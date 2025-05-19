@@ -95,7 +95,7 @@ class BaseWeaviateConnector:
             grpc_port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
             version="1.27.0",
             additional_env_vars={
-                "LOG_LEVEL": "panic",
+                "LOG_LEVEL": self.env_variables['LOG_LEVEL'],
             },
         )
 
