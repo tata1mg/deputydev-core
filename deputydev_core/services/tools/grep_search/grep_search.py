@@ -77,7 +77,7 @@ class GrepSearch:
                 results.extend(parsed_results)
 
             if stderr:
-                print(stderr.decode().strip())
+                raise ValueError(stderr.decode().strip())
 
         return results[:100]
 

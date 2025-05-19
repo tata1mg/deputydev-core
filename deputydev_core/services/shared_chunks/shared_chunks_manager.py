@@ -19,8 +19,6 @@ class SharedChunksManager:
         if chunks_dict is not None and repo_path in chunks_dict:
             return chunks_dict[repo_path]
 
-        # fallback case
-        # repo_path = "/Users/ankitrana/projects/merch_service"
         return await cls._fetch_and_store_chunks(repo_path)
 
     @classmethod

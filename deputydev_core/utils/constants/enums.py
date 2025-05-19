@@ -14,7 +14,7 @@ class Clients(Enum):
     VSCODE_EXT = "VSCODE_EXT"
     BINARY = "BINARY"
     WEB = "WEB"
-    REVIEW = "REVIEW"
+    PR_REVIEW = "REVIEW"
 
 
 class ContextValueKeys(Enum):
