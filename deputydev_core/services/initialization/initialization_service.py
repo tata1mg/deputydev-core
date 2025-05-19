@@ -100,5 +100,5 @@ class InitializationManager:
             ).start_cleanup_for_chunk_and_hashes()
         )
 
-    def get_required_collections(self) -> List[Type[WeaviateBaseDAO]]:
-        return [Chunks, ChunkFiles, WeaviateSchemaDetails, UrlsContent]
+    def get_required_collections(self):
+        raise NotImplemented
