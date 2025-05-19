@@ -1,8 +1,8 @@
+import asyncio
 from concurrent.futures import ProcessPoolExecutor
-from typing import Dict, Optional, Type, List
+from typing import Dict, Optional, Type, Tuple
 
 from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
-from deputydev_core.models.dao.weaviate.base import Base as WeaviateBaseDAO
 from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
 from deputydev_core.models.dao.weaviate.chunks import Chunks
 from deputydev_core.models.dao.weaviate.urls_content import UrlsContent
@@ -25,9 +25,18 @@ from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
 from deputydev_core.utils.custom_progress_bar import CustomProgressBar
+from deputydev_core.services.initialization.vector_store.weaviate.constants.weaviate_constants import (
+    WEAVIATE_SCHEMA_VERSION,
+)
+from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema_details_service import (
+    WeaviateSchemaDetailsService,
+)
+from deputydev_core.utils.app_logger import AppLogger
 
 
 class ExtensionInitialisationManager(InitializationManager):
+    collections = [Chunks, ChunkFiles, WeaviateSchemaDetails, UrlsContent]
+
     def __init__(
         self,
         repo_path: Optional[str] = None,
@@ -62,5 +71,30 @@ class ExtensionInitialisationManager(InitializationManager):
         if enable_refresh:
             self.process_chunks_cleanup(all_chunks)
 
-    def get_required_collections(self) -> List[Type[WeaviateBaseDAO]]:
-        return [Chunks, ChunkFiles, WeaviateSchemaDetails, UrlsContent]
+    async def _sync_schema_and_return_cleanup_status(self, should_clean: bool) -> bool:
+        is_new_schema = await self._should_recreate_schema(should_clean)
+
+        if is_new_schema:
+            AppLogger.log_debug("Cleaning up the vector store")
+            self.weaviate_client.sync_client.collections.delete_all()
+
+        await self._populate_collections()
+
+        if is_new_schema:
+            await WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).set_schema_version(
+                WEAVIATE_SCHEMA_VERSION
+            )
+
+        return is_new_schema
+
+    async def initialize_vector_db(
+            self, should_clean: bool = False
+    ) -> Tuple[WeaviateSyncAndAsyncClients, Optional[asyncio.subprocess.Process], bool]:
+        """
+        Initialize the vector database.
+        This method will start the Weaviate process and create the necessary schema.
+        If the process is already running, it will skip starting it again.
+        """
+        await super().initialize_vector_db()
+        is_new_schema = await self._sync_schema_and_return_cleanup_status(should_clean=should_clean)
+        return self.weaviate_client, self.weaviate_process, is_new_schema

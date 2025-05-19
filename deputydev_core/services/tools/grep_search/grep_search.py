@@ -57,7 +57,7 @@ class GrepSearch:
             "tmp",
             "packages",
         ]
-        exclude_flags = " ".join(f"--exclude-dir={d}" for d in exclude_dirs)
+        exclude_flags = " ".join(f'--exclude-dir="{d}"' for d in exclude_dirs)
 
         for search_term in search_terms:
             command = command_template.format(
