@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Tuple, Type
 from prompt_toolkit.shortcuts.progress_bar import ProgressBar
 
 from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
+from deputydev_core.models.dao.weaviate.base import Base as WeaviateBaseDAO
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.chunker.handlers.one_dev_cli_chunker import (
     OneDevCLIChunker,
@@ -25,6 +26,12 @@ from deputydev_core.services.repo.local_repo.base_local_repo_service import (
 from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepoFactory
 from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
+)
+from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema_details_service import (
+    WeaviateSchemaDetailsService,
+)
+from deputydev_core.services.initialization.vector_store.weaviate.constants.weaviate_constants import (
+    WEAVIATE_SCHEMA_VERSION,
 )
 
 class InitializationManager:
@@ -50,15 +57,13 @@ class InitializationManager:
         self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path, chunkable_files=chunkable_files)
         return self.local_repo
 
-    async def initialize_vector_db(
-        self, should_clean: bool = False
-    ) -> Tuple[WeaviateSyncAndAsyncClients, Optional[asyncio.subprocess.Process], bool]:
+    async def initialize_vector_db(self):
         """
         Initialize the vector database.
         This method will start the Weaviate process and create the necessary schema.
         If the process is already running, it will skip starting it again.
         """
-        return await WeaviateInitializer().initialize(should_clean=should_clean)
+        self.weaviate_client, self.weaviate_process = await WeaviateInitializer().initialize()
 
     async def prefill_vector_store(
         self,
@@ -100,5 +105,27 @@ class InitializationManager:
             ).start_cleanup_for_chunk_and_hashes()
         )
 
-    def get_required_collections(self):
-        raise NotImplemented
+    async def _check_and_initialize_collection(self, collection: Type[WeaviateBaseDAO]) -> None:
+        if not self.weaviate_client:
+            raise ValueError("Weaviate client is not initialized")
+        exists = await self.weaviate_client.async_client.collections.exists(collection.collection_name)
+        if not exists:
+            await self.weaviate_client.async_client.collections.create(
+                name=collection.collection_name,
+                properties=collection.properties,
+                references=collection.references if hasattr(collection, "references") else None,  # type: ignore
+            )
+
+    async def _populate_collections(self):
+        await asyncio.gather(
+            *[
+                self._check_and_initialize_collection(collection=collection)
+                for collection in self.collections
+            ]
+        )
+
+    async def _should_recreate_schema(self, should_clean: bool) -> bool:
+        schema_version = await WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).get_schema_version()
+
+        is_schema_invalid = schema_version is None or schema_version != WEAVIATE_SCHEMA_VERSION
+        return should_clean or is_schema_invalid
