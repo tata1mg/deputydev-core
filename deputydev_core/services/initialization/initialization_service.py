@@ -27,7 +27,6 @@ from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
 
-
 class InitializationManager:
     def __init__(
         self,
@@ -100,3 +99,6 @@ class InitializationManager:
                 weaviate_client=self.weaviate_client,
             ).start_cleanup_for_chunk_and_hashes()
         )
+
+    def get_required_collections(self) -> List[Type[WeaviateBaseDAO]]:
+        return [Chunks, ChunkFiles, WeaviateSchemaDetails, UrlsContent]
