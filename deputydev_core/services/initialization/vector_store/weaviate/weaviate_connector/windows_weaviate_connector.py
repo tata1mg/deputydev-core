@@ -31,14 +31,14 @@ class WindowsWeaviateConnector(BaseWeaviateConnector):
             AppLogger.log_info("Starting Weaviate binary")
 
             docker_cmd = [
-                "podman", "run", "--rm", "--name", "weaviate",
+                "docker", "run", "--rm", "--name", "weaviate",
                 "-p", f"{str(self.weaviate_http_port)}:{self.DEFAULT_HTTP_PORT}",
                 "-p", f"{str(self.weaviate_grpc_port)}:{self.DEFAULT_GRPC_PORT}",
                 "-e", f"CLUSTER_ADVERTISE_ADDR={self.env_variables['CLUSTER_ADVERTISE_ADDR']}",
                 "-e", f"LIMIT_RESOURCES={self.env_variables['LIMIT_RESOURCES']}",
                 "-e", f"PERSISTENCE_DATA_PATH={self.persistence_data_path}",
                 "-e", f"LOG_LEVEL={self.env_variables['LOG_LEVEL']}",
-                "semitechnologies/weaviate:1.27.0"
+                f"semitechnologies/weaviate:{self.weaviate_version}"
             ]
 
             weaviate_process = await asyncio.create_subprocess_exec(
