@@ -96,6 +96,8 @@ class BaseWeaviateConnector:
             version=self.weaviate_version,
             additional_env_vars={
                 "LOG_LEVEL": self.env_variables['LOG_LEVEL'],
+                "CLUSTER_ADVERTISE_ADDR": self.env_variables['CLUSTER_ADVERTISE_ADDR'],
+                "LIMIT_RESOURCES": self.env_variables['LIMIT_RESOURCES']
             },
         )
 
