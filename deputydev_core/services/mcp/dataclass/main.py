@@ -58,7 +58,7 @@ class McpResource(BaseModel):
 
 
 class SseConfigModel(BaseConfigModel):
-    url: HttpUrl
+    url: str
     transport_type: str = TransportTypes.sse.value
 
     def dict(self, *args, **kwargs):
