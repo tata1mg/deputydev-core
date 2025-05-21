@@ -106,10 +106,12 @@ class McpSettingsModel(BaseModel):
 
 class ServersDetails(BaseModel):
     name: str
-    status: ConnectionStatus
+    status: str
     tool_count: int
     tools: Optional[List[mcp.types.Tool]]
     error: Optional[str]
+    disabled: bool
+
 
 
 class ServerFilters(BaseModel):
@@ -119,3 +121,19 @@ class ServerFilters(BaseModel):
 class Tools(BaseModel):
     server_name: str
     tools: Optional[List[mcp.types.Tool]]
+
+
+class McpResponseMeta(BaseModel):
+    message: str
+
+
+class McpResponse(BaseModel):
+    data: Optional[Any] = None
+    is_error: bool = False
+    meta: Optional[McpResponseMeta] = None
+
+
+class ToolInvokeRequest(BaseModel):
+    server_name: str = Field(..., min_length=1)
+    tool_name: str = Field(..., min_length=1)
+    tool_arguments: Dict[str, Any] = Field(default_factory=dict)
