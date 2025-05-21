@@ -37,19 +37,18 @@ class MCPClient:
 
     def __init__(
         self,
-        mcp_config_path: str,
         tool_read_timeout_seconds: int = DEFAULT_MCP_TIMEOUT_SECONDS,
     ):
         # Prevent reinitialization
         if hasattr(self, "_initialized") and self._initialized:
             return
 
-        self.mcp_config_path = mcp_config_path
         self.tool_read_timeout_seconds = tool_read_timeout_seconds
         self.connections: List[McpConnection] = []
         self._initialized = True
         self.is_connecting = False
-        self.mcp_settings = McpSettings(self.mcp_config_path)
+        self.mcp_config_path = None
+        self.mcp_settings = None
 
     def get_servers(
         self, connection_statuses: List[ConnectionStatus]
@@ -68,13 +67,18 @@ class MCPClient:
             and conn.server.disabled is False
         ]
 
-    async def sync_mcp_servers(self) -> str:
+    def init(self, mcp_config_path:  str):
+        self.mcp_config_path = mcp_config_path
+        self.mcp_settings = McpSettings(self.mcp_config_path)
+        # read and validate MCP settings file
+
+    async def sync_mcp_servers(self, mcp_config_path: str = None) -> str:
         try:
-            # read and validate MCP settings file
+            self.init(mcp_config_path)
+            # update server connections
             settings: McpSettingsModel = (
                 self.mcp_settings.read_and_validate_mcp_settings_file()
             )
-            # update server connections
             await self.update_server_connections(settings.mcp_servers)
             return "MCP Servers connected successfully"
         except (json.JSONDecodeError, pydantic.ValidationError) as ex:
