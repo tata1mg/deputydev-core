@@ -7,6 +7,7 @@ from deputydev_core.services.diff.algo_runners.base_diff_algo_runner import (
 from deputydev_core.services.diff.algo_runners.line_numbered_diff.runner import (
     LineNumberedDiffAlgoRunner,
 )
+from deputydev_core.services.diff.algo_runners.search_and_replace.runner import SearchAndReplaceAlgoRunner
 from deputydev_core.services.diff.algo_runners.unified_diff.runner import (
     UnifiedDiffAlgoRunner,
 )
@@ -25,6 +26,7 @@ class DiffApplicator:
     _diff_algo_runners: Dict[DiffTypes, Type[BaseDiffAlgoRunner]] = {
         DiffTypes.UDIFF: UnifiedDiffAlgoRunner,
         DiffTypes.LINE_NUMBERED: LineNumberedDiffAlgoRunner,
+        DiffTypes.SEARCH_AND_REPLACE: SearchAndReplaceAlgoRunner
     }
 
     @classmethod
@@ -52,5 +54,6 @@ class DiffApplicator:
         """
         Apply diffs to multiple files in bulk.
         """
-        responses = asyncio.gather(*[cls.apply_diff_to_file(request) for request in application_requests])
+        responses = asyncio.gather(
+            *[cls.apply_diff_to_file(request) for request in application_requests])
         return await responses
