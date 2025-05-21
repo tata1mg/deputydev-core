@@ -6,8 +6,7 @@ from deputydev_core.services.auth_token_storage.cli_auth_token_storage_manager i
 from deputydev_core.services.auth_token_storage.extension_auth_token_storage_manager import (
     ExtensionAuthTokenStorageManager,
 )
-from deputydev_core.utils.constants.enums import Clients, Status
-from deputydev_core.utils.constants.enums import ContextValueKeys
+from deputydev_core.utils.constants.enums import Clients, ContextValueKeys, Status
 from deputydev_core.utils.context_value import ContextValue
 
 
@@ -104,7 +103,7 @@ class AuthTokenService:
     @classmethod
     def get_auth_token(cls, client: str) -> str:
         if client == Clients.CLI.value:
-            return ContextValue.get(ContextValueKeys.EXTENSION_AUTH_TOKEN.value)
+            return ContextValue.get(ContextValueKeys.CLI_AUTH_TOKEN.value)
         elif client == Clients.VSCODE_EXT.value:
             return ContextValue.get(ContextValueKeys.EXTENSION_AUTH_TOKEN.value)
         else:
