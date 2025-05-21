@@ -17,7 +17,7 @@ class Clients(Enum):
     PR_REVIEW = "REVIEW"
 
 
-class SharedMemoryKeys(Enum):
+class ContextValueKeys(Enum):
     BINARY_CONFIG = "BINARY_CONFIG"
     CLI_AUTH_TOKEN = "CLI_AUTH_TOKEN"
     EXTENSION_AUTH_TOKEN = "EXTENSION_AUTH_TOKEN"
