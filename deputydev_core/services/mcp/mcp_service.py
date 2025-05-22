@@ -21,7 +21,7 @@ class McpService:
     async def sync_mcp_servers(self, mcp_config_path: str):
         await self.mcp_client.sync_mcp_servers(mcp_config_path)
         # TODO handle pagination
-        return await self.get_servers(0, -1)
+        return await self.get_servers(limit=-1, offset=0)
 
     @handle_exceptions_async
     async def list_tools(self, server_name):
