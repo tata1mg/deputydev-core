@@ -1,7 +1,6 @@
 from typing import List
 
 from deputydev_core.services.mcp.client import MCPClient
-from deputydev_core.services.mcp.contants import MAX_CHARACTERS_TO_RETURN
 from deputydev_core.services.mcp.dataclass.main import (
     ServersDetails,
     ConnectionStatus,
@@ -10,7 +9,6 @@ from deputydev_core.services.mcp.dataclass.main import (
 import mcp
 
 from deputydev_core.services.mcp.mcp_utils import handle_exceptions_async
-from mcp.types import TextContent
 
 
 class McpService:
@@ -21,7 +19,7 @@ class McpService:
     async def sync_mcp_servers(self, mcp_config_path: str):
         await self.mcp_client.sync_mcp_servers(mcp_config_path)
         # TODO handle pagination
-        return await self.get_servers(limit=-1, offset=0)
+        return await self.create_server_list(limit=-1, offset=0)
 
     @handle_exceptions_async
     async def list_tools(self, server_name):
@@ -29,27 +27,23 @@ class McpService:
 
     async def invoke_tool(self,  tool_invoke_request: ToolInvokeRequest) -> mcp.types.CallToolResult:
         try:
-            tool_response = await self.mcp_client.call_tool(
+            return await self.mcp_client.call_tool(
                 server_name = tool_invoke_request.server_name,
                 tool_name = tool_invoke_request.tool_name,
                 tool_arguments = tool_invoke_request.tool_arguments
             )
-            # limit max characters to return from tool response
-            if tool_response and tool_response.content and isinstance(tool_response.content[0], TextContent):
-                tool_response.content[0].text = tool_response.content[0].text[:MAX_CHARACTERS_TO_RETURN]
         except Exception as ex:
             return mcp.types.CallToolResult(
                 isError=True,
                 content=[
                     mcp.types.TextContent(
                         type="text",
-                        text=f"Error: {str(ex)[:MAX_CHARACTERS_TO_RETURN]}"
+                        text=f"Error: {str(ex)}"
                     )
                 ]
             )
 
-    @handle_exceptions_async
-    async def get_servers(self, limit, offset):
+    async def create_server_list(self, limit, offset):
         servers = []
         if offset > len(self.mcp_client.connections):
             return []
@@ -59,7 +53,7 @@ class McpService:
         connection_statuses = list(ConnectionStatus)
         eligible_servers = self.mcp_client.get_servers(
             connection_statuses=connection_statuses
-        )[offset : offset + limit]
+        )[offset: offset + limit]
         for server in eligible_servers:
             servers.append(
                 ServersDetails(
@@ -72,6 +66,10 @@ class McpService:
                 )
             )
         return servers
+
+    @handle_exceptions_async
+    async def get_servers(self, limit, offset):
+        await self.create_server_list(limit, offset)
 
     @handle_exceptions_async
     async def get_eligible_tools(
