@@ -9,9 +9,9 @@ from pydantic import BaseModel, Field, validator, HttpUrl
 
 
 class BaseConfigModel(BaseModel):
-    auto_approve: Optional[List[str]] = None
-    disabled: Optional[bool] = None
-    timeout: int = DEFAULT_MCP_TIMEOUT_SECONDS
+    auto_approve: Optional[List[str]] = [] # list of tools supported for auto approve
+    disabled: Optional[bool] = False  # handles servers disable state
+    timeout: int = DEFAULT_MCP_TIMEOUT_SECONDS # handles timeout for server
 
     @validator("timeout")
     def validate_timeout(cls, v):
