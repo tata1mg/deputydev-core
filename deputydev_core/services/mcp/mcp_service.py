@@ -1,6 +1,7 @@
 from typing import List
 
 from deputydev_core.services.mcp.client import MCPClient
+from deputydev_core.services.mcp.contants import MAX_CHARACTERS_TO_RETURN
 from deputydev_core.services.mcp.dataclass.main import (
     ServersDetails,
     ConnectionStatus,
@@ -9,6 +10,7 @@ from deputydev_core.services.mcp.dataclass.main import (
 import mcp
 
 from deputydev_core.services.mcp.mcp_utils import handle_exceptions_async
+from mcp.types import TextContent
 
 
 class McpService:
@@ -27,18 +29,21 @@ class McpService:
 
     async def invoke_tool(self,  tool_invoke_request: ToolInvokeRequest) -> mcp.types.CallToolResult:
         try:
-            return await self.mcp_client.call_tool(
+            tool_response = await self.mcp_client.call_tool(
                 server_name = tool_invoke_request.server_name,
                 tool_name = tool_invoke_request.tool_name,
                 tool_arguments = tool_invoke_request.tool_arguments
             )
+            # limit max characters to return from tool response
+            if tool_response and tool_response.content and isinstance(tool_response.content[0], TextContent):
+                tool_response.content[0].text = tool_response.content[0].text[:MAX_CHARACTERS_TO_RETURN]
         except Exception as ex:
             return mcp.types.CallToolResult(
                 isError=True,
                 content=[
                     mcp.types.TextContent(
                         type="text",
-                        text=f"Error: {str(ex)}"
+                        text=f"Error: {str(ex)[:MAX_CHARACTERS_TO_RETURN]}"
                     )
                 ]
             )

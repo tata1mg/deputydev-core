@@ -68,9 +68,10 @@ class MCPClient:
         ]
 
     def init(self, mcp_config_path:  str):
-        self.mcp_config_path = mcp_config_path
-        self.mcp_settings = McpSettings(self.mcp_config_path)
-        # read and validate MCP settings file
+        if not self.mcp_config_path:
+            self.mcp_config_path = mcp_config_path
+            self.mcp_settings = McpSettings(self.mcp_config_path)
+            # read and validate MCP settings file
 
     async def sync_mcp_servers(self, mcp_config_path: str = None) -> str:
         try:
