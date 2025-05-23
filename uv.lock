@@ -258,7 +258,7 @@ wheels = [
 
 [[package]]
 name = "deputydev-core"
-version = "4.1.1"
+version = "4.1.8"
 source = { virtual = "." }
 dependencies = [
     { name = "aiohttp" },
@@ -288,7 +288,7 @@ dev = [
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.11.12" },
     { name = "diff-match-patch", specifier = "==20241021" },
-    { name = "fastmcp", specifier = ">=2.3.4" },
+    { name = "fastmcp", specifier = "==2.3.4" },
     { name = "gitpython", specifier = "==3.1.27" },
     { name = "giturlparse", specifier = "==0.12.0" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.8.0" },
