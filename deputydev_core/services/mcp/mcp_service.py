@@ -63,6 +63,7 @@ class McpService:
                     tools=server.tools if server.tools else [],
                     error=server.error,
                     disabled=server.disabled,
+                    auto_approve=server.auto_approve
                 )
             )
         return servers
@@ -72,25 +73,8 @@ class McpService:
         await self.create_server_list(limit, offset)
 
     @handle_exceptions_async
-    async def get_eligible_tools(
-        self,
-        max_allowed_tools_per_server=40,
-        max_allowed_servers=40,
-        max_allowed_tools=1000,
-    ) -> List[ServersDetails]:
-        servers: List[ServersDetails] = []
-        total_tools = 0
-        for server in self.mcp_client.get_active_servers()[:max_allowed_servers]:
-            current_tools = server.tools[:max_allowed_tools_per_server]
-            if total_tools + len(current_tools) < max_allowed_tools:
-                servers.append(
-                    Tools(
-                        server_name=server.name,
-                        tools=current_tools,
-                    )
-                )
-                total_tools += len(server.tools)
-        return servers
+    async def get_eligible_tools(self) -> List[Tools]:
+        return await self.mcp_client.get_tools()
 
     @handle_exceptions_async
     async def restart_server(self, server_name):

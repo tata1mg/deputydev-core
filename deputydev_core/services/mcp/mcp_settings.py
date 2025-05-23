@@ -49,7 +49,7 @@ class McpSettings:
                 mcp_settings = McpSettingsModel.model_validate(config)
                 return mcp_settings
             except pydantic.ValidationError as e:
-                raise pydantic.ValidationError(f"Invalid MCP settings schema: {str(e)}")
+                raise Exception(f"Invalid MCP settings schema: {str(e)}")
 
         except Exception as error:
             raise Exception(f"Failed to read MCP settings: {error}")
