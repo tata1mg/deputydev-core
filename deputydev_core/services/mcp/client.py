@@ -20,6 +20,7 @@ from fastmcp.client.transports import SSETransport, StdioTransport, StreamableHt
 from deputydev_core.utils.app_logger import AppLogger
 import mcp
 from pydantic import TypeAdapter
+import traceback
 
 
 class MCPClient:
@@ -114,6 +115,7 @@ class MCPClient:
             try:
                 await self.update_connection(server_name=name, server_config=config)
             except Exception as ex:
+                print(traceback.format_exc())
                 AppLogger.log_debug(f"Connection failed for MCP server: {name} {str(ex)}")
 
     async def update_server_connections(self, servers: Dict[str, ServerConfigModel]):
