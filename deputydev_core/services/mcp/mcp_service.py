@@ -4,7 +4,8 @@ from deputydev_core.services.mcp.client import MCPClient
 from deputydev_core.services.mcp.dataclass.main import (
     ServersDetails,
     ConnectionStatus,
-    Tools, ToolInvokeRequest,
+    Tools,
+    ToolInvokeRequest,
 )
 import mcp
 
@@ -25,22 +26,19 @@ class McpService:
     async def list_tools(self, server_name):
         return await self.mcp_client.fetch_tools_list(server_name)
 
-    async def invoke_tool(self,  tool_invoke_request: ToolInvokeRequest) -> mcp.types.CallToolResult:
+    async def invoke_tool(
+        self, tool_invoke_request: ToolInvokeRequest
+    ) -> mcp.types.CallToolResult:
         try:
             return await self.mcp_client.call_tool(
-                server_name = tool_invoke_request.server_name,
-                tool_name = tool_invoke_request.tool_name,
-                tool_arguments = tool_invoke_request.tool_arguments
+                server_name=tool_invoke_request.server_name,
+                tool_name=tool_invoke_request.tool_name,
+                tool_arguments=tool_invoke_request.tool_arguments,
             )
         except Exception as ex:
             return mcp.types.CallToolResult(
                 isError=True,
-                content=[
-                    mcp.types.TextContent(
-                        type="text",
-                        text=f"Error: {str(ex)}"
-                    )
-                ]
+                content=[mcp.types.TextContent(type="text", text=f"Error: {str(ex)}")],
             )
 
     async def create_server_list(self, limit, offset):
@@ -53,7 +51,7 @@ class McpService:
         connection_statuses = list(ConnectionStatus)
         eligible_servers = self.mcp_client.get_servers(
             connection_statuses=connection_statuses
-        )[offset: offset + limit]
+        )[offset : offset + limit]
         for server in eligible_servers:
             servers.append(
                 ServersDetails(
@@ -63,7 +61,7 @@ class McpService:
                     tools=server.tools if server.tools else [],
                     error=server.error,
                     disabled=server.disabled,
-                    auto_approve=server.auto_approve
+                    auto_approve=server.auto_approve,
                 )
             )
         return servers
