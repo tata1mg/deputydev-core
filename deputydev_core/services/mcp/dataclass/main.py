@@ -18,7 +18,7 @@ class BaseConfigModel(BaseModel):
 
     @validator("read_timeout")
     def validate_timeout(cls, v):
-        if v < MIN_CONNECTION_TIMEOUT_SECONDS:
+        if v and v < MIN_CONNECTION_TIMEOUT_SECONDS:
             raise ValueError(
                 f"Timeout must be at least {MIN_CONNECTION_TIMEOUT_SECONDS} seconds"
             )
