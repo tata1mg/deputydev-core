@@ -2,21 +2,32 @@ from enum import Enum
 from typing import List, Optional, Dict, Any, Union
 import mcp
 from deputydev_core.services.mcp.contants import (
-    DEFAULT_MCP_READ_TIMEOUT_SECONDS, MIN_CONNECTION_TIMEOUT_SECONDS, DEFAULT_CONNECTION_TIMEOUT_SECONDS,
-    MAX_ALLOWED_TOOLS, MAX_CHARACTERS_TO_RETURN, DEFAULT_AUTO_APPROVE,
+    DEFAULT_MCP_READ_TIMEOUT_SECONDS,
+    MIN_CONNECTION_TIMEOUT_SECONDS,
+    DEFAULT_CONNECTION_TIMEOUT_SECONDS,
+    MAX_ALLOWED_TOOLS,
+    MAX_CHARACTERS_TO_RETURN,
+    DEFAULT_AUTO_APPROVE,
 )
-from pydantic import BaseModel, Field, validator, HttpUrl
-from fastmcp.client.transports import StdioTransport, SSETransport, StreamableHttpTransport
+from pydantic import BaseModel, Field, validator, HttpUrl, field_validator
+from fastmcp.client.transports import (
+    StdioTransport,
+    SSETransport,
+    StreamableHttpTransport,
+)
 
 
 class BaseConfigModel(BaseModel):
-    auto_approve_tools: Optional[List[str]] = [] # list of tools supported for auto approve
+    auto_approve_tools: Optional[
+        List[str]
+    ] = []  # list of tools supported for auto approve
     disabled: Optional[bool] = False  # handles servers disable state
     connection_timeout: Optional[int] = None
     read_timeout: Optional[int] = None
     auto_approve: Optional[bool] = False
 
-    @validator("read_timeout")
+    @field_validator("read_timeout")
+    @classmethod
     def validate_timeout(cls, v):
         if v and v < MIN_CONNECTION_TIMEOUT_SECONDS:
             raise ValueError(
@@ -124,7 +135,7 @@ class DefaultSettings(BaseModel):
     max_tools: Optional[int] = MAX_ALLOWED_TOOLS
     connection_timeout: Optional[int] = DEFAULT_CONNECTION_TIMEOUT_SECONDS
     read_timeout: Optional[int] = DEFAULT_MCP_READ_TIMEOUT_SECONDS
-    buffer_size:  Optional[int] = MAX_CHARACTERS_TO_RETURN
+    buffer_size: Optional[int] = MAX_CHARACTERS_TO_RETURN
     auto_approve: Optional[bool] = DEFAULT_AUTO_APPROVE
 
 

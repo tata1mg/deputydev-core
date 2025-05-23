@@ -10,4 +10,5 @@ def handle_exceptions_async(func):
             return McpResponse(is_error=False, data=result)
         except Exception as ex:
             return McpResponse(is_error=True, meta=McpResponseMeta(message=str(ex)))
+
     return wrapper
