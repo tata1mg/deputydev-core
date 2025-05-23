@@ -2,22 +2,25 @@ from enum import Enum
 from typing import List, Optional, Dict, Any, Union
 import mcp
 from deputydev_core.services.mcp.contants import (
-    MIN_MCP_TIMEOUT_SECONDS,
-    DEFAULT_MCP_TIMEOUT_SECONDS,
+    DEFAULT_MCP_READ_TIMEOUT_SECONDS, MIN_CONNECTION_TIMEOUT_SECONDS, DEFAULT_CONNECTION_TIMEOUT_SECONDS,
+    MAX_ALLOWED_TOOLS, MAX_CHARACTERS_TO_RETURN, DEFAULT_AUTO_APPROVE,
 )
 from pydantic import BaseModel, Field, validator, HttpUrl
+from fastmcp.client.transports import StdioTransport, SSETransport, StreamableHttpTransport
 
 
 class BaseConfigModel(BaseModel):
-    auto_approve: Optional[List[str]] = [] # list of tools supported for auto approve
+    auto_approve_tools: Optional[List[str]] = [] # list of tools supported for auto approve
     disabled: Optional[bool] = False  # handles servers disable state
-    timeout: int = DEFAULT_MCP_TIMEOUT_SECONDS # handles timeout for server
+    connection_timeout: Optional[int] = None
+    read_timeout: Optional[int] = None
+    auto_approve: Optional[bool] = False
 
-    @validator("timeout")
+    @validator("read_timeout")
     def validate_timeout(cls, v):
-        if v < MIN_MCP_TIMEOUT_SECONDS:
+        if v < MIN_CONNECTION_TIMEOUT_SECONDS:
             raise ValueError(
-                f"Timeout must be at least {MIN_MCP_TIMEOUT_SECONDS} seconds"
+                f"Timeout must be at least {MIN_CONNECTION_TIMEOUT_SECONDS} seconds"
             )
         return v
 
@@ -25,6 +28,7 @@ class BaseConfigModel(BaseModel):
 class TransportTypes(Enum):
     stdio = "stdio"
     sse = "sse"
+    streamable_http = "streamable-http"
 
 
 class McpResourceTemplate(BaseModel):
@@ -70,6 +74,19 @@ class SseConfigModel(BaseConfigModel):
         json_encoders = {HttpUrl: str}
 
 
+class StreamableHTTP(BaseConfigModel):
+    url: str
+    transport_type: str = TransportTypes.streamable_http.value
+
+    def dict(self, *args, **kwargs):
+        result = super().dict(*args, **kwargs)
+        result["url"] = str(result["url"])
+        return result
+
+    class Config:
+        json_encoders = {HttpUrl: str}
+
+
 class StdioConfigModel(BaseConfigModel):
     command: str
     args: Optional[List[str]] = None
@@ -80,7 +97,8 @@ class StdioConfigModel(BaseConfigModel):
         use_enum_values = True
 
 
-ServerConfigModel = Union[StdioConfigModel, SseConfigModel]
+ServerConfigModel = Union[StdioConfigModel, SseConfigModel, StreamableHTTP]
+Transports = Union[StdioTransport, SSETransport, StreamableHttpTransport]
 
 
 class ConnectionStatus(Enum):
@@ -98,10 +116,21 @@ class McpServer(BaseModel):
     tools: Optional[List[mcp.types.Tool]]
     resources: Optional[List[McpResource]]
     resource_templates: Optional[List[McpResourceTemplate]]
+    auto_approve: bool
+    read_timeout: int
+
+
+class DefaultSettings(BaseModel):
+    max_tools: Optional[int] = MAX_ALLOWED_TOOLS
+    connection_timeout: Optional[int] = DEFAULT_CONNECTION_TIMEOUT_SECONDS
+    read_timeout: Optional[int] = DEFAULT_MCP_READ_TIMEOUT_SECONDS
+    buffer_size:  Optional[int] = MAX_CHARACTERS_TO_RETURN
+    auto_approve: Optional[bool] = DEFAULT_AUTO_APPROVE
 
 
 class McpSettingsModel(BaseModel):
     mcp_servers: Dict[str, ServerConfigModel] = Field(default_factory=dict)
+    default_settings: Optional[DefaultSettings] = DefaultSettings()
 
 
 class ServersDetails(BaseModel):
@@ -111,7 +140,7 @@ class ServersDetails(BaseModel):
     tools: Optional[List[mcp.types.Tool]]
     error: Optional[str]
     disabled: bool
-
+    auto_approve: bool
 
 
 class ServerFilters(BaseModel):
