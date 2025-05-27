@@ -1,15 +1,7 @@
 from enum import Enum
 from typing import List, Optional, Dict, Any, Union
 import mcp
-from deputydev_core.services.mcp.contants import (
-    DEFAULT_MCP_READ_TIMEOUT_SECONDS,
-    MIN_CONNECTION_TIMEOUT_SECONDS,
-    DEFAULT_CONNECTION_TIMEOUT_SECONDS,
-    MAX_ALLOWED_TOOLS,
-    MAX_CHARACTERS_TO_RETURN,
-    DEFAULT_AUTO_APPROVE,
-)
-from pydantic import BaseModel, Field, validator, HttpUrl, field_validator
+from pydantic import BaseModel, Field, HttpUrl, field_validator
 from fastmcp.client.transports import (
     StdioTransport,
     SSETransport,
@@ -29,9 +21,9 @@ class BaseConfigModel(BaseModel):
     @field_validator("read_timeout")
     @classmethod
     def validate_timeout(cls, v):
-        if v and v < MIN_CONNECTION_TIMEOUT_SECONDS:
+        if v and v < 1:
             raise ValueError(
-                f"Timeout must be at least {MIN_CONNECTION_TIMEOUT_SECONDS} seconds"
+                f"Timeout must be at least {1} seconds"
             )
         return v
 
@@ -131,17 +123,17 @@ class McpServer(BaseModel):
     read_timeout: int
 
 
-class DefaultSettings(BaseModel):
-    max_tools: Optional[int] = MAX_ALLOWED_TOOLS
-    connection_timeout: Optional[int] = DEFAULT_CONNECTION_TIMEOUT_SECONDS
-    read_timeout: Optional[int] = DEFAULT_MCP_READ_TIMEOUT_SECONDS
-    buffer_size: Optional[int] = MAX_CHARACTERS_TO_RETURN
-    auto_approve: Optional[bool] = DEFAULT_AUTO_APPROVE
+class McpDefaultSettings(BaseModel):
+    max_tools: Optional[int] = None
+    connection_timeout: Optional[int] = None
+    read_timeout: Optional[int] = None
+    buffer_size: Optional[int] = None
+    auto_approve: Optional[bool] = None
 
 
 class McpSettingsModel(BaseModel):
     mcp_servers: Dict[str, ServerConfigModel] = Field(default_factory=dict)
-    default_settings: Optional[DefaultSettings] = DefaultSettings()
+    default_settings: Optional[McpDefaultSettings] = None
 
 
 class ServersDetails(BaseModel):
