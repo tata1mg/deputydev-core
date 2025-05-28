@@ -156,10 +156,6 @@ class MCPClient:
                 except Exception:
                     AppLogger.log_debug(f"Cleanup task for {server_name} was failed.")
 
-                # Remove the connection from our list
-                AppLogger.log_debug(f"Deleted MCP server: {server_name}")
-                return f"Deleted MCP server connection for {server_name}"
-
             except Exception as error:
                 AppLogger.log_error(f"Failed to close transport for {server_name}: {error}")
                 return f"Failed to close transport for {server_name}: {error}"
