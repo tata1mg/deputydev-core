@@ -39,9 +39,7 @@ class MCPClient:
         return cls._instance
 
     @classmethod
-    async def get_instance(
-        cls, mcp_config_path: str, default_settings: McpDefaultSettings
-    ):
+    async def get_instance(cls, mcp_config_path: str, default_settings: McpDefaultSettings):
         if cls._instance is None:
             if cls._init_lock is None:
                 cls._init_lock = asyncio.Lock()
@@ -63,40 +61,23 @@ class MCPClient:
         self.mcp_settings = McpSettings(self.mcp_config_path)
         self.default_settings = default_settings
 
-    def get_servers(
-        self, connection_statuses: List[ConnectionStatus]
-    ) -> List[McpServer]:
-        _servers = [
-            conn.server
-            for conn in self.connections
-            if conn.server.status in connection_statuses
-        ]
-        servers_from_settings = list(
-            self.mcp_settings.read_and_validate_mcp_settings_file().mcp_servers.keys()
-        )
-        return get_sorted_connection_order(
-            servers=servers_from_settings, connections=_servers
-        )
+    def get_servers(self, connection_statuses: List[ConnectionStatus]) -> List[McpServer]:
+        _servers = [conn.server for conn in self.connections if conn.server.status in connection_statuses]
+        servers_from_settings = list(self.mcp_settings.read_and_validate_mcp_settings_file().mcp_servers.keys())
+        return get_sorted_connection_order(servers=servers_from_settings, connections=_servers)
 
     def get_active_servers(self) -> List[McpServer]:
         _servers = [
             conn.server
             for conn in self.connections
-            if conn.server.status == ConnectionStatus.connected
-            and conn.server.disabled is False
+            if conn.server.status == ConnectionStatus.connected and conn.server.disabled is False
         ]
-        servers_from_settings = list(
-            self.mcp_settings.read_and_validate_mcp_settings_file().mcp_servers.keys()
-        )
-        return get_sorted_connection_order(
-            servers=servers_from_settings, connections=_servers
-        )
+        servers_from_settings = list(self.mcp_settings.read_and_validate_mcp_settings_file().mcp_servers.keys())
+        return get_sorted_connection_order(servers=servers_from_settings, connections=_servers)
 
     async def sync_mcp_servers(self) -> str:
         # update server connections
-        settings: McpSettingsModel = (
-            self.mcp_settings.read_and_validate_mcp_settings_file()
-        )
+        settings: McpSettingsModel = self.mcp_settings.read_and_validate_mcp_settings_file()
         if not settings:
             if self.connections:
                 for con in self.connections:
@@ -106,9 +87,7 @@ class MCPClient:
         return "MCP Servers connected successfully"
 
     async def delete_old_connections(self, servers: Dict[str, ServerConfigModel]):
-        servers_to_be_deleted = {conn.server.name for conn in self.connections} - set(
-            servers.keys()
-        )
+        servers_to_be_deleted = {conn.server.name for conn in self.connections} - set(servers.keys())
         # Delete server connection
         for server in servers_to_be_deleted:
             await self.delete_connection(server)
@@ -118,33 +97,23 @@ class MCPClient:
         await asyncio.sleep(1)
         await self._connect_to_server(server_name, server_config)
 
-    async def update_connection(
-        self, server_name: str, server_config: ServerConfigModel
-    ):
-        current_connection = next(
-            (conn for conn in self.connections if conn.server.name == server_name), None
-        )
+    async def update_connection(self, server_name: str, server_config: ServerConfigModel):
+        current_connection = next((conn for conn in self.connections if conn.server.name == server_name), None)
         if not current_connection:
             await self._connect_to_server(server_name, server_config)
             AppLogger.log_debug(f"Connected to MCP server : {server_name}")
         elif json.loads(current_connection.server.config) != server_config.model_dump():
             # Existing server with changed config
             await self.restart_connection(server_name, server_config)
-            AppLogger.log_debug(
-                f"Reconnected MCP server with updated config: {server_name}"
-            )
+            AppLogger.log_debug(f"Reconnected MCP server with updated config: {server_name}")
 
-    async def update_or_create_new_connections(
-        self, servers: Dict[str, ServerConfigModel]
-    ):
+    async def update_or_create_new_connections(self, servers: Dict[str, ServerConfigModel]):
         for name, config in servers.items():
             try:
                 await self.update_connection(server_name=name, server_config=config)
             except Exception as ex:
                 print(traceback.format_exc())
-                AppLogger.log_debug(
-                    f"Connection failed for MCP server: {name} {str(ex)}"
-                )
+                AppLogger.log_debug(f"Connection failed for MCP server: {name} {str(ex)}")
 
     async def _update_server_connections(self, servers: Dict[str, ServerConfigModel]):
         self.is_connecting = True
@@ -158,9 +127,7 @@ class MCPClient:
             connection = self.get_server_connection(server_name)
             server_config = self.mcp_settings.get_server_config(server_name)
             await self.restart_connection(server_name, server_config=server_config)
-            AppLogger.log_debug(
-                f"Reconnected MCP server with updated config: {server_name}"
-            )
+            AppLogger.log_debug(f"Reconnected MCP server with updated config: {server_name}")
             return f"Restarted MCP server connection for {server_name}"
         except Exception as ex:
             AppLogger.log_debug(str(ex))
@@ -168,12 +135,8 @@ class MCPClient:
                 self.append_error_message(connection, str(ex))
             return str(ex)
 
-    async def delete_connection(
-        self, server_name: str, remove_connection_from_list: bool = True
-    ) -> str:
-        connection = next(
-            (conn for conn in self.connections if conn.server.name == server_name), None
-        )
+    async def delete_connection(self, server_name: str, remove_connection_from_list: bool = True) -> str:
+        connection = next((conn for conn in self.connections if conn.server.name == server_name), None)
         if connection and connection.server.status == ConnectionStatus.connected:
             try:
                 # Create a new task to handle the cleanup
@@ -189,9 +152,7 @@ class MCPClient:
                 except asyncio.TimeoutError:
                     AppLogger.log_debug(f"Cleanup task for {server_name} timed out.")
                 except asyncio.CancelledError:
-                    AppLogger.log_debug(
-                        f"Cleanup task for {server_name} was cancelled externally."
-                    )
+                    AppLogger.log_debug(f"Cleanup task for {server_name} was cancelled externally.")
                 except Exception:
                     AppLogger.log_debug(f"Cleanup task for {server_name} was failed.")
 
@@ -200,23 +161,17 @@ class MCPClient:
                 return f"Deleted MCP server connection for {server_name}"
 
             except Exception as error:
-                AppLogger.log_error(
-                    f"Failed to close transport for {server_name}: {error}"
-                )
+                AppLogger.log_error(f"Failed to close transport for {server_name}: {error}")
                 return f"Failed to close transport for {server_name}: {error}"
 
         if remove_connection_from_list:
-            self.connections = [
-                c for c in self.connections if c.server.name != server_name
-            ]
+            self.connections = [c for c in self.connections if c.server.name != server_name]
         # Remove the connection from our list
         AppLogger.log_debug(f"Deleted MCP server: {server_name}")
         return f"Deleted MCP server connection for {server_name}"
 
     def get_server_connection(self, server_name) -> Optional[McpConnection]:
-        connection = [
-            conn for conn in self.connections if conn.server.name == server_name
-        ]
+        connection = [conn for conn in self.connections if conn.server.name == server_name]
         if connection:
             return connection[0]
         else:
@@ -230,9 +185,7 @@ class MCPClient:
     async def change_status(self, server_name: str, disable: bool) -> str:
         server_config = self.mcp_settings.get_server_config(server_name)
         server_config.disabled = disable
-        self.mcp_settings.update_server_config(
-            server_name=server_name, mcp_config=server_config
-        )
+        self.mcp_settings.update_server_config(server_name=server_name, mcp_config=server_config)
         connection = self.get_server_connection(server_name)
         connection.disable() if disable else connection.enable()
         if disable:
@@ -242,56 +195,39 @@ class MCPClient:
             connection.server.status = ConnectionStatus.connecting
             client = await connection.client.__aenter__()
             server_tools = await client.list_tools()
-            connection.server.tools = self.populate_server_tools(
-                server_tools, server_config=server_config
-            )
+            connection.server.tools = self.populate_server_tools(server_tools, server_config=server_config)
             connection.server.status = ConnectionStatus.connected
         return f"MCP server {'disabled' if disable else 'enabled'} successfully"
 
     def get_default_settings(self) -> McpDefaultSettings:
-        settings: McpSettingsModel = (
-            self.mcp_settings.read_and_validate_mcp_settings_file()
-        )
+        settings: McpSettingsModel = self.mcp_settings.read_and_validate_mcp_settings_file()
 
         if not settings.default_settings:
             return self.default_settings
 
         return self.default_settings.copy(
-            update={
-                k: v
-                for k, v in settings.default_settings.dict(exclude_unset=True).items()
-            }
+            update={k: v for k, v in settings.default_settings.dict(exclude_unset=True).items()}
         )
 
-    def _create_mcp_client(
-        self, transport: Transports, connection_timeout: int
-    ) -> Client:
+    def _create_mcp_client(self, transport: Transports, connection_timeout: int) -> Client:
         if not isinstance(transport, Transports):
-            raise Exception(
-                f"Unsupported transport type {transport.__class__.__name__}"
-            )
+            raise Exception(f"Unsupported transport type {transport.__class__.__name__}")
 
         client = Client(transport, timeout=connection_timeout)
         return client
 
     async def _connect_to_server(self, name: str, config: ServerConfigModel):
         # Remove existing connection if it exists
-        self.connections = [
-            conn for conn in self.connections if conn.server.name != name
-        ]
+        self.connections = [conn for conn in self.connections if conn.server.name != name]
         try:
             default_settings = self.get_default_settings()
-            connection_timeout = (
-                config.connection_timeout or default_settings.connection_timeout
-            )
+            connection_timeout = config.connection_timeout or default_settings.connection_timeout
             read_timeout = config.read_timeout or default_settings.read_timeout
 
             if config.transport_type == TransportTypes.sse.value:
                 transport = SSETransport(url=config.url, sse_read_timeout=read_timeout)
             elif config.transport_type == TransportTypes.streamable_http.value:
-                transport = StreamableHttpTransport(
-                    url=config.url, sse_read_timeout=read_timeout
-                )
+                transport = StreamableHttpTransport(url=config.url, sse_read_timeout=read_timeout)
             else:
                 env = {**config.env} if config.env else {}
                 if os.environ.get("PATH"):
@@ -303,9 +239,7 @@ class MCPClient:
                     env=env,
                 )
 
-            client = self._create_mcp_client(
-                transport=transport, connection_timeout=connection_timeout
-            )
+            client = self._create_mcp_client(transport=transport, connection_timeout=connection_timeout)
 
             connection = McpConnection(
                 server=McpServer(
@@ -313,9 +247,7 @@ class MCPClient:
                         "name": name,
                         "config": json.dumps(config.model_dump()),
                         "status": ConnectionStatus.connecting,
-                        "disabled": config.disabled
-                        if config.disabled is not None
-                        else False,
+                        "disabled": config.disabled if config.disabled is not None else False,
                         "error": "",
                         "tools": None,
                         "read_timeout": read_timeout,
@@ -329,17 +261,13 @@ class MCPClient:
                 client = await client.__aenter__()
                 connection.server.status = ConnectionStatus.connected
                 server_tools = await client.list_tools()
-                connection.server.tools = self.populate_server_tools(
-                    server_tools, server_config=config
-                )
+                connection.server.tools = self.populate_server_tools(server_tools, server_config=config)
             else:
                 connection.server.status = ConnectionStatus.disconnected
 
         except Exception as error:
             # Update status with error
-            connection = next(
-                (conn for conn in self.connections if conn.server.name == name), None
-            )
+            connection = next((conn for conn in self.connections if conn.server.name == name), None)
             if connection:
                 connection.server.status = ConnectionStatus.disconnected
                 error_message = str(error)
@@ -361,9 +289,7 @@ class MCPClient:
         tool_name: str,
         tool_arguments: Optional[Dict[str, Any]] = None,
     ) -> CallToolResult:
-        connection = next(
-            (conn for conn in self.connections if conn.server.name == server_name), None
-        )
+        connection = next((conn for conn in self.connections if conn.server.name == server_name), None)
         if not connection:
             raise Exception(
                 f"No connection found for server: {server_name}."
@@ -374,7 +300,6 @@ class MCPClient:
             raise Exception(f'Server "{server_name}" is disabled and cannot be used')
 
         try:
-
             tool_response = await connection.client.call_tool_mcp(
                 name=tool_name,
                 arguments=tool_arguments,
@@ -382,12 +307,8 @@ class MCPClient:
             )
             return tool_response
         except Exception as error:
-            AppLogger.log_debug(
-                f"Failed to parse timeout configuration for server {server_name}: {error}"
-            )
-            raise Exception(
-                f"Failed to parse timeout configuration for server {server_name}: {error}"
-            )
+            AppLogger.log_debug(f"Failed to parse timeout configuration for server {server_name}: {error}")
+            raise Exception(f"Failed to parse timeout configuration for server {server_name}: {error}")
 
     async def dispose(self):
         AppLogger.log_debug("started disposing MCP servers")
@@ -415,13 +336,9 @@ class MCPClient:
 
     async def approve_tool(self, server_name: str, tool_name: str):
         connection = self.get_server_connection(server_name)
-        tool = [
-            tool for tool in connection.server.tools if tool.name == tool_name
-        ] or None
+        tool = [tool for tool in connection.server.tools if tool.name == tool_name] or None
         if not tool:
-            raise Exception(
-                f"Tool not found Tool Name: {tool_name} for server: {server_name}"
-            )
+            raise Exception(f"Tool not found Tool Name: {tool_name} for server: {server_name}")
         tool = tool[0]
         tool.auto_approve = True
         json_config = self.mcp_settings.get_server_config(server_name)
@@ -429,17 +346,10 @@ class MCPClient:
         self.mcp_settings.update_server_config(server_name, json_config)
         return "Tool approved successfully"
 
-    def populate_server_tools(
-        self, tools: List[Tool], server_config: ServerConfigModel
-    ) -> List[ExtendedTool]:
+    def populate_server_tools(self, tools: List[Tool], server_config: ServerConfigModel) -> List[ExtendedTool]:
         processed_tools: List[ExtendedTool] = []
         for tool in tools:
             server_config.auto_approve_tools = server_config.auto_approve_tools or []
-            auto_approve = (
-                server_config.auto_approve_tools == "all"
-                or tool.name in server_config.auto_approve_tools
-            )
-            processed_tools.append(
-                ExtendedTool(**tool.model_dump(), auto_approve=auto_approve)
-            )
+            auto_approve = server_config.auto_approve_tools == "all" or tool.name in server_config.auto_approve_tools
+            processed_tools.append(ExtendedTool(**tool.model_dump(), auto_approve=auto_approve))
         return processed_tools
