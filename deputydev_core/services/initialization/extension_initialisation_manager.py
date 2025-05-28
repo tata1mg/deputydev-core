@@ -47,7 +47,12 @@ class ExtensionInitialisationManager(InitializationManager):
         embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
     ) -> None:
         super().__init__(
-            repo_path, auth_token_key, process_executor, one_dev_client, weaviate_client, ExtensionEmbeddingManager
+            repo_path,
+            auth_token_key,
+            process_executor,
+            one_dev_client,
+            weaviate_client,
+            ExtensionEmbeddingManager,
         )
 
     async def prefill_vector_store(
@@ -88,7 +93,7 @@ class ExtensionInitialisationManager(InitializationManager):
         return is_new_schema
 
     async def initialize_vector_db(
-            self, should_clean: bool = False
+        self, should_clean: bool = False
     ) -> Tuple[WeaviateSyncAndAsyncClients, Optional[asyncio.subprocess.Process], bool]:
         """
         Initialize the vector database.

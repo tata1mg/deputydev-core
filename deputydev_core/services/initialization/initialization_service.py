@@ -1,6 +1,6 @@
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
-from typing import Dict, List, Optional, Tuple, Type
+from typing import Dict, List, Optional, Type
 
 from prompt_toolkit.shortcuts.progress_bar import ProgressBar
 
@@ -34,6 +34,7 @@ from deputydev_core.services.initialization.vector_store.weaviate.constants.weav
     WEAVIATE_SCHEMA_VERSION,
 )
 
+
 class InitializationManager:
     def __init__(
         self,
@@ -63,7 +64,10 @@ class InitializationManager:
         This method will start the Weaviate process and create the necessary schema.
         If the process is already running, it will skip starting it again.
         """
-        self.weaviate_client, self.weaviate_process = await WeaviateInitializer().initialize()
+        (
+            self.weaviate_client,
+            self.weaviate_process,
+        ) = await WeaviateInitializer().initialize()
 
     async def prefill_vector_store(
         self,
@@ -118,10 +122,7 @@ class InitializationManager:
 
     async def _populate_collections(self):
         await asyncio.gather(
-            *[
-                self._check_and_initialize_collection(collection=collection)
-                for collection in self.collections
-            ]
+            *[self._check_and_initialize_collection(collection=collection) for collection in self.collections]
         )
 
     async def _should_recreate_schema(self, should_clean: bool) -> bool:

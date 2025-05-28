@@ -5,6 +5,7 @@ from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepo
 
 logger = logging.getLogger(__name__)
 
+
 class SharedChunksManager:
     _files_commit_hashes = {}
 

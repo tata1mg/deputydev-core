@@ -57,7 +57,11 @@ class LineNumberedDiffAlgoRunner(BaseDiffAlgoRunner):
 
     @classmethod
     async def apply_diff(
-        cls, file_path: str, repo_path: str, current_content: str, diff_data: LineNumberedData
+        cls,
+        file_path: str,
+        repo_path: str,
+        current_content: str,
+        diff_data: LineNumberedData,
     ) -> FileDiffApplicationResponse:
         chunks = diff_data.diff_chunks
         # Sort the chunks by start line number to ensure proper processing order

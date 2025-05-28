@@ -1,12 +1,11 @@
 from sanic import Sanic
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.services.initialization.initialization_service import (
-        InitializationManager,
+    InitializationManager,
 )
 from deputydev_core.services.repository.dataclasses.main import (
-        WeaviateSyncAndAsyncClients,
-    )
-
+    WeaviateSyncAndAsyncClients,
+)
 
 
 async def weaviate_connection():
@@ -24,15 +23,24 @@ async def weaviate_connection():
         return weaviate_clients
 
 
-async def get_weaviate_client(initialization_manager: InitializationManager) -> "WeaviateSyncAndAsyncClients":
+async def get_weaviate_client(
+    initialization_manager: InitializationManager,
+) -> "WeaviateSyncAndAsyncClients":
     weaviate_client = await weaviate_connection()
     if weaviate_client:
         weaviate_client = weaviate_client
     else:
-        weaviate_client, _new_weaviate_process, _schema_cleaned = await initialization_manager.initialize_vector_db()
+        (
+            weaviate_client,
+            _new_weaviate_process,
+            _schema_cleaned,
+        ) = await initialization_manager.initialize_vector_db()
     return weaviate_client
 
-async def clean_weaviate_collections(initialization_manager: InitializationManager) -> None:
+
+async def clean_weaviate_collections(
+    initialization_manager: InitializationManager,
+) -> None:
     """
     Cleans all collections from Weaviate using the sync client.
     Initializes the vector DB clients if not already available.

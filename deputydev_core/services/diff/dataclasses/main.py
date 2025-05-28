@@ -26,8 +26,7 @@ class SearchAndReplaceData(BaseModel):
     search_and_replace_blocks: str
 
 
-DiffData = Annotated[Union[UdiffData, LineNumberedData,
-                           SearchAndReplaceData], Field(discriminator="type")]
+DiffData = Annotated[Union[UdiffData, LineNumberedData, SearchAndReplaceData], Field(discriminator="type")]
 
 
 class FileDiffApplicationRequest(BaseModel):
