@@ -156,16 +156,15 @@ class MCPClient:
                 except Exception:
                     AppLogger.log_debug(f"Cleanup task for {server_name} was failed.")
 
-                # Remove the connection from our list
-                AppLogger.log_debug(f"Deleted MCP server: {server_name}")
-                return f"Deleted MCP server connection for {server_name}"
-
             except Exception as error:
                 AppLogger.log_error(f"Failed to close transport for {server_name}: {error}")
                 return f"Failed to close transport for {server_name}: {error}"
 
         if remove_connection_from_list:
             self.connections = [c for c in self.connections if c.server.name != server_name]
+        # Remove the connection from our list
+        AppLogger.log_debug(f"Deleted MCP server: {server_name}")
+        return f"Deleted MCP server connection for {server_name}"
 
     def get_server_connection(self, server_name) -> Optional[McpConnection]:
         connection = [conn for conn in self.connections if conn.server.name == server_name]
