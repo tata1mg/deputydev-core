@@ -1,22 +1,19 @@
 from enum import Enum
 from typing import List, Optional, Dict, Any, Union
-import mcp
 from pydantic import BaseModel, Field, HttpUrl, field_validator
 from fastmcp.client.transports import (
     StdioTransport,
     SSETransport,
     StreamableHttpTransport,
 )
+from mcp.types import Tool
 
 
 class BaseConfigModel(BaseModel):
-    auto_approve_tools: Optional[
-        List[str]
-    ] = []  # list of tools supported for auto approve
+    auto_approve_tools: Optional[Union[List[str], str]] = None
     disabled: Optional[bool] = False  # handles servers disable state
     connection_timeout: Optional[int] = None
     read_timeout: Optional[int] = None
-    auto_approve: Optional[bool] = False
 
     @field_validator("read_timeout")
     @classmethod
@@ -41,16 +38,12 @@ class McpResourceTemplate(BaseModel):
     schema: Dict[str, Any]
 
 
-class McpTool(BaseModel):
-    name: str
-    description: str
-    return_type: str
-    schema: Dict[str, Any]
-    auto_approve: Optional[bool] = True
-
-
 class McpToolCallResponse(BaseModel):
     result: Any
+
+
+class ExtendedTool(Tool):
+    auto_approve: bool
 
 
 class McpResourceId(BaseModel):
@@ -113,14 +106,11 @@ class ConnectionStatus(Enum):
 class McpServer(BaseModel):
     name: str
     config: str
-    status: ConnectionStatus
     disabled: bool
-    error: Optional[str]
-    tools: Optional[List[mcp.types.Tool]]
-    resources: Optional[List[McpResource]]
-    resource_templates: Optional[List[McpResourceTemplate]]
-    auto_approve: bool
     read_timeout: int
+    status: ConnectionStatus
+    error: Optional[str]
+    tools: Optional[List[ExtendedTool]]
 
 
 class McpDefaultSettings(BaseModel):
@@ -128,7 +118,6 @@ class McpDefaultSettings(BaseModel):
     connection_timeout: Optional[int] = None
     read_timeout: Optional[int] = None
     buffer_size: Optional[int] = None
-    auto_approve: Optional[bool] = None
 
 
 class McpSettingsModel(BaseModel):
@@ -140,10 +129,9 @@ class ServersDetails(BaseModel):
     name: str
     status: str
     tool_count: int
-    tools: Optional[List[mcp.types.Tool]]
+    tools: Optional[List[Tool]]
     error: Optional[str]
     disabled: bool
-    auto_approve: bool
 
 
 class ServerFilters(BaseModel):
@@ -152,7 +140,7 @@ class ServerFilters(BaseModel):
 
 class Tools(BaseModel):
     server_name: str
-    tools: Optional[List[mcp.types.Tool]]
+    tools: Optional[List[ExtendedTool]]
 
 
 class McpResponseMeta(BaseModel):
