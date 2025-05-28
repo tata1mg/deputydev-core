@@ -99,7 +99,7 @@ class ChunkService(BaseWeaviateRepository):
         BATCH_SIZE = 100
         try:
             for i in range(0, len(chunks), BATCH_SIZE):
-                batch = chunks[i:i + BATCH_SIZE]
+                batch = chunks[i : i + BATCH_SIZE]
                 with self.sync_collection.batch.dynamic() as _batch:
                     for chunk in batch:
                         _batch.add_object(
@@ -112,7 +112,6 @@ class ChunkService(BaseWeaviateRepository):
             AppLogger.log_warn(
                 f"Failed to insert chunks in bulk: Batch Size{BATCH_SIZE}  Exception: {str(e)}",
             )
-
 
     async def cleanup_old_chunks(self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]) -> None:
         await self.ensure_collection_connections()

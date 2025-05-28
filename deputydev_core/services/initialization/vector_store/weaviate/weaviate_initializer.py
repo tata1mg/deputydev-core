@@ -1,9 +1,11 @@
 import asyncio
-from typing import Optional, Tuple, Type
+from typing import Optional, Tuple
 from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
-from deputydev_core.services.initialization.vector_store.weaviate.weaviate_connector_factory import WeaviateConnectorFactory
+from deputydev_core.services.initialization.vector_store.weaviate.weaviate_connector_factory import (
+    WeaviateConnectorFactory,
+)
 from deputydev_core.utils.config_manager import ConfigManager
 
 
@@ -32,7 +34,7 @@ class WeaviateInitializer:
             weaviate_grpc_port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
             startup_timeout=ConfigManager.configs["WEAVIATE_STARTUP_TIMEOUT"],
             startup_healthcheck_interval=ConfigManager.configs["WEAVIATE_STARTUP_HEALTHCHECK_INTERVAL"],
-            env_variables=ConfigManager.configs["WEAVIATE_ENV_VARIABLES"]
+            env_variables=ConfigManager.configs["WEAVIATE_ENV_VARIABLES"],
         )
         new_weaviate_process = await connector.initialize()
         self.weaviate_client = connector.weaviate_client
@@ -40,7 +42,9 @@ class WeaviateInitializer:
         if new_weaviate_process:
             await self._change_weaviate_process(new_weaviate_process=new_weaviate_process)
 
-    async def initialize(self) -> Tuple[WeaviateSyncAndAsyncClients, Optional[asyncio.subprocess.Process]]:
+    async def initialize(
+        self,
+    ) -> Tuple[WeaviateSyncAndAsyncClients, Optional[asyncio.subprocess.Process]]:
         """
         Initialize the Weaviate client and schema. If the schema version is not the same as the current version,
         the schema will be cleaned and recreated.

@@ -17,14 +17,6 @@ class Clients(Enum):
     PR_REVIEW = "REVIEW"
 
 
-class ContextValueKeys(Enum):
-    BINARY_CONFIG = "BINARY_CONFIG"
-    CLI_AUTH_TOKEN = "CLI_AUTH_TOKEN"
-    EXTENSION_AUTH_TOKEN = "EXTENSION_AUTH_TOKEN"
-    PR_REVIEW_TOKEN = "PR_REVIEW_TOKEN"
-    WEAVIATE_CLIENT = "WEAVIATE_CLIENT"
-
-
 class AuthTokenStorageManagers(Enum):
     CLI_AUTH_TOKEN_STORAGE_MANAGER = "cli"
     EXTENSION_AUTH_TOKEN_STORAGE_MANAGER = "extension"
@@ -34,10 +26,9 @@ class Status(Enum):
     SUCCESS = "success"
     FAILED = "failed"
 
+
 class ContextValueKeys(Enum):
     WEAVIATE_CLIENT = "weaviate_client"
     PR_REVIEW_TOKEN = "pr_review_token"
     EXTENSION_AUTH_TOKEN = "extension_auth_token"
     CLI_AUTH_TOKEN = "cli_auth_token"
-
-

@@ -1,5 +1,5 @@
 from concurrent.futures import ProcessPoolExecutor
-from typing import Optional, Type, List, Tuple, Union
+from typing import Optional, Type
 
 from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
 from deputydev_core.models.dao.weaviate.chunks import Chunks
@@ -34,7 +34,12 @@ class ReviewInitialisationManager(InitializationManager):
         embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
     ) -> None:
         super().__init__(
-            repo_path, auth_token_key, process_executor, one_dev_client, weaviate_client, PRReviewEmbeddingManager
+            repo_path,
+            auth_token_key,
+            process_executor,
+            one_dev_client,
+            weaviate_client,
+            PRReviewEmbeddingManager,
         )
 
     async def initialize_vector_db(self) -> WeaviateSyncAndAsyncClients:

@@ -28,7 +28,12 @@ from deputydev_core.services.repository.dataclasses.main import (
 
 class FocussedSnippetSearch:
     @classmethod
-    async def search_code(cls, payload: FocussedSnippetSearchParams, weaviate_client: WeaviateSyncAndAsyncClients , initialization_manager):
+    async def search_code(
+        cls,
+        payload: FocussedSnippetSearchParams,
+        weaviate_client: WeaviateSyncAndAsyncClients,
+        initialization_manager,
+    ):
         """
         Search for code based on multiple search terms.
         """
@@ -57,10 +62,12 @@ class FocussedSnippetSearch:
         final_results = await updated_results
         return {"response": [result.model_dump() for result in final_results]}
 
-
     @classmethod
     async def update_chunks_list(
-        cls, payload: FocussedSnippetSearchResponse, repo_path: str, initialization_manager
+        cls,
+        payload: FocussedSnippetSearchResponse,
+        repo_path: str,
+        initialization_manager,
     ) -> FocussedSnippetSearchResponse:
         if payload.type not in ["class", "function"] or not payload.chunks:
             return payload
@@ -95,7 +102,6 @@ class FocussedSnippetSearch:
 
     @classmethod
     async def search_chunk_files(cls, search_terms, chunkable_files_and_hashes, chunk_files_service):
-
         tasks = [
             cls.process_file_search(idx, chunk_files_service, term, chunkable_files_and_hashes)
             for idx, term in enumerate(search_terms)

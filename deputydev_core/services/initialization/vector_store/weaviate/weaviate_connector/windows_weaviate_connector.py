@@ -1,6 +1,7 @@
 import asyncio
-from deputydev_core.services.initialization.vector_store.weaviate.weaviate_connector.base_weaviate_connector import \
-    BaseWeaviateConnector
+from deputydev_core.services.initialization.vector_store.weaviate.weaviate_connector.base_weaviate_connector import (
+    BaseWeaviateConnector,
+)
 from weaviate import WeaviateAsyncClient, WeaviateClient
 from deputydev_core.utils.app_logger import AppLogger
 
@@ -31,20 +32,30 @@ class WindowsWeaviateConnector(BaseWeaviateConnector):
             AppLogger.log_info("Starting Weaviate binary")
 
             docker_cmd = [
-                "docker", "run", "--rm", "--name", "weaviate",
-                "-p", f"{str(self.weaviate_http_port)}:{self.DEFAULT_HTTP_PORT}",
-                "-p", f"{str(self.weaviate_grpc_port)}:{self.DEFAULT_GRPC_PORT}",
-                "-e", f"CLUSTER_ADVERTISE_ADDR={self.env_variables['CLUSTER_ADVERTISE_ADDR']}",
-                "-e", f"LIMIT_RESOURCES={self.env_variables['LIMIT_RESOURCES']}",
-                "-e", f"PERSISTENCE_DATA_PATH={self.persistence_data_path}",
-                "-e", f"LOG_LEVEL={self.env_variables['LOG_LEVEL']}",
-                f"semitechnologies/weaviate:{self.weaviate_version}"
+                "docker",
+                "run",
+                "--rm",
+                "--name",
+                "weaviate",
+                "-p",
+                f"{str(self.weaviate_http_port)}:{self.DEFAULT_HTTP_PORT}",
+                "-p",
+                f"{str(self.weaviate_grpc_port)}:{self.DEFAULT_GRPC_PORT}",
+                "-e",
+                f"CLUSTER_ADVERTISE_ADDR={self.env_variables['CLUSTER_ADVERTISE_ADDR']}",
+                "-e",
+                f"LIMIT_RESOURCES={self.env_variables['LIMIT_RESOURCES']}",
+                "-e",
+                f"PERSISTENCE_DATA_PATH={self.persistence_data_path}",
+                "-e",
+                f"LOG_LEVEL={self.env_variables['LOG_LEVEL']}",
+                f"semitechnologies/weaviate:{self.weaviate_version}",
             ]
 
             weaviate_process = await asyncio.create_subprocess_exec(
                 *docker_cmd,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
 
             try:

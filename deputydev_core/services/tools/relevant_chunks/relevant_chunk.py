@@ -9,7 +9,9 @@ from deputydev_core.services.tools.focussed_snippet_search.dataclass.main import
     CodeSnippetDetails,
     FocusChunksParams,
 )
-from deputydev_core.services.tools.relevant_chunks.dataclass.main import RelevantChunksParams
+from deputydev_core.services.tools.relevant_chunks.dataclass.main import (
+    RelevantChunksParams,
+)
 from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepoFactory
 from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
 from deputydev_core.services.repository.chunk_service import ChunkService

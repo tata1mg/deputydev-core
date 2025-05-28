@@ -112,7 +112,7 @@ class BaseMetadataChunker(BaseChunker):
         """
         Recursively extract the name from a node, handling different possible structures
         """
-        # —— FIRST, TRY THE BUILT-IN FIELD NAME —— 
+        # —— FIRST, TRY THE BUILT-IN FIELD NAME ——
         name_field = node.child_by_field_name("name")
         if name_field:
             return name_field.text.decode("utf-8")
