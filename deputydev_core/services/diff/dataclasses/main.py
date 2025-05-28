@@ -16,7 +16,9 @@ class UdiffData(BaseModel):
 
 class LineNumberedData(BaseModel):
     type: Literal[DiffTypes.LINE_NUMBERED]
-    diff_chunks: List[Tuple[int, int, str]]  # List of tuples (start_line, end_line, replacement_text)
+    diff_chunks: List[
+        Tuple[int, int, str]
+    ]  # List of tuples (start_line, end_line, replacement_text)
 
 
 DiffData = Annotated[Union[UdiffData, LineNumberedData], Field(discriminator="type")]

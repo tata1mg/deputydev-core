@@ -28,7 +28,9 @@ class DiffApplicator:
     }
 
     @classmethod
-    async def apply_diff_to_file(cls, application_request: FileDiffApplicationRequest) -> FileDiffApplicationResponse:
+    async def apply_diff_to_file(
+        cls, application_request: FileDiffApplicationRequest
+    ) -> FileDiffApplicationResponse:
         """
         Apply the given diff to the file specified in the application request.
         """
@@ -52,5 +54,7 @@ class DiffApplicator:
         """
         Apply diffs to multiple files in bulk.
         """
-        responses = asyncio.gather(*[cls.apply_diff_to_file(request) for request in application_requests])
+        responses = asyncio.gather(
+            *[cls.apply_diff_to_file(request) for request in application_requests]
+        )
         return await responses

@@ -22,7 +22,9 @@ class AuthTokenStorageBase:
         load_auth_token() -> Union[str, None]: Loads the authentication token from the JSON file, returning None if not found.
     """
 
-    token_dir = os.path.join(os.path.expanduser("~"), LocalDirectories.LOCAL_ROOT_DIRECTORY.value)
+    token_dir = os.path.join(
+        os.path.expanduser("~"), LocalDirectories.LOCAL_ROOT_DIRECTORY.value
+    )
     token_file = os.path.join(token_dir, LocalFiles.LOCAL_AUTH_TOKENS_FILE.value)
 
     @classmethod

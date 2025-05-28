@@ -47,7 +47,12 @@ class ExtensionInitialisationManager(InitializationManager):
         embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
     ) -> None:
         super().__init__(
-            repo_path, auth_token_key, process_executor, one_dev_client, weaviate_client, ExtensionEmbeddingManager
+            repo_path,
+            auth_token_key,
+            process_executor,
+            one_dev_client,
+            weaviate_client,
+            ExtensionEmbeddingManager,
         )
 
     async def prefill_vector_store(
@@ -81,14 +86,14 @@ class ExtensionInitialisationManager(InitializationManager):
         await self._populate_collections()
 
         if is_new_schema:
-            await WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).set_schema_version(
-                WEAVIATE_SCHEMA_VERSION
-            )
+            await WeaviateSchemaDetailsService(
+                weaviate_client=self.weaviate_client
+            ).set_schema_version(WEAVIATE_SCHEMA_VERSION)
 
         return is_new_schema
 
     async def initialize_vector_db(
-            self, should_clean: bool = False
+        self, should_clean: bool = False
     ) -> Tuple[WeaviateSyncAndAsyncClients, Optional[asyncio.subprocess.Process], bool]:
         """
         Initialize the vector database.
@@ -96,5 +101,7 @@ class ExtensionInitialisationManager(InitializationManager):
         If the process is already running, it will skip starting it again.
         """
         await super().initialize_vector_db()
-        is_new_schema = await self._sync_schema_and_return_cleanup_status(should_clean=should_clean)
+        is_new_schema = await self._sync_schema_and_return_cleanup_status(
+            should_clean=should_clean
+        )
         return self.weaviate_client, self.weaviate_process, is_new_schema

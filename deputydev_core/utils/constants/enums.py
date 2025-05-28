@@ -34,10 +34,9 @@ class Status(Enum):
     SUCCESS = "success"
     FAILED = "failed"
 
+
 class ContextValueKeys(Enum):
     WEAVIATE_CLIENT = "weaviate_client"
     PR_REVIEW_TOKEN = "pr_review_token"
     EXTENSION_AUTH_TOKEN = "extension_auth_token"
     CLI_AUTH_TOKEN = "cli_auth_token"
-
-

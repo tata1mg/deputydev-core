@@ -34,7 +34,9 @@ class CustomProgressBar:
         Args:
             current_file_batch_size (int): The number of files in the current batch.
         """
-        self.current_batch_percentage = 100 * (current_file_batch_size / self.total_files_to_process)
+        self.current_batch_percentage = 100 * (
+            current_file_batch_size / self.total_files_to_process
+        )
 
     def update(self, current_chunks_count: int, total_current_chunks_count: int):
         """
@@ -44,7 +46,9 @@ class CustomProgressBar:
             current_chunks_count (int): Number of processed chunks in the current batch.
             total_current_chunks_count (int): Total number of chunks in the current batch.
         """
-        self.total_percentage += self.current_batch_percentage * (current_chunks_count / total_current_chunks_count)
+        self.total_percentage += self.current_batch_percentage * (
+            current_chunks_count / total_current_chunks_count
+        )
 
     def is_completed(self) -> bool:
         """

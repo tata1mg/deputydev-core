@@ -3,7 +3,9 @@ from typing import Dict, List
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 
 
-def filter_chunks_by_denotation(chunks: List[ChunkInfo], denotations: List[str]) -> List[ChunkInfo]:
+def filter_chunks_by_denotation(
+    chunks: List[ChunkInfo], denotations: List[str]
+) -> List[ChunkInfo]:
     return [chunk for chunk in chunks if chunk.denotation in denotations]
 
 

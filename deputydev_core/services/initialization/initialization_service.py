@@ -34,6 +34,7 @@ from deputydev_core.services.initialization.vector_store.weaviate.constants.weav
     WEAVIATE_SCHEMA_VERSION,
 )
 
+
 class InitializationManager:
     def __init__(
         self,
@@ -49,12 +50,16 @@ class InitializationManager:
         self.local_repo = None
         # it was done to make CLI
         embedding_manager = embedding_manager or CLIEmbeddingManager
-        self.embedding_manager = embedding_manager(auth_token_key=auth_token_key, one_dev_client=one_dev_client)
+        self.embedding_manager = embedding_manager(
+            auth_token_key=auth_token_key, one_dev_client=one_dev_client
+        )
         self.process_executor = process_executor
         self.chunk_cleanup_task = None
 
     def get_local_repo(self, chunkable_files: List[str] = None) -> BaseLocalRepo:
-        self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path, chunkable_files=chunkable_files)
+        self.local_repo = LocalRepoFactory.get_local_repo(
+            self.repo_path, chunkable_files=chunkable_files
+        )
         return self.local_repo
 
     async def initialize_vector_db(self):
@@ -63,7 +68,10 @@ class InitializationManager:
         This method will start the Weaviate process and create the necessary schema.
         If the process is already running, it will skip starting it again.
         """
-        self.weaviate_client, self.weaviate_process = await WeaviateInitializer().initialize()
+        (
+            self.weaviate_client,
+            self.weaviate_process,
+        ) = await WeaviateInitializer().initialize()
 
     async def prefill_vector_store(
         self,
@@ -105,10 +113,14 @@ class InitializationManager:
             ).start_cleanup_for_chunk_and_hashes()
         )
 
-    async def _check_and_initialize_collection(self, collection: Type[WeaviateBaseDAO]) -> None:
+    async def _check_and_initialize_collection(
+        self, collection: Type[WeaviateBaseDAO]
+    ) -> None:
         if not self.weaviate_client:
             raise ValueError("Weaviate client is not initialized")
-        exists = await self.weaviate_client.async_client.collections.exists(collection.collection_name)
+        exists = await self.weaviate_client.async_client.collections.exists(
+            collection.collection_name
+        )
         if not exists:
             await self.weaviate_client.async_client.collections.create(
                 name=collection.collection_name,
@@ -125,7 +137,11 @@ class InitializationManager:
         )
 
     async def _should_recreate_schema(self, should_clean: bool) -> bool:
-        schema_version = await WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).get_schema_version()
+        schema_version = await WeaviateSchemaDetailsService(
+            weaviate_client=self.weaviate_client
+        ).get_schema_version()
 
-        is_schema_invalid = schema_version is None or schema_version != WEAVIATE_SCHEMA_VERSION
+        is_schema_invalid = (
+            schema_version is None or schema_version != WEAVIATE_SCHEMA_VERSION
+        )
         return should_clean or is_schema_invalid

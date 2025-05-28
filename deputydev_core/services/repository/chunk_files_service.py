@@ -26,7 +26,9 @@ class ChunkFilesService(BaseWeaviateRepository):
     def __init__(self, weaviate_client: WeaviateSyncAndAsyncClients):
         super().__init__(weaviate_client, ChunkFiles.collection_name)
 
-    async def get_chunk_files_by_commit_hashes(self, file_to_commit_hashes: Dict[str, str]) -> List[ChunkFileDTO]:
+    async def get_chunk_files_by_commit_hashes(
+        self, file_to_commit_hashes: Dict[str, str]
+    ) -> List[ChunkFileDTO]:
         await self.ensure_collection_connections()
         BATCH_SIZE = 1000
         MAX_RESULTS_PER_QUERY = 10000
@@ -142,7 +144,9 @@ class ChunkFilesService(BaseWeaviateRepository):
                     uuid=chunk_file_uuid,
                 )
 
-    async def cleanup_old_chunk_files(self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]) -> None:
+    async def cleanup_old_chunk_files(
+        self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]
+    ) -> None:
         await self.ensure_collection_connections()
         batch_size = 1000
         while True:
@@ -159,17 +163,24 @@ class ChunkFilesService(BaseWeaviateRepository):
                 ),
             )
 
-            AppLogger.log_debug(f"{len(deletable_objects.objects)} chunk_files to be deleted in batch")
+            AppLogger.log_debug(
+                f"{len(deletable_objects.objects)} chunk_files to be deleted in batch"
+            )
 
             if len(deletable_objects.objects) <= 0:
                 break
 
             result = self.sync_collection.data.delete_many(
                 Filter.any_of(
-                    [Filter.by_id().equal(obj.uuid) for obj in deletable_objects.objects],
+                    [
+                        Filter.by_id().equal(obj.uuid)
+                        for obj in deletable_objects.objects
+                    ],
                 )
             )
-            AppLogger.log_debug(f"chunk_files deleted. successful - {result.successful}, failed - {result.failed}")
+            AppLogger.log_debug(
+                f"chunk_files deleted. successful - {result.successful}, failed - {result.failed}"
+            )
 
     async def get_autocomplete_keyword_chunks(
         self, keyword: str, chunkable_files_and_hashes: Dict[str, str], limit: int = 50
@@ -196,10 +207,18 @@ class ChunkFilesService(BaseWeaviateRepository):
             if len(keyword) < 3:
                 content_filters = Filter.any_of(
                     [
-                        Filter.by_property(PropertyTypes.FUNCTION.value).like(f"*{keyword}*"),
-                        Filter.by_property(PropertyTypes.CLASS.value).like(f"*{keyword}*"),
-                        Filter.by_property(PropertyTypes.FILE.value).like(f"*{keyword}*"),
-                        Filter.by_property(PropertyTypes.FILE_NAME.value).like(f"*{keyword}*"),
+                        Filter.by_property(PropertyTypes.FUNCTION.value).like(
+                            f"*{keyword}*"
+                        ),
+                        Filter.by_property(PropertyTypes.CLASS.value).like(
+                            f"*{keyword}*"
+                        ),
+                        Filter.by_property(PropertyTypes.FILE.value).like(
+                            f"*{keyword}*"
+                        ),
+                        Filter.by_property(PropertyTypes.FILE_NAME.value).like(
+                            f"*{keyword}*"
+                        ),
                     ]
                 )
                 combined_filter = Filter.all_of([file_filters, content_filters])
@@ -256,7 +275,9 @@ class ChunkFilesService(BaseWeaviateRepository):
             if len(keyword) < 3:
                 content_filters = Filter.any_of(
                     [
-                        Filter.by_property(CHUNKFILE_KEYWORD_PROPERTY_MAP[type][i]).like(f"*{keyword}*")
+                        Filter.by_property(
+                            CHUNKFILE_KEYWORD_PROPERTY_MAP[type][i]
+                        ).like(f"*{keyword}*")
                         for i in range(len(CHUNKFILE_KEYWORD_PROPERTY_MAP[type]))
                     ]
                 )
@@ -285,7 +306,10 @@ class ChunkFilesService(BaseWeaviateRepository):
             raise ex
 
     async def get_chunk_files_matching_exact_search_key(
-        self, search_key: str, search_type: str, file_path_to_hash_map: Optional[Dict[str, str]] = None
+        self,
+        search_key: str,
+        search_type: str,
+        file_path_to_hash_map: Optional[Dict[str, str]] = None,
     ) -> List[ChunkFileDTO]:
         file_filter = None
         if file_path_to_hash_map:
@@ -303,9 +327,13 @@ class ChunkFilesService(BaseWeaviateRepository):
 
         search_filter = None
         if search_type == "class":
-            search_filter = Filter.by_property(PropertyTypes.CLASS.value).contains_any([search_key])
+            search_filter = Filter.by_property(PropertyTypes.CLASS.value).contains_any(
+                [search_key]
+            )
         elif search_type == "function":
-            search_filter = Filter.by_property(PropertyTypes.FUNCTION.value).contains_any([search_key])
+            search_filter = Filter.by_property(
+                PropertyTypes.FUNCTION.value
+            ).contains_any([search_key])
         elif search_type == "file":
             search_filter = Filter.by_property("file_path").equal(search_key)
 

@@ -9,7 +9,9 @@ from deputydev_core.services.tools.focussed_snippet_search.dataclass.main import
     CodeSnippetDetails,
     FocusChunksParams,
 )
-from deputydev_core.services.tools.relevant_chunks.dataclass.main import RelevantChunksParams
+from deputydev_core.services.tools.relevant_chunks.dataclass.main import (
+    RelevantChunksParams,
+)
 from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepoFactory
 from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
 from deputydev_core.services.repository.chunk_service import ChunkService
@@ -42,16 +44,25 @@ class RelevantChunks:
         repo_path = payload.repo_path
         query = payload.query
         local_repo = LocalRepoFactory.get_local_repo(repo_path)
-        query_vector = await embedding_manager.embed_text_array(texts=[query], store_embeddings=False)
-        chunkable_files_and_hashes = await local_repo.get_chunkable_files_and_commit_hashes()
+        query_vector = await embedding_manager.embed_text_array(
+            texts=[query], store_embeddings=False
+        )
+        chunkable_files_and_hashes = (
+            await local_repo.get_chunkable_files_and_commit_hashes()
+        )
         await SharedChunksManager.update_chunks(repo_path, chunkable_files_and_hashes)
         weaviate_client = initialization_manager.weaviate_client
 
         if not weaviate_client:
             weaviate_client = await get_weaviate_client(initialization_manager)
 
-        if payload.perform_chunking and ConfigManager.configs["RELEVANT_CHUNKS"]["CHUNKING_ENABLED"]:
-            await initialization_manager.prefill_vector_store(chunkable_files_and_hashes)
+        if (
+            payload.perform_chunking
+            and ConfigManager.configs["RELEVANT_CHUNKS"]["CHUNKING_ENABLED"]
+        ):
+            await initialization_manager.prefill_vector_store(
+                chunkable_files_and_hashes
+            )
         max_relevant_chunks = ConfigManager.configs["CHUNKING"]["NUMBER_OF_CHUNKS"]
         (
             relevant_chunks,
@@ -77,7 +88,9 @@ class RelevantChunks:
         ).rerank(
             query=query,
             relevant_chunks=relevant_chunks,
-            is_llm_reranking_enabled=ConfigManager.configs["CHUNKING"]["IS_LLM_RERANKING_ENABLED"],
+            is_llm_reranking_enabled=ConfigManager.configs["CHUNKING"][
+                "IS_LLM_RERANKING_ENABLED"
+            ],
             focus_chunks=focus_chunks_details,
             one_dev_client=one_dev_client,
             auth_token_key=auth_token_key,
@@ -108,7 +121,8 @@ class RelevantChunks:
             chunk_info_list = [
                 chunk_info_and_hash
                 for chunk_info_and_hash in chunk_info_list
-                if chunk_info_and_hash.chunk_info.source_details.file_path == payload.search_item_path
+                if chunk_info_and_hash.chunk_info.source_details.file_path
+                == payload.search_item_path
             ]
         # TODO: uncomment this kachra
         # elif search_type == "class":
@@ -129,10 +143,14 @@ class RelevantChunks:
         #     ]
         return chunk_info_list
 
-    async def get_focus_chunks(self, payload: FocusChunksParams, initialization_manager) -> List[Dict[str, Any]]:
+    async def get_focus_chunks(
+        self, payload: FocusChunksParams, initialization_manager
+    ) -> List[Dict[str, Any]]:
         repo_path = payload.repo_path
         local_repo = LocalRepoFactory.get_local_repo(repo_path)
-        chunkable_files_and_hashes = await local_repo.get_chunkable_files_and_commit_hashes()
+        chunkable_files_and_hashes = (
+            await local_repo.get_chunkable_files_and_commit_hashes()
+        )
 
         await SharedChunksManager.update_chunks(repo_path, chunkable_files_and_hashes)
         weaviate_client = await get_weaviate_client(initialization_manager)
@@ -154,7 +172,10 @@ class RelevantChunks:
                 file_path_to_hash_map={
                     k: v
                     for k, v in chunkable_files_and_hashes.items()
-                    if ((k == payload.search_item_path) or (not payload.search_item_path))
+                    if (
+                        (k == payload.search_item_path)
+                        or (not payload.search_item_path)
+                    )
                 },
             )
 
@@ -170,8 +191,14 @@ class RelevantChunks:
                 for chunk_file_obj in revised_relevant_chunks
             ]
 
-        chunks = await ChunkService(weaviate_client=weaviate_client).get_chunks_by_chunk_hashes(
-            chunk_hashes=[chunk.chunk_hash for chunk in payload.chunks if isinstance(chunk, ChunkDetails)]
+        chunks = await ChunkService(
+            weaviate_client=weaviate_client
+        ).get_chunks_by_chunk_hashes(
+            chunk_hashes=[
+                chunk.chunk_hash
+                for chunk in payload.chunks
+                if isinstance(chunk, ChunkDetails)
+            ]
         )
 
         chunk_info_list: List[ChunkInfoAndHash] = []
@@ -197,7 +224,9 @@ class RelevantChunks:
                     break
 
         # handle code snippets
-        code_snippets = [chunk for chunk in payload.chunks if isinstance(chunk, CodeSnippetDetails)]
+        code_snippets = [
+            chunk for chunk in payload.chunks if isinstance(chunk, CodeSnippetDetails)
+        ]
 
         for code_snippet in code_snippets:
             file_content = ""
@@ -232,12 +261,18 @@ class RelevantChunks:
             if chunk_info_and_hash.chunk_info.source_details.file_hash
         }
 
-        import_only_chunk_files = await ChunkFilesService(weaviate_client).get_only_import_chunk_files_by_commit_hashes(
+        import_only_chunk_files = await ChunkFilesService(
+            weaviate_client
+        ).get_only_import_chunk_files_by_commit_hashes(
             file_to_commit_hashes=new_file_path_to_hash_map_for_import_only
         )
-        import_only_chunk_hashes = [chunk_file.chunk_hash for chunk_file in import_only_chunk_files]
+        import_only_chunk_hashes = [
+            chunk_file.chunk_hash for chunk_file in import_only_chunk_files
+        ]
 
-        import_only_chunk_dtos = await ChunkService(weaviate_client).get_chunks_by_chunk_hashes(
+        import_only_chunk_dtos = await ChunkService(
+            weaviate_client
+        ).get_chunks_by_chunk_hashes(
             chunk_hashes=import_only_chunk_hashes,
         )
 
@@ -279,4 +314,6 @@ class RelevantChunks:
             chunk_info_list=updated_chunk_info_list, payload=payload
         )
 
-        return [chunk_info.model_dump(mode="json") for chunk_info in updated_chunk_info_list]
+        return [
+            chunk_info.model_dump(mode="json") for chunk_info in updated_chunk_info_list
+        ]

@@ -179,7 +179,9 @@ def diff_lines(search_text: str, replace_text: str) -> List[str]:
     dmp = diff_match_patch()
     dmp.Diff_Timeout = 5
     # dmp.Diff_EditCost = 16
-    search_lines, replace_lines, mapping = dmp.diff_linesToChars(search_text, replace_text)
+    search_lines, replace_lines, mapping = dmp.diff_linesToChars(
+        search_text, replace_text
+    )
 
     diff_lines = dmp.diff_main(search_lines, replace_lines, None)
     dmp.diff_cleanupSemantic(diff_lines)
@@ -251,7 +253,9 @@ def strip_blank_lines(texts: List[str]) -> List[str]:
     return texts
 
 
-def try_strategy(texts: List[str], strategy: Any, preproc: Tuple[bool, bool, bool]) -> Optional[str]:
+def try_strategy(
+    texts: List[str], strategy: Any, preproc: Tuple[bool, bool, bool]
+) -> Optional[str]:
     preproc_strip_blank_lines, preproc_relative_indent, preproc_reverse = preproc
     ri = None
 

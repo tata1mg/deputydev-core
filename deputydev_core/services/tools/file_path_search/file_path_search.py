@@ -51,7 +51,9 @@ class FilePathSearch:
                         for term in search_terms
                         for part in path_parts
                     ):
-                        matching_files.append(os.path.relpath(file_path, self.repo_path))
+                        matching_files.append(
+                            os.path.relpath(file_path, self.repo_path)
+                        )
                 else:
                     matching_files.append(os.path.relpath(file_path, self.repo_path))
 

@@ -19,9 +19,7 @@ class BaseConfigModel(BaseModel):
     @classmethod
     def validate_timeout(cls, v):
         if v and v < 1:
-            raise ValueError(
-                f"Timeout must be at least {1} seconds"
-            )
+            raise ValueError(f"Timeout must be at least {1} seconds")
         return v
 
 

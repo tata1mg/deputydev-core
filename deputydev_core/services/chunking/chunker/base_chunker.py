@@ -70,7 +70,9 @@ class FileChunkCreator:
         for file, file_hash in file_paths_and_hashes.items():
             chunks_from_file: List[ChunkInfo] = []
             if process_executor is None:
-                chunks_from_file = FileChunkCreator.create_chunks(file, root_dir, file_hash, use_new_chunking)
+                chunks_from_file = FileChunkCreator.create_chunks(
+                    file, root_dir, file_hash, use_new_chunking
+                )
             else:
                 chunks_from_file = await loop.run_in_executor(
                     process_executor,
@@ -87,11 +89,15 @@ class FileChunkCreator:
 
 
 class BaseChunker(ABC):
-    def __init__(self, local_repo: BaseLocalRepo, process_executor: ProcessPoolExecutor) -> None:
+    def __init__(
+        self, local_repo: BaseLocalRepo, process_executor: ProcessPoolExecutor
+    ) -> None:
         self.local_repo = local_repo
         self.process_executor = process_executor
         self.file_chunk_creator = FileChunkCreator
 
     @abstractmethod
     async def create_chunks_and_docs(self) -> List[ChunkInfo]:
-        raise NotImplementedError("create_chunks method must be implemented in the child class")
+        raise NotImplementedError(
+            "create_chunks method must be implemented in the child class"
+        )

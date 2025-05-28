@@ -30,8 +30,14 @@ class GitRepo(BaseLocalRepo):
                         parsed_remote_url_to_match["host"].split("@")[-1]
                         == parsed_exitsting_remote_url["host"].split("@")[-1]
                     )
-                    and (parsed_remote_url_to_match["owner"] == parsed_exitsting_remote_url["owner"])
-                    and (parsed_remote_url_to_match["repo"] == parsed_exitsting_remote_url["repo"])
+                    and (
+                        parsed_remote_url_to_match["owner"]
+                        == parsed_exitsting_remote_url["owner"]
+                    )
+                    and (
+                        parsed_remote_url_to_match["repo"]
+                        == parsed_exitsting_remote_url["repo"]
+                    )
                 ):
                     return remote
         except Exception:
@@ -133,7 +139,11 @@ class GitRepo(BaseLocalRepo):
         all_files_and_hashes: Dict[str, str] = task_results[1]  # type: ignore
         # filter non required files
         if self.chunkable_files:
-            all_files_and_hashes = {k: v for k, v in all_files_and_hashes.items() if k in self.chunkable_files}
+            all_files_and_hashes = {
+                k: v
+                for k, v in all_files_and_hashes.items()
+                if k in self.chunkable_files
+            }
             modified_files = list(set(modified_files) & set(self.chunkable_files))
         # remove all modified files from all_files_and_hashes
         for file in modified_files:
@@ -161,7 +171,9 @@ class GitRepo(BaseLocalRepo):
     async def push_to_remote(self, branch_name: str, remote_repo_url: str):
         selected_remote = self._find_existing_remote(remote_url=remote_repo_url)
         if not selected_remote:
-            selected_remote = self.repo.create_remote(name=uuid4().hex, url=remote_repo_url)
+            selected_remote = self.repo.create_remote(
+                name=uuid4().hex, url=remote_repo_url
+            )
 
         await asyncio.to_thread(selected_remote.push, refspec=branch_name)
 
@@ -169,13 +181,19 @@ class GitRepo(BaseLocalRepo):
         # get the remote
         selected_remote = self._find_existing_remote(remote_url=remote_repo_url)
         if not selected_remote:
-            selected_remote = self.repo.create_remote(name=uuid4().hex, url=remote_repo_url)
+            selected_remote = self.repo.create_remote(
+                name=uuid4().hex, url=remote_repo_url
+            )
         await asyncio.to_thread(self.repo.git.pull, selected_remote.name, branch_name)
 
-    def is_branch_available_on_remote(self, branch_name: str, remote_repo_url: str) -> bool:
+    def is_branch_available_on_remote(
+        self, branch_name: str, remote_repo_url: str
+    ) -> bool:
         selected_remote = self._find_existing_remote(remote_url=remote_repo_url)
         if not selected_remote:
-            selected_remote = self.repo.create_remote(name=uuid4().hex, url=remote_repo_url)
+            selected_remote = self.repo.create_remote(
+                name=uuid4().hex, url=remote_repo_url
+            )
             selected_remote.fetch()
 
         remote_branches = [ref.name.split("/")[-1] for ref in selected_remote.refs]

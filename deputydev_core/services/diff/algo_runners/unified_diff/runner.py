@@ -57,7 +57,9 @@ class UnifiedDiffAlgoRunner(BaseDiffAlgoRunner):
     @classmethod
     def _directly_apply_hunk(cls, content: str, hunk: List[str]) -> Optional[str]:
         before_texts, after_texts = cls._hunk_to_before_after(hunk)
-        before, after = "".join(before_texts).rstrip("\r\n"), "".join(after_texts).rstrip("\r\n")
+        before, after = "".join(before_texts).rstrip("\r\n"), "".join(
+            after_texts
+        ).rstrip("\r\n")
 
         # if the before text is not in the content, we cannot apply the diff
         if not before:
@@ -211,7 +213,10 @@ class UnifiedDiffAlgoRunner(BaseDiffAlgoRunner):
         """
         Remove any leading or trailing whitespace lines
         """
-        res = [line if line.strip() else line[-(len(line) - len(line.rstrip("\r\n")))] for line in lines]
+        res = [
+            line if line.strip() else line[-(len(line) - len(line.rstrip("\r\n")))]
+            for line in lines
+        ]
         return res
 
     @classmethod
@@ -275,7 +280,9 @@ class UnifiedDiffAlgoRunner(BaseDiffAlgoRunner):
             return hunk
 
         # if the new before is more than 2/3 of original before, we want to use it
-        new_hunk = difflib.unified_diff(new_before, after, n=max(len(new_before), len(after)))
+        new_hunk = difflib.unified_diff(
+            new_before, after, n=max(len(new_before), len(after))
+        )
         new_hunk = list(new_hunk)[3:]
 
         return new_hunk
@@ -321,7 +328,9 @@ class UnifiedDiffAlgoRunner(BaseDiffAlgoRunner):
             changes = sections[i - 1]
             following_context = sections[i]
 
-            res = cls._apply_partial_hunk(content, preceding_context, changes, following_context)
+            res = cls._apply_partial_hunk(
+                content, preceding_context, changes, following_context
+            )
             if res:
                 content = res
             else:
@@ -334,7 +343,9 @@ class UnifiedDiffAlgoRunner(BaseDiffAlgoRunner):
             return content
 
     @classmethod
-    def do_replace(cls, file_path_str: str, content: Optional[str], hunk: List[str]) -> Optional[str]:
+    def do_replace(
+        cls, file_path_str: str, content: Optional[str], hunk: List[str]
+    ) -> Optional[str]:
         # get the file path as a Path object
         file_path = Path(file_path_str)
         before_texts, after_texts = cls._hunk_to_before_after(hunk)
@@ -443,7 +454,9 @@ class UnifiedDiffAlgoRunner(BaseDiffAlgoRunner):
         cleaned_diff_data = cls.clean_patch(diff_data.incremental_udiff)
         file_edits = cls._get_edits(file_path, cleaned_diff_data)
 
-        unique_normalized_edits: List[List[str]] = cls._get_unique_normalized_edits(file_edits)
+        unique_normalized_edits: List[List[str]] = cls._get_unique_normalized_edits(
+            file_edits
+        )
         full_path = os.path.join(repo_path, file_path)
         original_content: Optional[str] = current_content if current_content else None
         running_content: Optional[str] = original_content

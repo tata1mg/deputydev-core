@@ -18,7 +18,9 @@ class McpSettings:
         mcp_settings_dir = os.path.join(
             os.path.expanduser("~"), LocalDirectories.LOCAL_ROOT_DIRECTORY.value
         )
-        mcp_settings_file_path = os.path.join(mcp_settings_dir, LocalFiles.MCP_SETTINGS_FILE.value)
+        mcp_settings_file_path = os.path.join(
+            mcp_settings_dir, LocalFiles.MCP_SETTINGS_FILE.value
+        )
         return mcp_settings_file_path
 
     @staticmethod
@@ -69,4 +71,3 @@ class McpSettings:
         # Write back to file
         with open(self.mcp_config_path, "w") as f:
             json.dump(settings.model_dump(exclude_defaults=True), f, indent=2)
-

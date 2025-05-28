@@ -11,7 +11,9 @@ from deputydev_core.services.diff.dataclasses.main import (
 
 class LineNumberedDiffAlgoRunner(BaseDiffAlgoRunner):
     @classmethod
-    def _apply_diff_in_file_content(cls, content: List[str], chunks: List[Tuple[int, int, str]]) -> List[str]:
+    def _apply_diff_in_file_content(
+        cls, content: List[str], chunks: List[Tuple[int, int, str]]
+    ) -> List[str]:
         modified_content: List[str] = []
         current_chunk_index = 0  # Tracks the current chunk being processed
         skip_line_upto = 0  # Tracks the lines to skip due to chunk processing
@@ -57,14 +59,22 @@ class LineNumberedDiffAlgoRunner(BaseDiffAlgoRunner):
 
     @classmethod
     async def apply_diff(
-        cls, file_path: str, repo_path: str, current_content: str, diff_data: LineNumberedData
+        cls,
+        file_path: str,
+        repo_path: str,
+        current_content: str,
+        diff_data: LineNumberedData,
     ) -> FileDiffApplicationResponse:
         chunks = diff_data.diff_chunks
         # Sort the chunks by start line number to ensure proper processing order
         chunks = sorted(chunks, key=lambda x: x[0])
-        content = current_content.splitlines(keepends=True)  # Split content into lines while preserving line endings
+        content = current_content.splitlines(
+            keepends=True
+        )  # Split content into lines while preserving line endings
         # List to store the modified content
-        modified_content = cls._apply_diff_in_file_content(content=content, chunks=chunks)
+        modified_content = cls._apply_diff_in_file_content(
+            content=content, chunks=chunks
+        )
         return FileDiffApplicationResponse(
             new_file_path=file_path,
             new_content="".join(modified_content),
