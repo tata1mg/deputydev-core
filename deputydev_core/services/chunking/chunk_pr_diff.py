@@ -4,15 +4,11 @@ from deputydev_core.services.tiktoken import TikToken
 from deputydev_core.utils.config_manager import ConfigManager
 
 
-def chunk_pr_diff(
-    diff_content: str, max_lines: int = 200, overlap: int = 15
-) -> list[str]:
+def chunk_pr_diff(diff_content: str, max_lines: int = 200, overlap: int = 15) -> list[str]:
     file_pattern = re.compile(r"^a/.+ b/.+$")  # Our files start with a/b
     tiktoken_client = TikToken()
 
-    pr_diff_token_count = tiktoken_client.count(
-        diff_content, ConfigManager.configs["EMBEDDING"]["MODEL"]
-    )
+    pr_diff_token_count = tiktoken_client.count(diff_content, ConfigManager.configs["EMBEDDING"]["MODEL"])
     embeeding_token_limit = ConfigManager.configs["EMBEDDING"]["TOKEN_LIMIT"]
 
     if pr_diff_token_count < embeeding_token_limit:

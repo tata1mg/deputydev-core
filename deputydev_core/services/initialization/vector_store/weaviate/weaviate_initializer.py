@@ -1,5 +1,5 @@
 import asyncio
-from typing import Optional, Tuple, Type
+from typing import Optional, Tuple
 from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
@@ -14,9 +14,7 @@ class WeaviateInitializer:
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None
         self.weaviate_process: Optional[asyncio.subprocess.Process] = None
 
-    async def _change_weaviate_process(
-        self, new_weaviate_process: asyncio.subprocess.Process
-    ) -> None:
+    async def _change_weaviate_process(self, new_weaviate_process: asyncio.subprocess.Process) -> None:
         if self.weaviate_process:
             self.weaviate_process.terminate()
             await self.weaviate_process.wait()
@@ -35,18 +33,14 @@ class WeaviateInitializer:
             weaviate_http_port=ConfigManager.configs["WEAVIATE_HTTP_PORT"],
             weaviate_grpc_port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
             startup_timeout=ConfigManager.configs["WEAVIATE_STARTUP_TIMEOUT"],
-            startup_healthcheck_interval=ConfigManager.configs[
-                "WEAVIATE_STARTUP_HEALTHCHECK_INTERVAL"
-            ],
+            startup_healthcheck_interval=ConfigManager.configs["WEAVIATE_STARTUP_HEALTHCHECK_INTERVAL"],
             env_variables=ConfigManager.configs["WEAVIATE_ENV_VARIABLES"],
         )
         new_weaviate_process = await connector.initialize()
         self.weaviate_client = connector.weaviate_client
 
         if new_weaviate_process:
-            await self._change_weaviate_process(
-                new_weaviate_process=new_weaviate_process
-            )
+            await self._change_weaviate_process(new_weaviate_process=new_weaviate_process)
 
     async def initialize(
         self,

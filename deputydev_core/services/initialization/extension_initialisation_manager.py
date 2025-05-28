@@ -86,9 +86,9 @@ class ExtensionInitialisationManager(InitializationManager):
         await self._populate_collections()
 
         if is_new_schema:
-            await WeaviateSchemaDetailsService(
-                weaviate_client=self.weaviate_client
-            ).set_schema_version(WEAVIATE_SCHEMA_VERSION)
+            await WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).set_schema_version(
+                WEAVIATE_SCHEMA_VERSION
+            )
 
         return is_new_schema
 
@@ -101,7 +101,5 @@ class ExtensionInitialisationManager(InitializationManager):
         If the process is already running, it will skip starting it again.
         """
         await super().initialize_vector_db()
-        is_new_schema = await self._sync_schema_and_return_cleanup_status(
-            should_clean=should_clean
-        )
+        is_new_schema = await self._sync_schema_and_return_cleanup_status(should_clean=should_clean)
         return self.weaviate_client, self.weaviate_process, is_new_schema

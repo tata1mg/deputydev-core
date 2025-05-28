@@ -19,9 +19,7 @@ class AutoCompleteServiceAsync(ABC):
     async def _fuzzy_search(self, request: AutoCompleteSearch) -> List[ChunkFileDTO]:
         raise NotImplementedError
 
-    async def keyword_suggestions(
-        self, request: AutoCompleteSearch
-    ) -> List[ChunkFileDTO]:
+    async def keyword_suggestions(self, request: AutoCompleteSearch) -> List[ChunkFileDTO]:
         start_time = time.time()
         suggestions = await self._fuzzy_search(request)
         elapsed_time = time.time() - start_time

@@ -21,6 +21,4 @@ class BaseDiffAlgoRunner(ABC):
         """
         Apply the diff to the file.
         """
-        raise NotImplementedError(
-            "apply_diff method must be implemented in the child class"
-        )
+        raise NotImplementedError("apply_diff method must be implemented in the child class")

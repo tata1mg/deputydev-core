@@ -23,9 +23,7 @@ from deputydev_core.utils.file_utils import read_file
 
 class ChunkingManger:
     @classmethod
-    def build_focus_query(
-        cls, user_query: str, custom_context_code_chunks: List[ChunkInfo]
-    ):
+    def build_focus_query(cls, user_query: str, custom_context_code_chunks: List[ChunkInfo]):
         if not custom_context_code_chunks:
             return user_query
 
@@ -200,9 +198,7 @@ class ChunkingManger:
 
         if focus_directories:
             focus_files.extend(
-                cls.get_focus_files_from_focus_directories(
-                    chunkable_files_with_hashes, focus_directories
-                )
+                cls.get_focus_files_from_focus_directories(chunkable_files_with_hashes, focus_directories)
             )
 
         if focus_files:
@@ -229,9 +225,7 @@ class ChunkingManger:
         return reranked_chunks, input_tokens, focus_chunks_details
 
     @classmethod
-    def get_focus_files_from_focus_directories(
-        cls, chunkable_files_with_hashes, focus_directories
-    ):
+    def get_focus_files_from_focus_directories(cls, chunkable_files_with_hashes, focus_directories):
         focus_files = set()
 
         for directory in focus_directories:
@@ -244,21 +238,13 @@ class ChunkingManger:
     @classmethod
     def exclude_focused_chunks(cls, related_chunk, focus_chunks_details):
         related_chunk = [
-            chunk
-            for chunk in related_chunk
-            if chunk.content not in [chunk.content for chunk in focus_chunks_details]
+            chunk for chunk in related_chunk if chunk.content not in [chunk.content for chunk in focus_chunks_details]
         ]
         return related_chunk
 
     @classmethod
-    async def rerank_related_chunks(
-        cls, query, related_chunks, reranker, focus_chunks_details, auth_token_key
-    ):
-        related_chunks = cls.exclude_focused_chunks(
-            related_chunks, focus_chunks_details
-        )
+    async def rerank_related_chunks(cls, query, related_chunks, reranker, focus_chunks_details, auth_token_key):
+        related_chunks = cls.exclude_focused_chunks(related_chunks, focus_chunks_details)
         if reranker:
-            related_chunks = await reranker.rerank(
-                focus_chunks_details, related_chunks, query, auth_token_key
-            )
+            related_chunks = await reranker.rerank(focus_chunks_details, related_chunks, query, auth_token_key)
         return related_chunks

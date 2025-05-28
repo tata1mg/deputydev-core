@@ -12,9 +12,7 @@ from .base_chunker import BaseChunker
 
 
 class LegacyChunker(BaseChunker):
-    def chunk_code(
-        self, tree, content: bytes, max_chars, coalesce, language
-    ) -> List[Span]:
+    def chunk_code(self, tree, content: bytes, max_chars, coalesce, language) -> List[Span]:
         """
         Chunk the AST tree based on maximum characters and coalesce size.
 
@@ -56,9 +54,7 @@ class LegacyChunker(BaseChunker):
             end = get_line_number(chunks[0].end, content)
             return [Span(0, end)]
         for i in range(len(chunks) - 1):
-            chunks[i].end = chunks[
-                i + 1
-            ].start  # sets the last byte of chunk to start byte of suceessiding chunk
+            chunks[i].end = chunks[i + 1].start  # sets the last byte of chunk to start byte of suceessiding chunk
         chunks[
             -1
         ].end = (

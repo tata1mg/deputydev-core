@@ -38,9 +38,7 @@ class GrepSearch:
         if is_git_repo:
             command_template = 'git --git-dir="{repo_path}/.git" --work-tree="{repo_path}" grep -rnC 2 \'{search_term}\' -- {directory_path}'
         else:
-            command_template = (
-                "grep -rnC 2 '{search_term}' \"{abs_path}\" {exclude_flags}"
-            )
+            command_template = "grep -rnC 2 '{search_term}' \"{abs_path}\" {exclude_flags}"
 
         exclude_dirs = [
             "node_modules",
@@ -75,9 +73,7 @@ class GrepSearch:
             stdout, stderr = await process.communicate()
 
             if stdout:
-                parsed_results = self.parse_lines(
-                    stdout.decode().strip().splitlines(), is_git_repo
-                )
+                parsed_results = self.parse_lines(stdout.decode().strip().splitlines(), is_git_repo)
                 results.extend(parsed_results)
 
             if stderr:
@@ -85,9 +81,7 @@ class GrepSearch:
 
         return results[:100]
 
-    def parse_lines(
-        self, input_lines: List[str], is_git_repo: bool
-    ) -> List[Dict[str, Union[ChunkInfo, int]]]:
+    def parse_lines(self, input_lines: List[str], is_git_repo: bool) -> List[Dict[str, Union[ChunkInfo, int]]]:
         results: List[Dict[str, Union[ChunkInfo, int]]] = []
         chunk_lines: List[str] = []
 
@@ -116,9 +110,7 @@ class GrepSearch:
             # Step 2: Get all line numbers in the chunk (even context lines)
             line_numbers: List[int] = []
             for line in chunk:
-                match_context = re.match(
-                    rf"^{re.escape(file_path)}[-:](\d+)[-:]?(.*)$", line
-                )
+                match_context = re.match(rf"^{re.escape(file_path)}[-:](\d+)[-:]?(.*)$", line)
                 if match_context:
                     line_num = int(match_context.group(1))
                     line_numbers.append(line_num)
@@ -131,9 +123,7 @@ class GrepSearch:
 
             # Step 5 & 6: Remove file path and line numbers from all lines to get clean code
             for line in chunk:
-                clean = re.sub(
-                    rf"^{re.escape(file_path)}[-:](\d+)[-:]?", "", line
-                ).strip()
+                clean = re.sub(rf"^{re.escape(file_path)}[-:](\d+)[-:]?", "", line).strip()
                 code_lines.append(clean)
 
             # Step 7: Join into a clean block of code
@@ -145,9 +135,7 @@ class GrepSearch:
             return (
                 ChunkInfo(
                     content=chunk_text,
-                    source_details=ChunkSourceDetails(
-                        file_path=file_path, start_line=start_line, end_line=end_line
-                    ),
+                    source_details=ChunkSourceDetails(file_path=file_path, start_line=start_line, end_line=end_line),
                 ),
                 match_line,
             )
@@ -158,9 +146,7 @@ class GrepSearch:
             if line.strip() == "--":
                 chunk_info_obj, matched_line = process_chunk(chunk_lines)
                 if chunk_info_obj and matched_line:
-                    results.append(
-                        {"chunk_info": chunk_info_obj, "matched_line": matched_line}
-                    )
+                    results.append({"chunk_info": chunk_info_obj, "matched_line": matched_line})
                 chunk_lines = []
 
             # if line is not '--', add it to the current chunk
@@ -171,8 +157,6 @@ class GrepSearch:
         if chunk_lines:
             chunk_info_obj, matched_line = process_chunk(chunk_lines)
             if chunk_info_obj and matched_line:
-                results.append(
-                    {"chunk_info": chunk_info_obj, "matched_line": matched_line}
-                )
+                results.append({"chunk_info": chunk_info_obj, "matched_line": matched_line})
 
         return results

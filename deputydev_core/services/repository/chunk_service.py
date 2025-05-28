@@ -56,9 +56,7 @@ class ChunkService(BaseWeaviateRepository):
             AppLogger.log_error("Failed to get chunk files by commit hashes")
             raise ex
 
-    async def get_chunks_by_chunk_hashes(
-        self, chunk_hashes: List[str]
-    ) -> List[Tuple[ChunkDTO, List[float]]]:
+    async def get_chunks_by_chunk_hashes(self, chunk_hashes: List[str]) -> List[Tuple[ChunkDTO, List[float]]]:
         BATCH_SIZE = 1000
         all_chunks: List[Tuple[ChunkDTO, List[float]]] = []
         MAX_RESULTS_PER_QUERY = 10000
@@ -69,10 +67,7 @@ class ChunkService(BaseWeaviateRepository):
                 batch_hashes = chunk_hashes[i : i + BATCH_SIZE]
                 batch_chunks = await self.async_collection.query.fetch_objects(
                     filters=Filter.any_of(
-                        [
-                            Filter.by_id().equal(generate_uuid5(chunk_hash))
-                            for chunk_hash in batch_hashes
-                        ]
+                        [Filter.by_id().equal(generate_uuid5(chunk_hash)) for chunk_hash in batch_hashes]
                     ),
                     include_vector=True,
                     limit=MAX_RESULTS_PER_QUERY,
@@ -108,9 +103,7 @@ class ChunkService(BaseWeaviateRepository):
                 with self.sync_collection.batch.dynamic() as _batch:
                     for chunk in batch:
                         _batch.add_object(
-                            properties=chunk.dto.model_dump(
-                                mode="json", exclude={"id"}
-                            ),
+                            properties=chunk.dto.model_dump(mode="json", exclude={"id"}),
                             vector=chunk.vector,
                             uuid=generate_uuid5(chunk.dto.chunk_hash),
                         )
@@ -120,9 +113,7 @@ class ChunkService(BaseWeaviateRepository):
                 f"Failed to insert chunks in bulk: Batch Size{BATCH_SIZE}  Exception: {str(e)}",
             )
 
-    async def cleanup_old_chunks(
-        self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]
-    ) -> None:
+    async def cleanup_old_chunks(self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]) -> None:
         await self.ensure_collection_connections()
         batch_size = 1000
         while True:
@@ -139,21 +130,14 @@ class ChunkService(BaseWeaviateRepository):
                 ),
             )
 
-            AppLogger.log_debug(
-                f"{len(deletable_objects.objects)} chunks to be deleted in batch"
-            )
+            AppLogger.log_debug(f"{len(deletable_objects.objects)} chunks to be deleted in batch")
 
             if len(deletable_objects.objects) <= 0:
                 break
 
             result = self.sync_collection.data.delete_many(
                 Filter.any_of(
-                    [
-                        Filter.by_id().equal(obj.uuid)
-                        for obj in deletable_objects.objects
-                    ],
+                    [Filter.by_id().equal(obj.uuid) for obj in deletable_objects.objects],
                 )
             )
-            AppLogger.log_debug(
-                f"chunks deleted. successful - {result.successful}, failed - {result.failed}"
-            )
+            AppLogger.log_debug(f"chunks deleted. successful - {result.successful}, failed - {result.failed}")

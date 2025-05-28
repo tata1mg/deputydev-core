@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Dict, Tuple
+from typing import Optional
 from deputydev_core.services.mcp.dataclass.main import (
     McpSettingsModel,
     ServerConfigModel,
@@ -15,12 +15,8 @@ class McpSettings:
 
     @staticmethod
     def get_settings_file_path():
-        mcp_settings_dir = os.path.join(
-            os.path.expanduser("~"), LocalDirectories.LOCAL_ROOT_DIRECTORY.value
-        )
-        mcp_settings_file_path = os.path.join(
-            mcp_settings_dir, LocalFiles.MCP_SETTINGS_FILE.value
-        )
+        mcp_settings_dir = os.path.join(os.path.expanduser("~"), LocalDirectories.LOCAL_ROOT_DIRECTORY.value)
+        mcp_settings_file_path = os.path.join(mcp_settings_dir, LocalFiles.MCP_SETTINGS_FILE.value)
         return mcp_settings_file_path
 
     @staticmethod

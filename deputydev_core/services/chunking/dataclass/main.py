@@ -101,14 +101,9 @@ class NeoSpan:
         return ChunkMetadata(
             hierarchy=deduplicate_hierarchy(combined_hierarchy),
             dechunk=self.metadata.dechunk and other_meta_data.dechunk,
-            import_only_chunk=self.metadata.import_only_chunk
-            or other_meta_data.import_only_chunk,
-            all_functions=list(
-                set(self.metadata.all_functions + other_meta_data.all_functions)
-            ),
-            all_classes=list(
-                set(self.metadata.all_classes + other_meta_data.all_classes)
-            ),
+            import_only_chunk=self.metadata.import_only_chunk or other_meta_data.import_only_chunk,
+            all_functions=list(set(self.metadata.all_functions + other_meta_data.all_functions)),
+            all_classes=list(set(self.metadata.all_classes + other_meta_data.all_classes)),
             byte_size=self.metadata.byte_size + other_meta_data.byte_size,
         )
 
@@ -201,9 +196,7 @@ class Span:
         elif isinstance(other, Span):
             return Span(self.start, other.end)
         else:
-            raise NotImplementedError(
-                "Unsupported type for 'other'. Must be Span or int."
-            )
+            raise NotImplementedError("Unsupported type for 'other'. Must be Span or int.")
 
     def __len__(self) -> int:
         """

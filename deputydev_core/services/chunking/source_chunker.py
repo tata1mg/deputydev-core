@@ -16,9 +16,7 @@ from ..tiktoken import TikToken
 from .chunk_info import ChunkInfo, ChunkSourceDetails
 
 
-def chunk_content(
-    content: str, line_count: int = 30, overlap: int = 15
-) -> List[Tuple[int, int, str]]:
+def chunk_content(content: str, line_count: int = 30, overlap: int = 15) -> List[Tuple[int, int, str]]:
     """
     Default chunking of content based on line count and overlap.
 
@@ -97,9 +95,7 @@ def chunk_source(
         final_chunks: List[ChunkInfo] = []
         parser = get_parser(language)
         tree = parser.parse(content.encode("utf-8"))
-        is_eligible_for_new_chunking = (
-            use_new_chunking and supported_new_chunk_language(language)
-        )
+        is_eligible_for_new_chunking = use_new_chunking and supported_new_chunk_language(language)
         strategy_chunker = ChunkingStrategyFactory.create_strategy(
             language=language, is_eligible_for_new_chunking=is_eligible_for_new_chunking
         )
@@ -147,15 +143,11 @@ def chunk_source(
         return []
 
 
-def chunk_pr_diff(
-    diff_content: str, max_lines: int = 200, overlap: int = 15
-) -> list[str]:
+def chunk_pr_diff(diff_content: str, max_lines: int = 200, overlap: int = 15) -> list[str]:
     file_pattern = re.compile(r"^a/.+ b/.+$")  # Our files start with a/b
     tiktoken_client = TikToken()
 
-    pr_diff_token_count = tiktoken_client.count(
-        diff_content, ConfigManager.configs["EMBEDDING"]["MODEL"]
-    )
+    pr_diff_token_count = tiktoken_client.count(diff_content, ConfigManager.configs["EMBEDDING"]["MODEL"])
     embeeding_token_limit = ConfigManager.configs["EMBEDDING"]["TOKEN_LIMIT"]
 
     if pr_diff_token_count < embeeding_token_limit:
