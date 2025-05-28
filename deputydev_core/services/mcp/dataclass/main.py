@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any, Union, OrderedDict
 from pydantic import BaseModel, Field, HttpUrl, field_validator
 from fastmcp.client.transports import (
     StdioTransport,
@@ -10,7 +10,7 @@ from mcp.types import Tool
 
 
 class BaseConfigModel(BaseModel):
-    auto_approve_tools: Optional[Union[List[str], str]] = None
+    auto_approve_tools: Optional[Union[List[str], str]] = []
     disabled: Optional[bool] = False  # handles servers disable state
     connection_timeout: Optional[int] = None
     read_timeout: Optional[int] = None
@@ -121,7 +121,7 @@ class McpDefaultSettings(BaseModel):
 
 
 class McpSettingsModel(BaseModel):
-    mcp_servers: Dict[str, ServerConfigModel] = Field(default_factory=dict)
+    mcp_servers: OrderedDict[str, ServerConfigModel] = Field(default_factory=dict)
     default_settings: Optional[McpDefaultSettings] = None
 
 
