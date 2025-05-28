@@ -39,10 +39,7 @@ class ExtensionEmbeddingManager(BaseOneDevEmbeddingManager):
         progress_bar=None,
         progress_step=0,
     ) -> Tuple[int, float, List[List[str]]]:
-        parallel_tasks = [
-            self._get_embeddings_for_single_batch(batch, store_embeddings)
-            for batch in parallel_batches
-        ]
+        parallel_tasks = [self._get_embeddings_for_single_batch(batch, store_embeddings) for batch in parallel_batches]
         failed_batches: List[List[str]] = []
         for single_task in asyncio.as_completed(parallel_tasks):
             _embeddings, _tokens_used, data_batch = await single_task

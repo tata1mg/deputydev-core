@@ -6,7 +6,6 @@ from deputydev_core.services.mcp.dataclass.main import (
     McpResponseMeta,
     McpServer,
 )
-from deputydev_core.services.mcp.dataclass.mcp_connection import McpConnection
 
 
 def handle_exceptions_async(func):
@@ -21,9 +20,7 @@ def handle_exceptions_async(func):
     return wrapper
 
 
-def get_sorted_connection_order(
-    servers: List[str], connections: List[McpServer]
-) -> List[McpServer]:
+def get_sorted_connection_order(servers: List[str], connections: List[McpServer]) -> List[McpServer]:
     if not servers:
         return connections
     # Build an index map for fast lookup

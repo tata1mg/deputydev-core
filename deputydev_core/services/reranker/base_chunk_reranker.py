@@ -25,6 +25,4 @@ class BaseChunkReranker(ABC):
         Returns:
             List[ChunkInfo]: The reranked focus chunks.
         """
-        raise NotImplementedError(
-            "Rerank method must be implemented in the child class"
-        )
+        raise NotImplementedError("Rerank method must be implemented in the child class")

@@ -10,15 +10,11 @@ from deputydev_core.utils.context_value import ContextValue
 
 
 class BaseOneDevEmbeddingManager(BaseEmbeddingManager):
-    def __init__(
-        self, one_dev_client: OneDevClient, auth_token_key: Optional[str] = None
-    ):
+    def __init__(self, one_dev_client: OneDevClient, auth_token_key: Optional[str] = None):
         self.auth_token_key = auth_token_key
         self.one_dev_client = one_dev_client
 
-    def create_optimized_batches(
-        self, texts: List[str], target_tokens_per_batch: int, model: str
-    ) -> List[List[str]]:
+    def create_optimized_batches(self, texts: List[str], target_tokens_per_batch: int, model: str) -> List[List[str]]:
         tiktoken_client = TikToken()
         batches: List[List[str]] = []
         current_batch = []
@@ -27,9 +23,7 @@ class BaseOneDevEmbeddingManager(BaseEmbeddingManager):
         for text in texts:
             text_token_count = tiktoken_client.count(text, model=model)
 
-            if (
-                text_token_count > target_tokens_per_batch
-            ):  # Single text exceeds max tokens
+            if text_token_count > target_tokens_per_batch:  # Single text exceeds max tokens
                 batches.append([text])
                 AppLogger.log_warn(
                     f"Text with token count {text_token_count} exceeds the max token limit of {target_tokens_per_batch}."

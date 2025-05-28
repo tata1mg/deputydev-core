@@ -1,6 +1,6 @@
 from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.chunker.handlers.vector_db_chunker import (
@@ -57,14 +57,12 @@ class OneDevExtensionChunker(VectorDBChunker):
         """
         Handles a batch of files to be chunked
         """
-        file_wise_chunks = (
-            await self.file_chunk_creator.create_and_get_file_wise_chunks(
-                dict(files_to_chunk_batch),
-                self.local_repo.repo_path,
-                self.use_new_chunking,
-                process_executor=self.process_executor,
-                set_config_in_new_process=True,
-            )
+        file_wise_chunks = await self.file_chunk_creator.create_and_get_file_wise_chunks(
+            dict(files_to_chunk_batch),
+            self.local_repo.repo_path,
+            self.use_new_chunking,
+            process_executor=self.process_executor,
+            set_config_in_new_process=True,
         )
 
         # WARNING: Do not change this to pass by value, it will increase memory usage
@@ -92,19 +90,13 @@ class OneDevExtensionChunker(VectorDBChunker):
 
         all_file_wise_chunks: Dict[str, List[ChunkInfo]] = {}
         if self.progress_bar:
-            self.progress_bar.initialise(
-                total_files_to_process=sum(
-                    [len(files) for files in batched_files_to_store]
-                )
-            )
+            self.progress_bar.initialise(total_files_to_process=sum([len(files) for files in batched_files_to_store]))
         for batch_files in batched_files_to_store:
             if self.progress_bar:
                 self.progress_bar.set_current_batch_percentage(len(batch_files))
             # get the chunks for the batch
-            file_wise_chunks_for_batch = (
-                await self.get_file_wise_chunks_for_single_file_batch(
-                    files_to_chunk_batch=batch_files,
-                )
+            file_wise_chunks_for_batch = await self.get_file_wise_chunks_for_single_file_batch(
+                files_to_chunk_batch=batch_files,
             )
 
             # store the chunks in the vector store
@@ -140,9 +132,7 @@ class OneDevExtensionChunker(VectorDBChunker):
             List[ChunkInfo]: A list of chunks with embeddings added.
         """
         texts_to_embed = [
-            chunk.get_chunk_content_with_meta_data(
-                add_ellipsis=False, add_lines=False, add_class_function_info=True
-            )
+            chunk.get_chunk_content_with_meta_data(add_ellipsis=False, add_lines=False, add_class_function_info=True)
             for chunk in chunks
         ]
         embeddings, _input_tokens = await self.embedding_manager.embed_text_array(

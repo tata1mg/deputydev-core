@@ -21,9 +21,7 @@ class LocalRepoFactory:
             return False
 
     @classmethod
-    def get_local_repo(
-        cls, repo_path: str, chunkable_files: List[str] = None
-    ) -> BaseLocalRepo:
+    def get_local_repo(cls, repo_path: str, chunkable_files: List[str] = None) -> BaseLocalRepo:
         if cls._is_git_repo(repo_path):
             return GitRepo(repo_path, chunkable_files=chunkable_files)
         return NonVCSRepo(repo_path, chunkable_files=chunkable_files)

@@ -14,9 +14,7 @@ class BaseHTTPClient:
         limit_per_host: Optional[int] = None,
         ttl_dns_cache: Optional[int] = None,
     ):
-        self._session_manager = SessionManager(
-            limit=limit, limit_per_host=limit_per_host, ttl_dns_cache=ttl_dns_cache
-        )
+        self._session_manager = SessionManager(limit=limit, limit_per_host=limit_per_host, ttl_dns_cache=ttl_dns_cache)
         self._timeout = timeout
 
     # The following methods are the internal API for the client

@@ -18,7 +18,5 @@ class WeaviateConnectorFactory:
     @classmethod
     def get_compatible_connector(
         cls,
-    ) -> Type[
-        Union[DarwinWeaviateConnector, LinuxWeaviateConnector, WindowsWeaviateConnector]
-    ]:
+    ) -> Type[Union[DarwinWeaviateConnector, LinuxWeaviateConnector, WindowsWeaviateConnector]]:
         return cls.OS_CONNECTOR_MAPPING[get_supported_os()]

@@ -85,14 +85,10 @@ class VectorDBChunker(BaseChunker):
             List[ChunkInfo]: A list of chunks with embeddings added.
         """
         texts_to_embed = [
-            chunk.get_chunk_content_with_meta_data(
-                add_ellipsis=False, add_lines=False, add_class_function_info=True
-            )
+            chunk.get_chunk_content_with_meta_data(add_ellipsis=False, add_lines=False, add_class_function_info=True)
             for chunk in chunks
         ]
-        embeddings, _input_tokens = await self.embedding_manager.embed_text_array(
-            texts=texts_to_embed
-        )
+        embeddings, _input_tokens = await self.embedding_manager.embed_text_array(texts=texts_to_embed)
         for chunk, embedding in zip(chunks, embeddings):
             chunk.embedding = embedding
 
@@ -103,13 +99,11 @@ class VectorDBChunker(BaseChunker):
         """
         Handles a batch of files to be chunked
         """
-        file_wise_chunks = (
-            await self.file_chunk_creator.create_and_get_file_wise_chunks(
-                dict(files_to_chunk_batch),
-                self.local_repo.repo_path,
-                self.use_new_chunking,
-                process_executor=self.process_executor,
-            )
+        file_wise_chunks = await self.file_chunk_creator.create_and_get_file_wise_chunks(
+            dict(files_to_chunk_batch),
+            self.local_repo.repo_path,
+            self.use_new_chunking,
+            process_executor=self.process_executor,
         )
 
         # WARNING: Do not change this to pass by value, it will increase memory usage
@@ -139,10 +133,8 @@ class VectorDBChunker(BaseChunker):
 
         for batch_files in batched_files_to_store:
             # get the chunks for the batch
-            file_wise_chunks_for_batch = (
-                await self.get_file_wise_chunks_for_single_file_batch(
-                    files_to_chunk_batch=batch_files,
-                )
+            file_wise_chunks_for_batch = await self.get_file_wise_chunks_for_single_file_batch(
+                files_to_chunk_batch=batch_files,
             )
 
             # store the chunks in the vector store
@@ -178,9 +170,7 @@ class VectorDBChunker(BaseChunker):
         # get all the files and their commit hashes
         file_path_commit_hash_map = self.chunkable_files_and_hashes
         if not file_path_commit_hash_map:
-            file_path_commit_hash_map = (
-                await self.local_repo.get_chunkable_files_and_commit_hashes()
-            )
+            file_path_commit_hash_map = await self.local_repo.get_chunkable_files_and_commit_hashes()
 
         # get all the chunk_files and chunks stored in the vector store
         existing_file_wise_chunks = await ChunkVectorStoreManager(
@@ -208,9 +198,7 @@ class VectorDBChunker(BaseChunker):
         )
 
         # create and store chunks for each batch
-        missing_file_wise_chunks: Dict[
-            str, List[ChunkInfo]
-        ] = await self.create_and_store_chunks_for_file_batches(
+        missing_file_wise_chunks: Dict[str, List[ChunkInfo]] = await self.create_and_store_chunks_for_file_batches(
             batchified_files_for_insertion, custom_timestamp=chunking_timestamp
         )
 

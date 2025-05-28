@@ -18,13 +18,9 @@ class OneDevClient(BaseHTTPClient):
     """
 
     def __init__(self, host_and_timeout: Optional[Dict[str, Any]] = None):
-        self._host: str = (
-            host_and_timeout["HOST"] if host_and_timeout is not None else HOST
-        )
+        self._host: str = host_and_timeout["HOST"] if host_and_timeout is not None else HOST
         super().__init__(
-            timeout=(
-                host_and_timeout["TIMEOUT"] if host_and_timeout is not None else TIMEOUT
-            ),
+            timeout=(host_and_timeout["TIMEOUT"] if host_and_timeout is not None else TIMEOUT),
             limit=LIMIT,
             limit_per_host=LIMIT_PER_HOST,
             ttl_dns_cache=TTL_DNS_CACHE,
@@ -59,16 +55,9 @@ class OneDevClient(BaseHTTPClient):
         )
         parsed_response = await response.json()
         if parsed_response["status_code"] == 400:
-            if (
-                parsed_response.get("meta")
-                and parsed_response["meta"]["error_code"] == 101
-            ):
-                raise InvalidVersionException(
-                    message=parsed_response["error"]["message"]
-                )
+            if parsed_response.get("meta") and parsed_response["meta"]["error_code"] == 101:
+                raise InvalidVersionException(message=parsed_response["error"]["message"])
         return response
 
-    async def create_embedding(
-        self, payload: Dict[str, Any], headers: Dict[str, str]
-    ) -> Dict[str, Any]:
+    async def create_embedding(self, payload: Dict[str, Any], headers: Dict[str, str]) -> Dict[str, Any]:
         raise NotImplementedError()

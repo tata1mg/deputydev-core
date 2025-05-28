@@ -68,10 +68,14 @@ class ChunkInfo(BaseModel):
         if not self.metadata:
             return chunk_final_meta_data
         if add_class_function_info and self.metadata.all_classes:
-            chunk_final_meta_data += f"\n Below classes may use the imports in this snippet: \n {self.metadata.all_classes}"
+            chunk_final_meta_data += (
+                f"\n Below classes may use the imports in this snippet: \n {self.metadata.all_classes}"
+            )
 
         if add_class_function_info and self.metadata.all_functions:
-            chunk_final_meta_data += f"\n Below functions may use the imports in this snippet: \n {self.metadata.all_functions}"
+            chunk_final_meta_data += (
+                f"\n Below functions may use the imports in this snippet: \n {self.metadata.all_functions}"
+            )
 
         chunk_final_meta_data += f"\n File path: {self.source_details.file_path}"
         hierarchy_data: List[str] = []
@@ -82,13 +86,9 @@ class ChunkInfo(BaseModel):
                 break
             indent = hierarchy_seperator * idx
             hierarchy_data.append(f"{indent}{hierarchy.type}  {hierarchy.value}")
-            hierarchy_data.append(
-                f"{indent}{hierarchy_seperator}..."
-            )  # Add ellipsis at current indent level
+            hierarchy_data.append(f"{indent}{hierarchy_seperator}...")  # Add ellipsis at current indent level
         if hierarchy_data:
-            chunk_final_meta_data += (
-                "\n Snippet hierarchy represented in pseudo code format: \n"
-            )
+            chunk_final_meta_data += "\n Snippet hierarchy represented in pseudo code format: \n"
             chunk_final_meta_data += "\n".join(hierarchy_data)
             chunk_final_meta_data += "\n"
         return chunk_final_meta_data
@@ -99,13 +99,9 @@ class ChunkInfo(BaseModel):
         add_lines: bool = True,
         add_class_function_info: bool = True,
     ) -> str:
-        chunk_content = self.get_chunk_content(
-            add_ellipsis=add_ellipsis, add_lines=add_lines
-        )
+        chunk_content = self.get_chunk_content(add_ellipsis=add_ellipsis, add_lines=add_lines)
 
-        meta_data = self.get_meta_data_notes(
-            add_class_function_info=add_class_function_info
-        )
+        meta_data = self.get_meta_data_notes(add_class_function_info=add_class_function_info)
         if meta_data:
             return f"<meta_data>{meta_data}\n</meta_data>\n<code>\n{chunk_content}\n</code>"
         else:

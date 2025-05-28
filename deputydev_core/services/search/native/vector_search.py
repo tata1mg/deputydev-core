@@ -46,9 +46,7 @@ async def get_query_texts_similarity(
     query_chunks = chunk_pr_diff(query)
     text_embeddings, text_tokens = await embedding_manager.embed_text_array(texts)
 
-    query_embeddings, query_tokens = await embedding_manager.embed_text_array(
-        query_chunks, store_embeddings=False
-    )
+    query_embeddings, query_tokens = await embedding_manager.embed_text_array(query_chunks, store_embeddings=False)
 
     similarities = []
     for query_embedding in query_embeddings:
@@ -102,16 +100,11 @@ async def compute_vector_search_scores(
     # Instantiate an event loop object for main thread
     loop = asyncio.get_event_loop()
     # Create a ProcessPoolExecutor
-    chunk_str_to_contents = await loop.run_in_executor(
-        process_executor, create_chunk_str_to_contents, chunks
-    )
+    chunk_str_to_contents = await loop.run_in_executor(process_executor, create_chunk_str_to_contents, chunks)
     chunk_contents_array = list(chunk_str_to_contents.values())
     query_snippet_similarities, input_tokens = await get_query_texts_similarity(
         query, chunk_contents_array, embedding_manager
     )
     chunk_denotations = [chunk.denotation for chunk in chunks]
-    chunk_denotation_to_scores = {
-        chunk_denotations[i]: score
-        for i, score in enumerate(query_snippet_similarities)
-    }
+    chunk_denotation_to_scores = {chunk_denotations[i]: score for i, score in enumerate(query_snippet_similarities)}
     return chunk_denotation_to_scores, input_tokens

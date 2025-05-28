@@ -20,6 +20,4 @@ class BaseEmbeddingManager:
         Returns:
             list[np.ndarray]: List of embeddings for each text.
         """
-        raise NotImplementedError(
-            "embed_text_array method should be implemented in the child class"
-        )
+        raise NotImplementedError("embed_text_array method should be implemented in the child class")

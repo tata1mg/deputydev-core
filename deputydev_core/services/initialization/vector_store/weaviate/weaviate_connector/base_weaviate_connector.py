@@ -33,9 +33,7 @@ class BaseWeaviateConnector:
     ) -> None:
         self.weaviate_version = weaviate_version
         self.base_dir = os.path.expanduser(base_dir)
-        self.persistence_data_path = os.path.expanduser(
-            env_variables["PERSISTENCE_DATA_PATH"]
-        )
+        self.persistence_data_path = os.path.expanduser(env_variables["PERSISTENCE_DATA_PATH"])
         self.weaviate_host = weaviate_host
         self.weaviate_http_port = weaviate_http_port
         self.weaviate_grpc_port = weaviate_grpc_port
@@ -88,11 +86,7 @@ class BaseWeaviateConnector:
         return async_client
 
     def get_embedded_options(self):
-        resolved_binary_path = (
-            Path(ConfigManager.configs["WEAVIATE_EMBEDDED_DB_BINARY_PATH"])
-            .expanduser()
-            .resolve()
-        )
+        resolved_binary_path = Path(ConfigManager.configs["WEAVIATE_EMBEDDED_DB_BINARY_PATH"]).expanduser().resolve()
 
         return EmbeddedOptions(
             persistence_data_path=self.persistence_data_path,
