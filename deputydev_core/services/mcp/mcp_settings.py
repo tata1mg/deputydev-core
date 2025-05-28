@@ -70,4 +70,5 @@ class McpSettings:
 
         # Write back to file
         with open(self.mcp_config_path, "w") as f:
-            json.dump(settings.model_dump(), f, indent=2)
+            json.dump(settings.model_dump(exclude_defaults=True), f, indent=2)
+
