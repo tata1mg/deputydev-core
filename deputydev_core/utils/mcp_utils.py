@@ -1,7 +1,11 @@
 from functools import wraps
 from typing import List
 
-from deputydev_core.services.mcp.dataclass.main import McpResponse, McpResponseMeta, McpServer
+from deputydev_core.services.mcp.dataclass.main import (
+    McpResponse,
+    McpResponseMeta,
+    McpServer,
+)
 from deputydev_core.services.mcp.dataclass.mcp_connection import McpConnection
 
 
@@ -17,10 +21,11 @@ def handle_exceptions_async(func):
     return wrapper
 
 
-def get_sorted_connection_order(servers: List[str], connections: List[McpServer]) -> List[McpServer]:
+def get_sorted_connection_order(
+    servers: List[str], connections: List[McpServer]
+) -> List[McpServer]:
     if not servers:
         return connections
     # Build an index map for fast lookup
     name_order = {name: index for index, name in enumerate(servers)}
-    return sorted(connections,key=lambda s: name_order.get(s.name, float('inf')))
-
+    return sorted(connections, key=lambda s: name_order.get(s.name, float("inf")))

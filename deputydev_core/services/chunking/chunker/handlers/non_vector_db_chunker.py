@@ -24,11 +24,13 @@ class NonVectorDBChunker(BaseChunker):
 
     async def create_chunks_and_docs(self) -> List[ChunkInfo]:
         file_list = await self.local_repo.get_chunkable_files()
-        file_wise_chunks = await self.file_chunk_creator.create_and_get_file_wise_chunks(
-            {file: None for file in file_list},
-            self.local_repo.repo_path,
-            self.use_new_chunking,
-            process_executor=self.process_executor,
+        file_wise_chunks = (
+            await self.file_chunk_creator.create_and_get_file_wise_chunks(
+                {file: None for file in file_list},
+                self.local_repo.repo_path,
+                self.use_new_chunking,
+                process_executor=self.process_executor,
+            )
         )
         all_chunks: List[ChunkInfo] = []
         for chunks in file_wise_chunks.values():

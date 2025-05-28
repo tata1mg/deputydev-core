@@ -4,6 +4,7 @@ import platform
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.constants.constants import SupportedPlatforms
 
+
 def clean_directory_except(target_dir: str, except_path: str):
     try:
         for item in os.listdir(target_dir):
@@ -18,6 +19,7 @@ def clean_directory_except(target_dir: str, except_path: str):
                 shutil.rmtree(item_path)
     except Exception as e:
         AppLogger.log_debug(f"Error cleaning directory - {target_dir}: {str(e)}")
+
 
 def get_supported_os() -> SupportedPlatforms:
     try:

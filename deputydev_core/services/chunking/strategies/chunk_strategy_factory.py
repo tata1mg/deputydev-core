@@ -36,9 +36,14 @@ class ChunkingStrategyFactory:
     }
 
     @classmethod
-    def create_strategy(cls, language: str, is_eligible_for_new_chunking: bool) -> BaseChunker:
+    def create_strategy(
+        cls, language: str, is_eligible_for_new_chunking: bool
+    ) -> BaseChunker:
         """Creates appropriate chunking strategy"""
-        if not is_eligible_for_new_chunking or language not in cls._language_specific_chunkers:
+        if (
+            not is_eligible_for_new_chunking
+            or language not in cls._language_specific_chunkers
+        ):
             return LegacyChunker()
 
         return cls._language_specific_chunkers.get(language, BaseMetadataChunker)()

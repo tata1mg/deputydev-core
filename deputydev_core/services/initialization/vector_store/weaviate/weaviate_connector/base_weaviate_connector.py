@@ -18,6 +18,7 @@ from weaviate.connect import ConnectionParams, ProtocolParams
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
 
+
 class BaseWeaviateConnector:
     def __init__(
         self,
@@ -28,11 +29,13 @@ class BaseWeaviateConnector:
         weaviate_grpc_port: int,
         startup_timeout: int,
         startup_healthcheck_interval: int,
-        env_variables: dict[str, Any]
+        env_variables: dict[str, Any],
     ) -> None:
         self.weaviate_version = weaviate_version
         self.base_dir = os.path.expanduser(base_dir)
-        self.persistence_data_path = os.path.expanduser(env_variables['PERSISTENCE_DATA_PATH'])
+        self.persistence_data_path = os.path.expanduser(
+            env_variables["PERSISTENCE_DATA_PATH"]
+        )
         self.weaviate_host = weaviate_host
         self.weaviate_http_port = weaviate_http_port
         self.weaviate_grpc_port = weaviate_grpc_port
@@ -50,7 +53,7 @@ class BaseWeaviateConnector:
 
         sync_client = WeaviateClient(
             connection_params=self.connection_params,
-             additional_config=self.additional_config,
+            additional_config=self.additional_config,
         )
         sync_client.connect()
         return sync_client
@@ -69,8 +72,8 @@ class BaseWeaviateConnector:
             await async_client.connect()
         except Exception as _ex:
             if (
-                    "Embedded DB did not start because processes are already listening on ports http:8079 and grpc:50050"
-                    in str(_ex)
+                "Embedded DB did not start because processes are already listening on ports http:8079 and grpc:50050"
+                in str(_ex)
             ):
                 async_client = WeaviateAsyncClient(
                     connection_params=self.connection_params,
@@ -85,7 +88,11 @@ class BaseWeaviateConnector:
         return async_client
 
     def get_embedded_options(self):
-        resolved_binary_path = Path(ConfigManager.configs["WEAVIATE_EMBEDDED_DB_BINARY_PATH"]).expanduser().resolve()
+        resolved_binary_path = (
+            Path(ConfigManager.configs["WEAVIATE_EMBEDDED_DB_BINARY_PATH"])
+            .expanduser()
+            .resolve()
+        )
 
         return EmbeddedOptions(
             persistence_data_path=self.persistence_data_path,
@@ -95,9 +102,9 @@ class BaseWeaviateConnector:
             grpc_port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
             version=self.weaviate_version,
             additional_env_vars={
-                "LOG_LEVEL": self.env_variables['LOG_LEVEL'],
-                "CLUSTER_ADVERTISE_ADDR": self.env_variables['CLUSTER_ADVERTISE_ADDR'],
-                "LIMIT_RESOURCES": self.env_variables['LIMIT_RESOURCES']
+                "LOG_LEVEL": self.env_variables["LOG_LEVEL"],
+                "CLUSTER_ADVERTISE_ADDR": self.env_variables["CLUSTER_ADVERTISE_ADDR"],
+                "LIMIT_RESOURCES": self.env_variables["LIMIT_RESOURCES"],
             },
         )
 
@@ -118,7 +125,11 @@ class BaseWeaviateConnector:
     def get_additional_config(self):
         timeouts = ConfigManager.configs["WEAVIATE_CLIENT_TIMEOUTS"]
         return AdditionalConfig(
-            timeout=Timeout(init=timeouts["INIT"], query=timeouts["QUERY"], insert=timeouts["INSERT"]),
+            timeout=Timeout(
+                init=timeouts["INIT"],
+                query=timeouts["QUERY"],
+                insert=timeouts["INSERT"],
+            ),
         )
 
     async def _is_weaviate_running(self) -> bool:
@@ -153,5 +164,3 @@ class BaseWeaviateConnector:
             async_client=async_client,
             sync_client=sync_client,
         )
-
-

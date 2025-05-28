@@ -99,7 +99,9 @@ class JavascriptMetadataChunker(BaseMetadataChunker):
             for child in node.children:
                 if child.type == "variable_declarator":
                     # Check if the variable_declarator node has a child of type identifier
-                    if any(grandchild.type == "identifier" for grandchild in child.children):
+                    if any(
+                        grandchild.type == "identifier" for grandchild in child.children
+                    ):
                         return True
         return False
 
@@ -123,4 +125,6 @@ class JavascriptMetadataChunker(BaseMetadataChunker):
         )
 
     def is_pair_function(self, node: Node):
-        return node.type == "pair" and any(child.type == "function_expression" for child in node.children)
+        return node.type == "pair" and any(
+            child.type == "function_expression" for child in node.children
+        )

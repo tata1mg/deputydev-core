@@ -21,7 +21,9 @@ class IterativeFileReader:
         self.file_path = file_path
         self.max_lines: int = max_lines or 100
 
-    async def read_lines(self, start_line: int, end_line: int) -> Tuple[ChunkInfo, bool]:
+    async def read_lines(
+        self, start_line: int, end_line: int
+    ) -> Tuple[ChunkInfo, bool]:
         """
         Read a chunk of lines from the file starting from the given offset.
         :param start_line: The line number to start reading from.
@@ -59,7 +61,9 @@ class IterativeFileReader:
             actual_line_end: int = start_line
 
             eof_reached: bool = False
-            for line_iterator in range(min(self.max_lines, end_line - start_line + 1)):  # 1 indexed
+            for line_iterator in range(
+                min(self.max_lines, end_line - start_line + 1)
+            ):  # 1 indexed
                 line = await file.readline()
                 if not line:
                     # End of file reached
