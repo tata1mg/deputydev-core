@@ -1,6 +1,6 @@
 import json
 import os
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, OrderedDict
 from deputydev_core.services.mcp.dataclass.main import (
     McpServer,
     ServerConfigModel,
@@ -27,6 +27,7 @@ import traceback
 from mcp.types import Tool, CallToolResult
 
 from deputydev_core.utils.mcp_utils import get_sorted_connection_order
+from pydantic import Field
 
 
 class MCPClient:
@@ -60,10 +61,11 @@ class MCPClient:
         self.mcp_config_path = mcp_config_path
         self.mcp_settings = McpSettings(self.mcp_config_path)
         self.default_settings = default_settings
+        self.configured_servers: OrderedDict[str, ServerConfigModel] = Field(default_factory=OrderedDict)
 
     def get_servers(self, connection_statuses: List[ConnectionStatus]) -> List[McpServer]:
         _servers = [conn.server for conn in self.connections if conn.server.status in connection_statuses]
-        servers_from_settings = list(self.mcp_settings.read_and_validate_mcp_settings_file().mcp_servers.keys())
+        servers_from_settings = list(self.configured_servers.keys())
         return get_sorted_connection_order(servers=servers_from_settings, connections=_servers)
 
     def get_active_servers(self) -> List[McpServer]:
@@ -72,12 +74,13 @@ class MCPClient:
             for conn in self.connections
             if conn.server.status == ConnectionStatus.connected and conn.server.disabled is False
         ]
-        servers_from_settings = list(self.mcp_settings.read_and_validate_mcp_settings_file().mcp_servers.keys())
+        servers_from_settings = list(self.configured_servers.keys())
         return get_sorted_connection_order(servers=servers_from_settings, connections=_servers)
 
     async def sync_mcp_servers(self) -> str:
         # update server connections
         settings: McpSettingsModel = self.mcp_settings.read_and_validate_mcp_settings_file()
+        self.configured_servers = settings.mcp_servers
         if not settings:
             if self.connections:
                 for con in self.connections:
