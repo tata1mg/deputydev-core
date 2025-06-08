@@ -130,3 +130,13 @@ class ChunkService(BaseWeaviateRepository):
                 )
             )
             AppLogger.log_debug(f"chunks deleted. successful - {result.successful}, failed - {result.failed}")
+
+    async def update_embedding(self, chunk) -> None:
+        await self.ensure_collection_connections()
+        try:
+            await self.async_collection.data.update(
+                uuid=generate_uuid5(chunk.content_hash),
+                vector=chunk.embedding
+            )
+        except Exception as error:
+            print(error)
