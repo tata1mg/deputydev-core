@@ -69,7 +69,7 @@ class OneDevExtensionChunker(VectorDBChunker):
             batched_chunks.extend(chunks)
 
         # if batched_chunks:
-            await self.add_chunk_embeddings(batched_chunks)
+        #     await self.add_chunk_embeddings(batched_chunks)
         return file_wise_chunks
 
     async def create_and_store_chunks_for_file_batches(
