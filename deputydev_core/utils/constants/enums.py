@@ -5,6 +5,7 @@ class ConfigConsumer(Enum):
     VSCODE_EXT = "VSCODE_EXT"
     CLI = "CLI"
     BINARY = "BINARY"
+    PR_REVIEW = "PR_REVIEW"
 
 
 class Clients(Enum):
@@ -13,12 +14,7 @@ class Clients(Enum):
     VSCODE_EXT = "VSCODE_EXT"
     BINARY = "BINARY"
     WEB = "WEB"
-
-
-class SharedMemoryKeys(Enum):
-    BINARY_CONFIG = "BINARY_CONFIG"
-    CLI_AUTH_TOKEN = "CLI_AUTH_TOKEN"
-    EXTENSION_AUTH_TOKEN = "EXTENSION_AUTH_TOKEN"
+    PR_REVIEW = "REVIEW"
 
 
 class AuthTokenStorageManagers(Enum):
@@ -29,3 +25,10 @@ class AuthTokenStorageManagers(Enum):
 class Status(Enum):
     SUCCESS = "success"
     FAILED = "failed"
+
+
+class ContextValueKeys(Enum):
+    WEAVIATE_CLIENT = "weaviate_client"
+    PR_REVIEW_TOKEN = "pr_review_token"
+    EXTENSION_AUTH_TOKEN = "extension_auth_token"
+    CLI_AUTH_TOKEN = "cli_auth_token"

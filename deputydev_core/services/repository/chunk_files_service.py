@@ -285,7 +285,10 @@ class ChunkFilesService(BaseWeaviateRepository):
             raise ex
 
     async def get_chunk_files_matching_exact_search_key(
-        self, search_key: str, search_type: str, file_path_to_hash_map: Optional[Dict[str, str]] = None
+        self,
+        search_key: str,
+        search_type: str,
+        file_path_to_hash_map: Optional[Dict[str, str]] = None,
     ) -> List[ChunkFileDTO]:
         file_filter = None
         if file_path_to_hash_map:

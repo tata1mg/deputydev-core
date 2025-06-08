@@ -176,6 +176,7 @@ class ChunkingManger:
         weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
         chunking_handler: Optional[BaseChunker] = None,
         reranker: Optional[BaseChunkReranker] = None,
+        auth_token_key: Optional[str] = None,
     ) -> Tuple[list[ChunkInfo], int, list[ChunkInfo]]:
         # Get all chunks from the repository
         focus_chunks_details = await cls.get_focus_chunk(
@@ -218,7 +219,9 @@ class ChunkingManger:
             weaviate_client=weaviate_client,
             chunking_handler=chunking_handler,
         )
-        reranked_chunks = await cls.rerank_related_chunks(query, relevant_chunks, reranker, focus_chunks_details)
+        reranked_chunks = await cls.rerank_related_chunks(
+            query, relevant_chunks, reranker, focus_chunks_details, auth_token_key
+        )
         return reranked_chunks, input_tokens, focus_chunks_details
 
     @classmethod
@@ -240,8 +243,8 @@ class ChunkingManger:
         return related_chunk
 
     @classmethod
-    async def rerank_related_chunks(cls, query, related_chunks, reranker, focus_chunks_details):
+    async def rerank_related_chunks(cls, query, related_chunks, reranker, focus_chunks_details, auth_token_key):
         related_chunks = cls.exclude_focused_chunks(related_chunks, focus_chunks_details)
         if reranker:
-            related_chunks = await reranker.rerank(focus_chunks_details, related_chunks, query)
+            related_chunks = await reranker.rerank(focus_chunks_details, related_chunks, query, auth_token_key)
         return related_chunks

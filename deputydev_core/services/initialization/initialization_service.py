@@ -1,23 +1,11 @@
 import asyncio
-import traceback
 from concurrent.futures import ProcessPoolExecutor
-from pathlib import Path
-from typing import Dict, List, Optional, Type, Union, Tuple
+from typing import Dict, List, Optional, Type
 
 from prompt_toolkit.shortcuts.progress_bar import ProgressBar
-from weaviate import WeaviateAsyncClient, WeaviateClient
-from weaviate.config import AdditionalConfig, Timeout
-from weaviate.connect import ConnectionParams, ProtocolParams
-from weaviate.embedded import EmbeddedOptions
 
 from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
 from deputydev_core.models.dao.weaviate.base import Base as WeaviateBaseDAO
-from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
-from deputydev_core.models.dao.weaviate.chunks import Chunks
-from deputydev_core.models.dao.weaviate.weaviate_schema_details import (
-    WeaviateSchemaDetails,
-)
-from deputydev_core.models.dao.weaviate.urls_content import UrlsContent
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.chunker.handlers.one_dev_cli_chunker import (
     OneDevCLIChunker,
@@ -29,6 +17,9 @@ from deputydev_core.services.embedding.base_one_dev_embedding_manager import (
     BaseOneDevEmbeddingManager,
 )
 from deputydev_core.services.embedding.cli_embedding_manager import CLIEmbeddingManager
+from deputydev_core.services.initialization.vector_store.weaviate.weaviate_initializer import (
+    WeaviateInitializer,
+)
 from deputydev_core.services.repo.local_repo.base_local_repo_service import (
     BaseLocalRepo,
 )
@@ -39,10 +30,9 @@ from deputydev_core.services.repository.dataclasses.main import (
 from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema_details_service import (
     WeaviateSchemaDetailsService,
 )
-from deputydev_core.utils.app_logger import AppLogger
-from deputydev_core.utils.config_manager import ConfigManager
-
-from .constants import WEAVIATE_SCHEMA_VERSION
+from deputydev_core.services.initialization.vector_store.weaviate.constants.weaviate_constants import (
+    WEAVIATE_SCHEMA_VERSION,
+)
 
 
 class InitializationManager:
@@ -68,131 +58,16 @@ class InitializationManager:
         self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path, chunkable_files=chunkable_files)
         return self.local_repo
 
-    async def __check_and_initialize_collection(self, collection: Type[WeaviateBaseDAO]) -> None:
-        if not self.weaviate_client:
-            raise ValueError("Weaviate client is not initialized")
-        exists = await self.weaviate_client.async_client.collections.exists(collection.collection_name)
-        if not exists:
-            await self.weaviate_client.async_client.collections.create(
-                name=collection.collection_name,
-                properties=collection.properties,
-                references=collection.references if hasattr(collection, "references") else None,  # type: ignore
-            )
-
-    async def initialize_vector_db_async(self) -> WeaviateAsyncClient:
-        if self.weaviate_client and self.weaviate_client.async_client:
-            return self.weaviate_client.async_client
-
-        async_client: Optional[WeaviateAsyncClient] = None
-        resolved_persistence_data_path = Path(ConfigManager.configs["WEAVIATE_EMBEDDED_DB_PATH"]).expanduser().resolve()
-        resolved_binary_path = Path(ConfigManager.configs["WEAVIATE_EMBEDDED_DB_BINARY_PATH"]).expanduser().resolve()
-
-        try:
-            async_client = WeaviateAsyncClient(
-                embedded_options=EmbeddedOptions(
-                    persistence_data_path=str(resolved_persistence_data_path),
-                    binary_path=str(resolved_binary_path),
-                    hostname=ConfigManager.configs["WEAVIATE_HOST"],
-                    port=ConfigManager.configs["WEAVIATE_HTTP_PORT"],
-                    grpc_port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
-                    version="1.27.0",
-                    additional_env_vars={
-                        "LOG_LEVEL": "panic",
-                    },
-                ),
-                additional_config=AdditionalConfig(timeout=Timeout(init=20)),
-            )
-            await async_client.connect()
-        except Exception as _ex:
-            if (
-                "Embedded DB did not start because processes are already listening on ports http:8079 and grpc:50050"
-                in str(_ex)
-            ):
-                async_client = WeaviateAsyncClient(
-                    connection_params=ConnectionParams(
-                        http=ProtocolParams(
-                            host=ConfigManager.configs["WEAVIATE_HOST"],
-                            port=ConfigManager.configs["WEAVIATE_HTTP_PORT"],
-                            secure=False,
-                        ),
-                        grpc=ProtocolParams(
-                            host=ConfigManager.configs["WEAVIATE_HOST"],
-                            port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
-                            secure=False,
-                        ),
-                    )
-                )
-                await async_client.connect()
-
-            else:
-                AppLogger.log_info(traceback.format_exc())
-                AppLogger.log_error(f"Failed to connect to vector store: {str(_ex)}")
-                raise _ex
-
-        return async_client
-
-    def initialize_vector_db_sync(self) -> WeaviateClient:
-        if self.weaviate_client and self.weaviate_client.async_client:
-            return self.weaviate_client.sync_client
-
-        sync_client = WeaviateClient(
-            connection_params=ConnectionParams(
-                http=ProtocolParams(
-                    host=ConfigManager.configs["WEAVIATE_HOST"],
-                    port=ConfigManager.configs["WEAVIATE_HTTP_PORT"],
-                    secure=False,
-                ),
-                grpc=ProtocolParams(
-                    host=ConfigManager.configs["WEAVIATE_HOST"],
-                    port=ConfigManager.configs["WEAVIATE_GRPC_PORT"],
-                    secure=False,
-                ),
-            )
-        )
-        sync_client.connect()
-        return sync_client
-
-    async def initialize_vector_db(
-        self, should_clean: bool = False, send_back_is_db_cleaned: bool = False
-    ) -> Union[Tuple[WeaviateSyncAndAsyncClients, bool], WeaviateSyncAndAsyncClients]:
-        if self.weaviate_client:
-            return self.weaviate_client
-        async_client = await self.initialize_vector_db_async()
-        sync_client = self.initialize_vector_db_sync()
-
-        self.weaviate_client = WeaviateSyncAndAsyncClients(
-            async_client=async_client,
-            sync_client=sync_client,
-        )
-
-        if not self.weaviate_client:
-            raise ValueError("Connect to vector store failed")
-
-        schema_version = await WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).get_schema_version()
-
-        is_schema_invalid = schema_version is None or schema_version != WEAVIATE_SCHEMA_VERSION
-
-        if should_clean or is_schema_invalid:
-            AppLogger.log_debug("Cleaning up the vector store")
-            self.weaviate_client.sync_client.collections.delete_all()
-
-        await asyncio.gather(
-            *[
-                self.__check_and_initialize_collection(collection=Chunks),
-                self.__check_and_initialize_collection(collection=ChunkFiles),
-                self.__check_and_initialize_collection(collection=WeaviateSchemaDetails),
-                self.__check_and_initialize_collection(collection=UrlsContent),
-            ]
-        )
-
-        if should_clean or is_schema_invalid:
-            await WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).set_schema_version(
-                WEAVIATE_SCHEMA_VERSION
-            )
-        if send_back_is_db_cleaned:
-            return self.weaviate_client, should_clean or is_schema_invalid
-        else:
-            return self.weaviate_client
+    async def initialize_vector_db(self):
+        """
+        Initialize the vector database.
+        This method will start the Weaviate process and create the necessary schema.
+        If the process is already running, it will skip starting it again.
+        """
+        (
+            self.weaviate_client,
+            self.weaviate_process,
+        ) = await WeaviateInitializer().initialize()
 
     async def prefill_vector_store(
         self,
@@ -233,3 +108,25 @@ class InitializationManager:
                 weaviate_client=self.weaviate_client,
             ).start_cleanup_for_chunk_and_hashes()
         )
+
+    async def _check_and_initialize_collection(self, collection: Type[WeaviateBaseDAO]) -> None:
+        if not self.weaviate_client:
+            raise ValueError("Weaviate client is not initialized")
+        exists = await self.weaviate_client.async_client.collections.exists(collection.collection_name)
+        if not exists:
+            await self.weaviate_client.async_client.collections.create(
+                name=collection.collection_name,
+                properties=collection.properties,
+                references=collection.references if hasattr(collection, "references") else None,  # type: ignore
+            )
+
+    async def _populate_collections(self):
+        await asyncio.gather(
+            *[self._check_and_initialize_collection(collection=collection) for collection in self.collections]
+        )
+
+    async def _should_recreate_schema(self, should_clean: bool) -> bool:
+        schema_version = await WeaviateSchemaDetailsService(weaviate_client=self.weaviate_client).get_schema_version()
+
+        is_schema_invalid = schema_version is None or schema_version != WEAVIATE_SCHEMA_VERSION
+        return should_clean or is_schema_invalid
