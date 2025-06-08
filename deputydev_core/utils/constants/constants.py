@@ -74,8 +74,15 @@ class LocalDirectories(Enum):
 
 class LocalFiles(Enum):
     LOCAL_AUTH_TOKENS_FILE = "264325ba-cbd0-47d5-9269-ac4bd19067c2.json"
+    MCP_SETTINGS_FILE = "mcp_settings.json"
 
 
 class TimeFormat(Enum):
     SECONDS = "SECONDS"
     MINUTES = "MINUTES"
+
+
+class SupportedPlatforms(Enum):
+    WINDOWS = "windows"
+    LINUX = "linux"
+    MAC = "darwin"
