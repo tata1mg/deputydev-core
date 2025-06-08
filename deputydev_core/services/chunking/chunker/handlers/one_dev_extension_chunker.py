@@ -19,6 +19,7 @@ from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
 from deputydev_core.utils.custom_progress_bar import CustomProgressBar
+from deputydev_core.services.repository.chunk_service import ChunkService
 
 
 class OneDevExtensionChunker(VectorDBChunker):
@@ -67,7 +68,7 @@ class OneDevExtensionChunker(VectorDBChunker):
         for chunks in file_wise_chunks.values():
             batched_chunks.extend(chunks)
 
-        if batched_chunks:
+        # if batched_chunks:
             await self.add_chunk_embeddings(batched_chunks)
         return file_wise_chunks
 
@@ -133,5 +134,7 @@ class OneDevExtensionChunker(VectorDBChunker):
         embeddings, _input_tokens = await self.embedding_manager.embed_text_array(
             texts=texts_to_embed, progress_bar_counter=self.progress_bar
         )
+        chunk_service = ChunkService(weaviate_client=self.weaviate_client)
         for chunk, embedding in zip(chunks, embeddings):
             chunk.embedding = embedding
+            await chunk_service.update_embedding(chunk)
