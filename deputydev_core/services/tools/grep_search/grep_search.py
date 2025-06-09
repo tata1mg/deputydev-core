@@ -34,11 +34,11 @@ class GrepSearch:
         """
         results: List[Dict[str, Union[ChunkInfo, int]]] = []
         abs_path = Path(os.path.join(self.repo_path, directory_path)).resolve()
-        is_git_repo = LocalRepoFactory._is_git_repo(self.repo_path)
+        is_git_repo = LocalRepoFactory.is_git_repo(self.repo_path)
         if is_git_repo:
-            command_template = 'git --git-dir="{repo_path}/.git" --work-tree="{repo_path}" grep -rnC 2 \'{search_term}\' -- {directory_path}'
+            command_template = 'git --git-dir="{repo_path}/.git" --work-tree="{repo_path}" grep -rnCF 2 "{search_term}" -- "{directory_path}"'
         else:
-            command_template = "grep -rnC 2 '{search_term}' \"{abs_path}\" {exclude_flags}"
+            command_template = 'grep -rnCF 2 "{search_term}" "{abs_path}" {exclude_flags}'
 
         exclude_dirs = [
             "node_modules",
@@ -61,7 +61,7 @@ class GrepSearch:
 
         for search_term in search_terms:
             command = command_template.format(
-                search_term=search_term,
+                search_term=self.shell_escape(search_term),
                 directory_path=directory_path,
                 repo_path=self.repo_path,
                 exclude_flags=exclude_flags,
@@ -80,6 +80,18 @@ class GrepSearch:
                 raise ValueError(stderr.decode().strip())
 
         return results[:100]
+    
+    def shell_escape(self, s: str) -> str:
+        """Escape double quotes in a string so it is safe to use in shell double-quoted strings.
+
+        Args:
+            s (str): The input string to escape.
+
+        Returns:
+            str: The escaped string, suitable for use in shell commands inside double quotes.
+        """
+        return s.replace('"', r'\"')
+
 
     def parse_lines(self, input_lines: List[str], is_git_repo: bool) -> List[Dict[str, Union[ChunkInfo, int]]]:
         results: List[Dict[str, Union[ChunkInfo, int]]] = []
