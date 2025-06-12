@@ -191,7 +191,15 @@ class VectorDBChunker(BaseChunker):
             for file, file_hash in file_path_commit_hash_map.items()
             if file not in existing_file_wise_chunks.keys()
         }
-
+        count = 0
+        # Handle missing embeddings
+        for file, chunks in existing_file_wise_chunks.items():
+            if file in file_path_commit_hash_map:
+                for chunk in chunks:
+                    if not chunk.embedding:
+                        count += 1
+                        files_to_chunk[file] = file_path_commit_hash_map[file]
+        print(f"Missing chunks which do not have embedding: {count}")
         # batchify the files for insertion
         batchified_files_for_insertion = self.batchify_files_for_insertion(
             files_to_chunk=files_to_chunk,
