@@ -40,6 +40,7 @@ class OneDevExtensionChunker(VectorDBChunker):
         use_new_chunking: bool = True,
         use_async_refresh: bool = True,
         fetch_with_vector: bool = False,
+        file_indexing_progress_monitor = None
     ):
         super().__init__(
             local_repo,
@@ -54,6 +55,7 @@ class OneDevExtensionChunker(VectorDBChunker):
         self.embedding_manager = embedding_manager
         self.indexing_progress_bar = indexing_progress_bar
         self.embedding_progress_bar = embedding_progress_bar
+        self.file_indexing_progress_monitor = file_indexing_progress_monitor
 
     async def get_file_wise_chunks_for_single_file_batch(
         self,
@@ -68,7 +70,8 @@ class OneDevExtensionChunker(VectorDBChunker):
             self.use_new_chunking,
             process_executor=self.process_executor,
             set_config_in_new_process=True,
-            progress_bar=self.indexing_progress_bar
+            progress_bar=self.indexing_progress_bar,
+            files_indexing_monitor=self.file_indexing_progress_monitor
         )
         return file_wise_chunks
 
@@ -103,9 +106,6 @@ class OneDevExtensionChunker(VectorDBChunker):
             self.embedding_progress_bar.initialise(total_files_to_process=total_files_to_process)
         embedding_tasks = []
         for index, batch_files in enumerate(batched_files_to_store):
-            is_last_batch = len(batched_files_to_store) == index + 1
-            print(f"index: {index}, batch files len: {len(batched_files_to_store)}, is_last_batch: {is_last_batch}")
-
             if self.indexing_progress_bar:
                 self.indexing_progress_bar.set_current_batch_percentage(len(batch_files))
             if self.embedding_progress_bar:
@@ -136,20 +136,21 @@ class OneDevExtensionChunker(VectorDBChunker):
             all_file_wise_chunks.update(file_wise_chunks_for_batch)
         if self.indexing_progress_bar:
             self.indexing_progress_bar.mark_finish()
-        await self._monitor_embedding_tasks(embedding_tasks, self.embedding_progress_bar)
+        asyncio.create_task(self._monitor_embedding_tasks(embedding_tasks, self.embedding_progress_bar))
         return all_file_wise_chunks
 
     async def _monitor_embedding_tasks(self, tasks, embedding_progress_bar):
         while True:
             for i, task in enumerate(tasks):
-                print(f"Task {i}: done={task.done()}, cancelled={task.cancelled()}")
+                print(f"Task {i}: done={task.done()}, cancelled={task.cancelled()}, tasks_len={len(tasks)}")
             if all(task.done() for task in tasks):
                 print("Tasks Done")
                 embedding_progress_bar.mark_finish()
-                return
+                break
             else:
                 print("Tasks not done")
                 await asyncio.sleep(0.5)
+        print("_monitor_embedding_tasks done")
     async def add_chunk_embeddings(self, chunks: List[ChunkInfo]) -> None:
         """
         Adds embeddings to the chunks.
@@ -169,10 +170,13 @@ class OneDevExtensionChunker(VectorDBChunker):
         )
         chunk_service = ChunkService(weaviate_client=self.weaviate_client)
         tasks = []
+        print("embedding starts")
         for chunk, embedding in zip(chunks, embeddings):
-            if len(tasks) == 10:
+            if len(tasks) == 1:
                 await asyncio.gather(*tasks)
                 tasks = []
             chunk.embedding = embedding
             tasks.append(chunk_service.update_embedding(chunk))
+            await asyncio.sleep(0.5)
         await asyncio.gather(*tasks)
+        print("embedding done")
