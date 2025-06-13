@@ -78,7 +78,7 @@ class ChunkService(BaseWeaviateRepository):
                     batch_dtos = [
                         (
                             ChunkDTO(**chunk_obj.properties, id=str(chunk_obj.uuid)),
-                            chunk_obj.vector["default"],
+                            chunk_obj.vector.get("default") or [],
                         )
                         for chunk_obj in batch_chunks.objects
                     ]
@@ -89,7 +89,7 @@ class ChunkService(BaseWeaviateRepository):
         except Exception as ex:
             AppLogger.log_error(
                 "Failed to get chunk files by commit hashes",
-                extra={"chunk_hashes_count": len(chunk_hashes), "error": str(ex)},
+                # extra={"chunk_hashes_count": len(chunk_hashes), "error": str(ex)},
             )
             raise
 
@@ -140,4 +140,4 @@ class ChunkService(BaseWeaviateRepository):
                 vector=chunk.embedding
             )
         except Exception as error:
-            print(error)
+            AppLogger.log_error(f"Could not update embedding: {error}")
