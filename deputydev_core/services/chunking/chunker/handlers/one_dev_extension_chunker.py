@@ -24,7 +24,6 @@ from deputydev_core.services.repository.dataclasses.main import (
 from deputydev_core.utils.custom_progress_bar import CustomProgressBar
 from deputydev_core.services.repository.chunk_service import ChunkService
 import asyncio
-from time import time
 
 
 class OneDevExtensionChunker(VectorDBChunker):
@@ -82,7 +81,6 @@ class OneDevExtensionChunker(VectorDBChunker):
             batched_chunks.extend(chunks)
         if batched_chunks:
             await self.add_chunk_embeddings(batched_chunks)
-        print("Task Completed")
 
     async def create_and_store_chunks_for_file_batches(
         self,
@@ -141,16 +139,12 @@ class OneDevExtensionChunker(VectorDBChunker):
 
     async def _monitor_embedding_tasks(self, tasks, embedding_progress_bar):
         while True:
-            for i, task in enumerate(tasks):
-                print(f"Task {i}: done={task.done()}, cancelled={task.cancelled()}, tasks_len={len(tasks)}")
             if all(task.done() for task in tasks):
-                print("Tasks Done")
                 embedding_progress_bar.mark_finish()
                 break
             else:
-                print("Tasks not done")
                 await asyncio.sleep(0.5)
-        print("_monitor_embedding_tasks done")
+
     async def add_chunk_embeddings(self, chunks: List[ChunkInfo]) -> None:
         """
         Adds embeddings to the chunks.
@@ -170,13 +164,12 @@ class OneDevExtensionChunker(VectorDBChunker):
         )
         chunk_service = ChunkService(weaviate_client=self.weaviate_client)
         tasks = []
-        print("embedding starts")
         for chunk, embedding in zip(chunks, embeddings):
-            if len(tasks) == 1:
+            if len(tasks) == 10:
                 await asyncio.gather(*tasks)
                 tasks = []
             chunk.embedding = embedding
             tasks.append(chunk_service.update_embedding(chunk))
             await asyncio.sleep(0.5)
-        await asyncio.gather(*tasks)
-        print("embedding done")
+        if tasks:
+            await asyncio.gather(*tasks)

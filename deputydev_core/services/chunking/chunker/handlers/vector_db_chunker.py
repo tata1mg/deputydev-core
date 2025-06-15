@@ -25,6 +25,7 @@ from deputydev_core.services.repo.local_repo.base_local_repo_service import (
 from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
+from deputydev_core.utils.app_logger import AppLogger
 
 
 class VectorDBChunker(BaseChunker):
@@ -202,7 +203,7 @@ class VectorDBChunker(BaseChunker):
                     if not chunk.embedding:
                         count += 1
                         files_to_chunk[file] = file_path_commit_hash_map[file]
-        print(f"Missing chunks which do not have embedding: {count}")
+        AppLogger.log_info(f"Missing chunks which do not have embedding: {count}")
         # batchify the files for insertion
         batchified_files_for_insertion = self.batchify_files_for_insertion(
             files_to_chunk=files_to_chunk,
