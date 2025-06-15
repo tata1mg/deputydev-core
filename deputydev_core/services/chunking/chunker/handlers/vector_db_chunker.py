@@ -184,8 +184,9 @@ class VectorDBChunker(BaseChunker):
             ),
             enable_refresh=enable_refresh,
         )
-        if self.file_indexing_progress_monitor and existing_file_wise_chunks:
-            self.file_indexing_progress_monitor.update_status({key: "COMPLETED" for key in existing_file_wise_chunks})
+        if hasattr(self, "file_indexing_progress_monitor") and self.file_indexing_progress_monitor and existing_file_wise_chunks:
+            indexing_status = {key: {"file_path": key, "status": "Completed"} for key in existing_file_wise_chunks}
+            self.file_indexing_progress_monitor.update_status(indexing_status)
 
         # get the files that need to be chunked
         files_to_chunk = {
