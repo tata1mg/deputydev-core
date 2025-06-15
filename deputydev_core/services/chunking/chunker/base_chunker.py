@@ -84,7 +84,7 @@ class FileChunkCreator:
                     ConfigManager.configs if set_config_in_new_process else None,
                 )
             if files_indexing_monitor:
-                files_indexing_monitor.update_status({file: "COMPLETED"})
+                files_indexing_monitor.update_status({file: {"file_path": file, "status": "Completed"}})
             if progress_bar:
                 progress_bar.update(1, len(file_paths_and_hashes))
 
