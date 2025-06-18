@@ -104,7 +104,7 @@ class GrepSearch:
         results: List[Dict[str, Union[ChunkInfo, int]]] = []
         abs_path = Path(os.path.join(self.repo_path, directory_path)).resolve()
         is_git_repo = LocalRepoFactory.is_git_repo(self.repo_path)
-
+        cwd = self.repo_path if os.path.isdir(self.repo_path) else "/"
         for search_term in search_terms:
 
             if is_git_repo:
@@ -116,7 +116,7 @@ class GrepSearch:
                 command,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
-                cwd=self.repo_path or "/"
+                cwd=cwd
             )
             stdout, stderr = await process.communicate()
 
