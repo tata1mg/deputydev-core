@@ -115,7 +115,8 @@ class GrepSearch:
             process = await asyncio.create_subprocess_shell(
                 command,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
+                cwd=self.repo_path or "/"
             )
             stdout, stderr = await process.communicate()
 
