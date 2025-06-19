@@ -1,7 +1,7 @@
 from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Union
-
+from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.chunker.handlers.vector_db_chunker import (
     VectorDBChunker,
@@ -120,6 +120,8 @@ class OneDevExtensionChunker(VectorDBChunker):
                 custom_create_timestamp=custom_timestamp,
                 custom_update_timestamp=custom_timestamp,
             )
+            if not embedding_tasks:
+                AppLogger.log_info(f"Embedding starts for {self.local_repo.repo_path}")
             embedding_task = asyncio.create_task(self.update_embeddings(file_wise_chunks_for_batch))
             embedding_tasks.append(embedding_task)
 
@@ -170,6 +172,5 @@ class OneDevExtensionChunker(VectorDBChunker):
                 tasks = []
             chunk.embedding = embedding
             tasks.append(chunk_service.update_embedding(chunk))
-            await asyncio.sleep(0.5)
         if tasks:
             await asyncio.gather(*tasks)
