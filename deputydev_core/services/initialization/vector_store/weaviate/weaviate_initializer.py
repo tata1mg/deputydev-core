@@ -1,10 +1,11 @@
 import asyncio
 from typing import Optional, Tuple
-from deputydev_core.services.repository.dataclasses.main import (
-    WeaviateSyncAndAsyncClients,
-)
+
 from deputydev_core.services.initialization.vector_store.weaviate.weaviate_connector_factory import (
     WeaviateConnectorFactory,
+)
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
 )
 from deputydev_core.utils.config_manager import ConfigManager
 
