@@ -17,6 +17,9 @@ from deputydev_core.services.embedding.base_one_dev_embedding_manager import (
     BaseOneDevEmbeddingManager,
 )
 from deputydev_core.services.embedding.cli_embedding_manager import CLIEmbeddingManager
+from deputydev_core.services.initialization.vector_store.weaviate.constants.weaviate_constants import (
+    WEAVIATE_SCHEMA_VERSION,
+)
 from deputydev_core.services.initialization.vector_store.weaviate.weaviate_initializer import (
     WeaviateInitializer,
 )
@@ -29,9 +32,6 @@ from deputydev_core.services.repository.dataclasses.main import (
 )
 from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema_details_service import (
     WeaviateSchemaDetailsService,
-)
-from deputydev_core.services.initialization.vector_store.weaviate.constants.weaviate_constants import (
-    WEAVIATE_SCHEMA_VERSION,
 )
 
 

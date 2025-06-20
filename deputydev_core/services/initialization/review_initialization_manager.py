@@ -6,7 +6,6 @@ from deputydev_core.models.dao.weaviate.chunks import Chunks
 from deputydev_core.models.dao.weaviate.weaviate_schema_details import (
     WeaviateSchemaDetails,
 )
-
 from deputydev_core.services.embedding.base_one_dev_embedding_manager import (
     BaseOneDevEmbeddingManager,
 )

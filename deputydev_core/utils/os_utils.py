@@ -1,6 +1,7 @@
 import os
-import shutil
 import platform
+import shutil
+
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.constants.constants import SupportedPlatforms
 
