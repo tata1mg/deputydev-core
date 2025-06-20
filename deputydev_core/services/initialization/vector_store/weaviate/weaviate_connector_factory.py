@@ -1,11 +1,12 @@
 from typing import Type, Union
-from deputydev_core.utils.os_utils import get_supported_os
-from deputydev_core.utils.constants.constants import SupportedPlatforms
+
 from deputydev_core.services.initialization.vector_store.weaviate.weaviate_connector import (
     DarwinWeaviateConnector,
     LinuxWeaviateConnector,
     WindowsWeaviateConnector,
 )
+from deputydev_core.utils.constants.constants import SupportedPlatforms
+from deputydev_core.utils.os_utils import get_supported_os
 
 
 class WeaviateConnectorFactory:
