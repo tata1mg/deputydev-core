@@ -14,7 +14,7 @@ class GrepSearch:
     Class to grep files in directory.
     """
 
-    def __init__(self, repo_path: str):
+    def __init__(self, repo_path: str) -> None:
         """
         Initialize the GrepSearch with a directory path.
 
@@ -101,9 +101,9 @@ class GrepSearch:
         :return: A list of GrepSearchResponse objects containing details of each match.
         """
         results: List[Dict[str, Union[ChunkInfo, int]]] = []
-        abs_path = Path(os.path.join(self.repo_path, directory_path)).resolve()
+        abs_path = Path(os.path.join(self.repo_path, directory_path)).resolve()  # noqa: PTH118
         is_git_repo = LocalRepoFactory.is_git_repo(self.repo_path)
-
+        cwd = self.repo_path if os.path.isdir(self.repo_path) else "/"  # noqa: PTH112
         for search_term in search_terms:
             if is_git_repo:
                 command = self.build_git_command(search_term, directory_path)
@@ -111,7 +111,7 @@ class GrepSearch:
                 command = self.build_grep_command(search_term, abs_path)
 
             process = await asyncio.create_subprocess_shell(
-                command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+                command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, cwd=cwd
             )
             stdout, stderr = await process.communicate()
 
@@ -168,7 +168,7 @@ class GrepSearch:
         """
         return shlex.quote(s)
 
-    def parse_lines(self, input_lines: List[str], is_git_repo: bool) -> List[Dict[str, Union[ChunkInfo, int]]]:
+    def parse_lines(self, input_lines: List[str], is_git_repo: bool) -> List[Dict[str, Union[ChunkInfo, int]]]:  # noqa : C901
         results: List[Dict[str, Union[ChunkInfo, int]]] = []
         chunk_lines: List[str] = []
 
@@ -188,7 +188,6 @@ class GrepSearch:
                 if match:
                     file_path = match.group(1).strip()
                     match_line = int(match.group(2))
-                    # code_lines.append(match.group(3).strip())
                     break
 
             if not file_path or match_line is None:
