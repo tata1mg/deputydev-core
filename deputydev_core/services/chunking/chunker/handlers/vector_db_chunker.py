@@ -25,6 +25,7 @@ from deputydev_core.services.repo.local_repo.base_local_repo_service import (
 from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
+from deputydev_core.utils.app_logger import AppLogger
 
 
 class VectorDBChunker(BaseChunker):
@@ -184,6 +185,9 @@ class VectorDBChunker(BaseChunker):
             ),
             enable_refresh=enable_refresh,
         )
+        if hasattr(self, "file_indexing_progress_monitor") and self.file_indexing_progress_monitor and existing_file_wise_chunks:
+            indexing_status = {key: {"file_path": key, "status": "COMPLETED"} for key in existing_file_wise_chunks}
+            self.file_indexing_progress_monitor.update_status(indexing_status)
 
         # get the files that need to be chunked
         files_to_chunk = {
@@ -191,7 +195,15 @@ class VectorDBChunker(BaseChunker):
             for file, file_hash in file_path_commit_hash_map.items()
             if file not in existing_file_wise_chunks.keys()
         }
-
+        count = 0
+        # Handle missing embeddings
+        for file, chunks in existing_file_wise_chunks.items():
+            if file in file_path_commit_hash_map:
+                for chunk in chunks:
+                    if not chunk.embedding:
+                        count += 1
+                        files_to_chunk[file] = file_path_commit_hash_map[file]
+        AppLogger.log_info(f"Missing chunks which do not have embedding: {count}")
         # batchify the files for insertion
         batchified_files_for_insertion = self.batchify_files_for_insertion(
             files_to_chunk=files_to_chunk,

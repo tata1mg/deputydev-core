@@ -42,7 +42,7 @@ class ChunkVectorStoreManager:
 
         for chunks in file_wise_chunks.values():
             for chunk in chunks:
-                if chunk.embedding is None or not chunk.source_details.file_hash:
+                if not chunk.source_details.file_hash:
                     raise ValueError(f"Chunk {chunk.content_hash} does not have an embedding")
 
                 chunk_functions, chunk_classes = [], []
@@ -65,7 +65,7 @@ class ChunkVectorStoreManager:
                             created_at=(custom_create_timestamp if custom_create_timestamp else now_time),
                             updated_at=(custom_update_timestamp if custom_update_timestamp else now_time),
                         ),
-                        vector=chunk.embedding,
+                        vector=chunk.embedding if chunk.embedding else [],
                     ),
                 )
                 all_chunk_files_to_store.append(

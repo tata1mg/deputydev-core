@@ -1,8 +1,10 @@
 import asyncio
+
+from weaviate import WeaviateAsyncClient, WeaviateClient
+
 from deputydev_core.services.initialization.vector_store.weaviate.weaviate_connector.base_weaviate_connector import (
     BaseWeaviateConnector,
 )
-from weaviate import WeaviateAsyncClient, WeaviateClient
 from deputydev_core.utils.app_logger import AppLogger
 
 

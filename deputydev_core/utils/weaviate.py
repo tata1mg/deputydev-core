@@ -1,11 +1,12 @@
 from sanic import Sanic
-from deputydev_core.utils.app_logger import AppLogger
+
 from deputydev_core.services.initialization.initialization_service import (
     InitializationManager,
 )
 from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
+from deputydev_core.utils.app_logger import AppLogger
 
 
 async def weaviate_connection():
