@@ -267,7 +267,7 @@ wheels = [
 
 [[package]]
 name = "deputydev-core"
-version = "4.3.5"
+version = "5.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "aiohttp" },
@@ -299,7 +299,7 @@ requires-dist = [
     { name = "aiohttp", specifier = ">=3.11.12" },
     { name = "diff-match-patch", specifier = "==20241021" },
     { name = "fastmcp", specifier = "==2.3.4" },
-    { name = "gitpython", specifier = "==3.1.27" },
+    { name = "gitpython", specifier = "==3.1.41" },
     { name = "giturlparse", specifier = "==0.12.0" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.8.0" },
     { name = "numpy", specifier = "==1.26.2" },
@@ -432,14 +432,14 @@ wheels = [
 
 [[package]]
 name = "gitpython"
-version = "3.1.27"
+version = "3.1.41"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "gitdb" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d6/39/5b91b6c40570dc1c753359de7492404ba8fe7d71af40b618a780c7ad1fc7/GitPython-3.1.27.tar.gz", hash = "sha256:1c885ce809e8ba2d88a29befeb385fcea06338d3640712b59ca623c220bb5704", size = 192188, upload-time = "2022-02-20T01:15:41.132Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e5/c2/6e3a26945a7ff7cf2854b8825026cf3f22ac8e18285bc11b6b1ceeb8dc3f/GitPython-3.1.41.tar.gz", hash = "sha256:ed66e624884f76df22c8e16066d567aaa5a37d5b5fa19db2c6df6f7156db9048", size = 209029, upload-time = "2024-01-10T12:15:19.596Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/83/32/ce68915670da6fd6b1e3fb4b3554b4462512f6441dddd194fc0f4f6ec653/GitPython-3.1.27-py3-none-any.whl", hash = "sha256:5b68b000463593e05ff2b261acff0ff0972df8ab1b70d3cdbd41b546c8b8fc3d", size = 181152, upload-time = "2022-02-20T01:15:38.026Z" },
+    { url = "https://files.pythonhosted.org/packages/45/c6/a637a7a11d4619957cb95ca195168759a4502991b1b91c13d3203ffc3748/GitPython-3.1.41-py3-none-any.whl", hash = "sha256:c36b6634d069b3f719610175020a9aed919421c87552185b085e04fbbdb10b7c", size = 196354, upload-time = "2024-01-10T12:15:16.135Z" },
 ]
 
 [[package]]
