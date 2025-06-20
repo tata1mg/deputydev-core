@@ -1,7 +1,7 @@
 import asyncio
-import shlex
 import os
 import re
+import shlex
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -57,7 +57,7 @@ class GrepSearch:
             ".pytest_cache",
             ".tox",
             "coverage",
-            ".nyc_output"
+            ".nyc_output",
         ]
 
     def build_git_pathspec_exclusions(self) -> str:
@@ -75,11 +75,10 @@ class GrepSearch:
         # Exclude specific files
         for file_pattern in self.exclude_files:
             exclusions.append(f":(exclude){file_pattern}")
-            if '*' in file_pattern:
+            if "*" in file_pattern:
                 exclusions.append(f":(exclude)**/{file_pattern}")
 
         return " ".join(f'"{exc}"' for exc in exclusions)
-
 
     def build_grep_exclusions(self) -> Tuple[str, str]:
         """
@@ -92,7 +91,7 @@ class GrepSearch:
         return exclude_dir_flags, exclude_file_flags
 
     async def perform_grep_search(
-            self, directory_path: str, search_terms: List[str]
+        self, directory_path: str, search_terms: List[str]
     ) -> List[Dict[str, Union[ChunkInfo, int]]]:
         """
         Perform a recursive grep search in the specified directory for multiple terms.
@@ -106,16 +105,13 @@ class GrepSearch:
         is_git_repo = LocalRepoFactory.is_git_repo(self.repo_path)
 
         for search_term in search_terms:
-
             if is_git_repo:
                 command = self.build_git_command(search_term, directory_path)
             else:
                 command = self.build_grep_command(search_term, abs_path)
 
             process = await asyncio.create_subprocess_shell(
-                command,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
             stdout, stderr = await process.communicate()
 
@@ -125,7 +121,6 @@ class GrepSearch:
 
             if stderr:
                 raise ValueError(stderr.decode().strip())
-
 
         return results[:100]
 
@@ -141,7 +136,7 @@ class GrepSearch:
 
         command = (
             f'git --git-dir="{self.repo_path}/.git" --work-tree="{self.repo_path}" '
-            f'grep -rnF -C 2 {escaped_term} '
+            f"grep -rnF -C 2 {escaped_term} "
             f'-- "{directory_path}" {self.build_git_pathspec_exclusions()}'
         )
 
@@ -158,13 +153,10 @@ class GrepSearch:
         escaped_term = self.shell_escape(search_term)
         exclude_dir_flags, exclude_file_flags = self.build_grep_exclusions()
 
-        command = (
-            f'grep -rnF -C 2 {escaped_term} "{abs_path}" '
-            f'{exclude_dir_flags} {exclude_file_flags}'
-        )
+        command = f'grep -rnF -C 2 {escaped_term} "{abs_path}" {exclude_dir_flags} {exclude_file_flags}'
 
         return command
-    
+
     def shell_escape(self, s: str) -> str:
         """Escape double quotes in a string so it is safe to use in shell double-quoted strings.
 
@@ -175,8 +167,6 @@ class GrepSearch:
             str: The escaped string, suitable for use in shell commands inside double quotes.
         """
         return shlex.quote(s)
-
-
 
     def parse_lines(self, input_lines: List[str], is_git_repo: bool) -> List[Dict[str, Union[ChunkInfo, int]]]:
         results: List[Dict[str, Union[ChunkInfo, int]]] = []

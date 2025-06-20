@@ -5,16 +5,14 @@ from pathlib import Path
 from typing import Any, Optional
 
 import aiohttp
+from weaviate import WeaviateAsyncClient, WeaviateClient
+from weaviate.config import AdditionalConfig, Timeout
+from weaviate.connect import ConnectionParams, ProtocolParams
+from weaviate.embedded import EmbeddedOptions
 
 from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
-
-from weaviate.embedded import EmbeddedOptions
-from weaviate import WeaviateAsyncClient, WeaviateClient
-from weaviate.config import AdditionalConfig, Timeout
-from weaviate.connect import ConnectionParams, ProtocolParams
-
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
 

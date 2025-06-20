@@ -1,6 +1,6 @@
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
-from typing import Dict, Optional, Type, Tuple
+from typing import Dict, Optional, Tuple, Type
 
 from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
 from deputydev_core.models.dao.weaviate.chunk_files import ChunkFiles
@@ -21,17 +21,17 @@ from deputydev_core.services.embedding.extension_embedding_manager import (
 from deputydev_core.services.initialization.initialization_service import (
     InitializationManager,
 )
-from deputydev_core.services.repository.dataclasses.main import (
-    WeaviateSyncAndAsyncClients,
-)
-from deputydev_core.utils.custom_progress_bar import CustomProgressBar
 from deputydev_core.services.initialization.vector_store.weaviate.constants.weaviate_constants import (
     WEAVIATE_SCHEMA_VERSION,
+)
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
 )
 from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema_details_service import (
     WeaviateSchemaDetailsService,
 )
 from deputydev_core.utils.app_logger import AppLogger
+from deputydev_core.utils.custom_progress_bar import CustomProgressBar
 
 
 class ExtensionInitialisationManager(InitializationManager):

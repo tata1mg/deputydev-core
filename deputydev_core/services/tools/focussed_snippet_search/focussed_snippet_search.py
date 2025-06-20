@@ -4,6 +4,14 @@ from typing import Dict, List, Set
 from deputydev_core.models.dto.chunk_dto import ChunkDTO
 from deputydev_core.models.dto.chunk_file_dto import ChunkFileDTO
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
+from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
+from deputydev_core.services.repository.chunk_service import ChunkService
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
+)
+from deputydev_core.services.shared_chunks.shared_chunks_manager import (
+    SharedChunksManager,
+)
 from deputydev_core.services.tools.focussed_snippet_search.dataclass.main import (
     ChunkDetails,
     ChunkInfoAndHash,
@@ -15,15 +23,7 @@ from deputydev_core.services.tools.focussed_snippet_search.dataclass.main import
 from deputydev_core.services.tools.relevant_chunks.relevant_chunk import (
     RelevantChunks,
 )
-from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
-from deputydev_core.services.repository.chunk_service import ChunkService
-from deputydev_core.services.shared_chunks.shared_chunks_manager import (
-    SharedChunksManager,
-)
 from deputydev_core.utils.constants.constants import CHUNKFILE_KEYWORD_PROPERTY_MAP
-from deputydev_core.services.repository.dataclasses.main import (
-    WeaviateSyncAndAsyncClients,
-)
 
 
 class FocussedSnippetSearch:

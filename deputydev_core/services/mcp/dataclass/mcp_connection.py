@@ -1,8 +1,9 @@
 from typing import Union
 
-from deputydev_core.services.mcp.dataclass.main import McpServer
-from fastmcp.client.transports import SSETransport, StdioTransport
 from fastmcp import Client
+from fastmcp.client.transports import SSETransport, StdioTransport
+
+from deputydev_core.services.mcp.dataclass.main import McpServer
 
 
 class McpConnection:
