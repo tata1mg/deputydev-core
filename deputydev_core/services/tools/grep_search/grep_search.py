@@ -125,9 +125,10 @@ class GrepSearch:
         results: List[Dict[str, Union[ChunkInfo, int]]] = []
         abs_path = Path(os.path.join(self.repo_path, directory_path)).resolve()  # noqa: PTH118
         is_git_repo = LocalRepoFactory.is_git_repo(self.repo_path)
+        cwd = self.repo_path if os.path.isdir(self.repo_path) else "/"  # noqa: PTH112
 
         async def _run(command: List[str], is_git: bool) -> List[Dict[str, Union[ChunkInfo, int]]]:
-            process = await asyncio.create_subprocess_exec(*command, stdout=PIPE, stderr=PIPE)
+            process = await asyncio.create_subprocess_exec(*command, stdout=PIPE, stderr=PIPE, cwd=cwd)
             stdout, stderr = await process.communicate()
 
             if process.returncode == 0 and stdout:
