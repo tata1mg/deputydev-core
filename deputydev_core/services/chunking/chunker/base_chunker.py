@@ -54,7 +54,7 @@ class FileChunkCreator:
         process_executor: Optional[ProcessPoolExecutor] = None,
         set_config_in_new_process: bool = False,
         progress_bar=None,
-        files_indexing_monitor=None
+        files_indexing_monitor=None,
     ) -> Dict[str, List[ChunkInfo]]:
         """
         Converts the content of a list of files into chunks of code.
