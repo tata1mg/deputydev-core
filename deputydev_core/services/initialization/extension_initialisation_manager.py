@@ -61,7 +61,7 @@ class ExtensionInitialisationManager(InitializationManager):
         indexing_progressbar: Optional[CustomProgressBar] = None,
         embedding_progressbar: Optional[CustomProgressBar] = None,
         enable_refresh: Optional[bool] = False,
-        file_indexing_progress_monitor = None
+        file_indexing_progress_monitor=None,
     ) -> None:
         assert self.local_repo, "Local repo is not initialized"
         assert self.weaviate_client, "Connect to vector store"
@@ -74,7 +74,7 @@ class ExtensionInitialisationManager(InitializationManager):
             indexing_progress_bar=indexing_progressbar,
             embedding_progress_bar=embedding_progressbar,
             chunkable_files_and_hashes=chunkable_files_and_hashes,
-            file_indexing_progress_monitor=file_indexing_progress_monitor
+            file_indexing_progress_monitor=file_indexing_progress_monitor,
         ).create_chunks_and_docs(enable_refresh=enable_refresh)
 
         if enable_refresh:
