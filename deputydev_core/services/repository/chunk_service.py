@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime
 from typing import List, Tuple
 
@@ -86,7 +85,7 @@ class ChunkService(BaseWeaviateRepository):
 
             return all_chunks
 
-        except Exception as ex:
+        except Exception:
             AppLogger.log_error(
                 "Failed to get chunk files by commit hashes",
                 # extra={"chunk_hashes_count": len(chunk_hashes), "error": str(ex)},
@@ -135,9 +134,6 @@ class ChunkService(BaseWeaviateRepository):
     async def update_embedding(self, chunk) -> None:
         await self.ensure_collection_connections()
         try:
-            await self.async_collection.data.update(
-                uuid=generate_uuid5(chunk.content_hash),
-                vector=chunk.embedding
-            )
+            await self.async_collection.data.update(uuid=generate_uuid5(chunk.content_hash), vector=chunk.embedding)
         except Exception as error:
             AppLogger.log_error(f"Could not update embedding: {error}")

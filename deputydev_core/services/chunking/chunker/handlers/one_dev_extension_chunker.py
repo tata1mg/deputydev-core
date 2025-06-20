@@ -1,7 +1,8 @@
+import asyncio
 from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Union
-from deputydev_core.utils.app_logger import AppLogger
+
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.chunker.handlers.vector_db_chunker import (
     VectorDBChunker,
@@ -18,12 +19,12 @@ from deputydev_core.services.embedding.pr_review_embedding_manager import (
 from deputydev_core.services.repo.local_repo.base_local_repo_service import (
     BaseLocalRepo,
 )
+from deputydev_core.services.repository.chunk_service import ChunkService
 from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
+from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.custom_progress_bar import CustomProgressBar
-from deputydev_core.services.repository.chunk_service import ChunkService
-import asyncio
 
 
 class OneDevExtensionChunker(VectorDBChunker):
@@ -39,7 +40,7 @@ class OneDevExtensionChunker(VectorDBChunker):
         use_new_chunking: bool = True,
         use_async_refresh: bool = True,
         fetch_with_vector: bool = False,
-        file_indexing_progress_monitor = None
+        file_indexing_progress_monitor=None,
     ):
         super().__init__(
             local_repo,
@@ -70,7 +71,7 @@ class OneDevExtensionChunker(VectorDBChunker):
             process_executor=self.process_executor,
             set_config_in_new_process=True,
             progress_bar=self.indexing_progress_bar,
-            files_indexing_monitor=self.file_indexing_progress_monitor
+            files_indexing_monitor=self.file_indexing_progress_monitor,
         )
         return file_wise_chunks
 
