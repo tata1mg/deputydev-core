@@ -1,5 +1,3 @@
-from typing import List
-
 from pydantic import BaseModel
 
 
@@ -10,4 +8,6 @@ class GrepSearchRequestParams(BaseModel):
 
     directory_path: str
     repo_path: str
-    search_terms: List[str] = []
+    search_term: str
+    case_insensitive: bool = False
+    use_regex: bool = False
