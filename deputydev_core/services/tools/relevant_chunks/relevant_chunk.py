@@ -2,11 +2,11 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List
 
-from build.lib.deputydev_core.services.initialization.extension_initialisation_manager import (
-    ExtensionInitialisationManager,
-)
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
 from deputydev_core.services.chunking.chunking_manager import ChunkingManger
+from deputydev_core.services.initialization.extension_initialisation_manager import (
+    ExtensionInitialisationManager,
+)
 from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepoFactory
 from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
 from deputydev_core.services.repository.chunk_service import ChunkService
