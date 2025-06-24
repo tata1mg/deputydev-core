@@ -1,6 +1,6 @@
 [project]
 name = "deputydev-core"
-version = "5.0.0"
+version = "5.0.1"
 description = "Core library for DeputyDev"
 authors = [{ name = "DeputyDev", email = "deputydev@1mg.com" }]
 readme = "README.md"
@@ -8,7 +8,6 @@ requires-python = ">=3.11, <3.13"
 
 dependencies = [
     "numpy==1.26.2",
-    "prompt-toolkit==3.0.48",
     "weaviate-client==4.10.3",
     "pydantic==2.10.3",
     "xxhash==3.5.0",
