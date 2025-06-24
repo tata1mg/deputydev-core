@@ -1,6 +1,10 @@
 import os
+from pathlib import Path
 from typing import Any, Dict, List
 
+from build.lib.deputydev_core.services.initialization.extension_initialisation_manager import (
+    ExtensionInitialisationManager,
+)
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
 from deputydev_core.services.chunking.chunking_manager import ChunkingManger
 from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepoFactory
@@ -15,6 +19,7 @@ from deputydev_core.services.tools.focussed_snippet_search.dataclass.main import
     ChunkDetails,
     ChunkInfoAndHash,
     CodeSnippetDetails,
+    DirectoryStructureParams,
     FocusChunksParams,
 )
 from deputydev_core.services.tools.relevant_chunks.dataclass.main import (
@@ -29,8 +34,8 @@ from deputydev_core.utils.weaviate import (
 
 
 class RelevantChunks:
-    def __init__(self, repo_path):
-        self.repo_path = repo_path
+    def __init__(self, repo_path: str) -> None:
+        self.repo_path = Path(repo_path)
 
     async def get_relevant_chunks(
         self,
@@ -91,8 +96,8 @@ class RelevantChunks:
         }
 
     def get_file_chunk(self, file_path: str, start_line: int, end_line: int) -> str:
-        abs_file_path = os.path.join(self.repo_path, file_path)
-        with open(abs_file_path, "r", encoding="utf-8", errors="ignore") as file:
+        abs_file_path = Path(self.repo_path) / file_path
+        with abs_file_path.open("r", encoding="utf-8", errors="ignore") as file:
             lines = file.readlines()
             return "".join(lines[start_line - 1 : end_line])
 
@@ -131,7 +136,9 @@ class RelevantChunks:
         #     ]
         return chunk_info_list
 
-    async def get_focus_chunks(self, payload: FocusChunksParams, initialization_manager) -> List[Dict[str, Any]]:
+    async def get_focus_chunks(
+        self, payload: FocusChunksParams, initialization_manager: ExtensionInitialisationManager
+    ) -> List[Dict[str, Any]]:
         repo_path = payload.repo_path
         local_repo = LocalRepoFactory.get_local_repo(repo_path)
         chunkable_files_and_hashes = await local_repo.get_chunkable_files_and_commit_hashes()
@@ -282,3 +289,18 @@ class RelevantChunks:
         )
 
         return [chunk_info.model_dump(mode="json") for chunk_info in updated_chunk_info_list]
+
+    async def get_directory_structure(self, payload: DirectoryStructureParams) -> List[Dict[str, str]]:
+        base_path = self.repo_path / (payload.directory_path or "")
+        result: List[Dict[str, str]] = []
+
+        try:
+            with os.scandir(base_path) as entries:
+                for entry in entries:
+                    entry_type = "directory" if entry.is_dir() else "file"
+                    result.append({"name": entry.name, "type": entry_type})
+        except Exception as e:
+            AppLogger.log_error(f"Error scanning directory {base_path}: {e}")
+            raise
+
+        return result
