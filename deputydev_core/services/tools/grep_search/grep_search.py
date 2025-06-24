@@ -5,6 +5,7 @@ from asyncio.subprocess import PIPE
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
+from deputydev_core.errors.tools.tool_errors import EmptyToolResponseError, UnhandledToolError
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
 from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepoFactory
 
@@ -136,7 +137,7 @@ class GrepSearch:
             elif process.returncode == 1:
                 return []
             else:
-                raise RuntimeError(f"Grep failed: {stderr.decode().strip()}")
+                raise UnhandledToolError(f"Grep failed: {stderr.decode().strip()}")
 
         if is_git_repo:
             # First try git grep
@@ -154,7 +155,7 @@ class GrepSearch:
             results = await _run(command, is_git=False)
 
         if not results:
-            raise ValueError(f"No matches found for '{search_term}' in {directory_path}.")
+            raise EmptyToolResponseError(f"No matches found for '{search_term}' in {directory_path}.")
 
         return results[:50]
 
