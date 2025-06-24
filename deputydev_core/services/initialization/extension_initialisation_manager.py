@@ -32,6 +32,7 @@ from deputydev_core.services.repository.weaaviate_schema_details.weaviate_schema
 )
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.custom_progress_bar import CustomProgressBar
+from deputydev_core.utils.file_indexing_monitor import FileIndexingMonitor
 
 
 class ExtensionInitialisationManager(InitializationManager):
@@ -47,12 +48,12 @@ class ExtensionInitialisationManager(InitializationManager):
         embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
     ) -> None:
         super().__init__(
+            ExtensionEmbeddingManager,
             repo_path,
             auth_token_key,
             process_executor,
             one_dev_client,
             weaviate_client,
-            ExtensionEmbeddingManager,
         )
 
     async def prefill_vector_store(
@@ -61,7 +62,7 @@ class ExtensionInitialisationManager(InitializationManager):
         indexing_progressbar: Optional[CustomProgressBar] = None,
         embedding_progressbar: Optional[CustomProgressBar] = None,
         enable_refresh: Optional[bool] = False,
-        file_indexing_progress_monitor=None,
+        file_indexing_progress_monitor: Optional[FileIndexingMonitor] = None,
     ) -> None:
         assert self.local_repo, "Local repo is not initialized"
         assert self.weaviate_client, "Connect to vector store"
