@@ -1,18 +1,17 @@
 import re
-import logging
-from typing import List, Optional
+from typing import List,Tuple
 from deputydev_core.models.dto.summarization_dto import FileSummaryResponse, LineRange, SummarizationStrategy, FileType
+from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.constants.constants  import (
-    ALL_EXTENSIONS, SPECIAL_FILENAME_MAP, IMPORTANT_NODE_TYPES,
-    CODE_PATTERNS,  DEFAULT_MAX_SUMMARY_LINES, MAX_SIGNATURE_LINES
+    IMPORTANT_NODE_TYPES,CODE_PATTERNS,  DEFAULT_MAX_SUMMARY_LINES, MAX_SIGNATURE_LINES
 )
-
+from deputydev_core.utils.file_type_detector import FileTypeDetector
 from tree_sitter_language_pack import get_parser, get_language
 
 
 class FileSummarizer:
     
-    def __init__(self, max_lines: int = DEFAULT_MAX_SUMMARY_LINES, include_line_numbers: bool = True):
+    def __init__(self, max_lines: int = DEFAULT_MAX_SUMMARY_LINES, include_line_numbers: bool = True)->None:
         self.max_lines = max_lines
         self.include_line_numbers = include_line_numbers
         self.parser = None
@@ -49,7 +48,7 @@ class FileSummarizer:
             skipped_ranges=skipped
         )
     
-    def _summarize_code(self, lines: List[str], file_path: str = "") -> tuple:
+    def _summarize_code(self, lines: List[str], file_path: str = "") -> Tuple[List[str], List[LineRange], List[LineRange]]:
         """Extract important code structures using tree-sitter or regex fallback."""
         content = "\n".join(lines)
         
@@ -63,7 +62,7 @@ class FileSummarizer:
     
     def _setup_parser(self, file_path: str) -> bool:
             
-        language_name = self._get_language_from_file(file_path)
+        language_name = FileTypeDetector.get_language_from_file(file_path)
         if not language_name:
             return False
             
@@ -74,21 +73,8 @@ class FileSummarizer:
         except Exception:
             return False
     
-    def _get_language_from_file(self, file_path: str) -> Optional[str]:
-        """Get tree-sitter language name from file extension."""
-        if not file_path:
-            return None
-            
-        ext = file_path.lower().split('.')[-1] if '.' in file_path else ''
-        filename = file_path.lower().split('/')[-1] if '/' in file_path else file_path.lower()
-        
-        # Check special filenames first
-        if filename in SPECIAL_FILENAME_MAP:
-            return SPECIAL_FILENAME_MAP[filename]
-        
-        return ALL_EXTENSIONS.get(ext)
-    
-    def _summarize_code_with_tree_sitter(self, content: str, lines: List[str]) -> tuple:
+
+    def _summarize_code_with_tree_sitter(self, content: str, lines: List[str]) -> Tuple[List[str], List[LineRange], List[LineRange]]:
         """Use tree-sitter to extract code structures."""
         try:
             tree = self.parser.parse(content.encode('utf-8'))
@@ -115,8 +101,8 @@ class FileSummarizer:
             skipped = self._calculate_skipped(lines, [r.start_line for r in ranges])
             return important_lines, ranges, skipped
             
-        except Exception:
-            return self._summarize_code_with_regex(lines)
+        except Exception as e:
+            AppLogger.log_error(f"Error With Tree Sitter: {e}")
     
     def _extract_important_nodes(self, node, source_code: bytes, important_lines: List[str], 
                                 ranges: List[LineRange], lines: List[str]) -> int:
@@ -135,19 +121,21 @@ class FileSummarizer:
                 # Get the declaration line(s)
                 line_content = self._get_declaration_content(lines, start_line, end_line, node.type)
                 
-                important_lines.append(line_content)
-                content_type = self._map_node_type(node.type)
+                # Ensure line_content isn't None or empty
+                if line_content:
+                    important_lines.append(line_content)
+                    content_type = self._map_node_type(node.type)
                 
-                # Create enhanced line range with construct details
-                line_range = LineRange(
-                    start_line=start_line,
-                    end_line=end_line,
-                    content_type=content_type,
-                    construct_name=construct_name,
-                    description=f"{content_type.title()} spanning {end_line - start_line + 1} lines"
-                )
-                ranges.append(line_range)
-                nodes_found += 1
+                    # Create enhanced line range with construct details
+                    line_range = LineRange(
+                        start_line=start_line,
+                        end_line=end_line,
+                        content_type=content_type,
+                        construct_name=construct_name,
+                        description=f"{content_type.title()} spanning {end_line - start_line + 1} lines"
+                    )
+                    ranges.append(line_range)
+                    nodes_found += 1
         
         # Recursively process children
         for child in node.children:
@@ -229,6 +217,7 @@ class FileSummarizer:
         return lines[start_line - 1]
     
     def _map_node_type(self, node_type: str) -> str:
+        #todo:  make this common logic across code
         """Map tree-sitter node types to our content types."""
         if 'class' in node_type:
             return 'class'
@@ -243,7 +232,7 @@ class FileSummarizer:
         else:
             return 'code_structure'
     
-    def _summarize_code_with_regex(self, lines: List[str]) -> tuple:
+    def _summarize_code_with_regex(self, lines: List[str]) -> Tuple[List[str], List[LineRange], List[LineRange]]:
         """Fallback regex-based code structure extraction."""
         important_lines = []
         ranges = []
@@ -276,18 +265,21 @@ class FileSummarizer:
     
     def _extract_name_from_line(self, line: str, content_type: str) -> str:
         """Extract construct name from a line using regex."""
-        if content_type == 'class':
-            match = re.search(r'class\s+(\w+)', line)
-        elif content_type == 'function':
-            match = re.search(r'(?:def|function)\s+(\w+)', line)
-        elif content_type == 'import':
-            return line.strip()
-        else:
-            match = re.search(r'@(\w+)', line)
-        
-        return match.group(1) if match else "unnamed"
+        try:
+            if content_type == 'class':
+                match = re.search(r'class\s+(\w+)', line)
+            elif content_type == 'function':
+                match = re.search(r'(?:def|function)\s+(\w+)', line)
+            elif content_type == 'import':
+                return line.strip()
+            else:
+                match = re.search(r'@(\w+)', line)
+            
+            return match.group(1) if match else "unnamed"
+        except Exception:
+            return "unnamed"
     
-    def _summarize_text(self, lines: List[str]) -> tuple:
+    def _summarize_text(self, lines: List[str]) -> Tuple[List[str], List[LineRange], List[LineRange]]:
         """Extract headers and key text."""
         important_lines = []
         ranges = []
@@ -319,7 +311,7 @@ class FileSummarizer:
         skipped = self._calculate_skipped(lines, [r.start_line for r in ranges])
         return important_lines, ranges, skipped
     
-    def _sample_lines(self, lines: List[str]) -> tuple:
+    def _sample_lines(self, lines: List[str]) -> Tuple[List[str], List[LineRange], List[LineRange]]:
         """Simple interval sampling."""
         if len(lines) <= self.max_lines:
             summary_lines = lines
