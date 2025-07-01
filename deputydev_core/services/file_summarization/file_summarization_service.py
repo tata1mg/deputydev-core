@@ -1,8 +1,11 @@
 from pathlib import Path
+
 from deputydev_core.models.dto.summarization_dto import FileSummaryResponse
-from ...utils.file_type_detector import FileTypeDetector
+from deputydev_core.utils.constants.constants import (
+    DEFAULT_MAX_SUMMARY_LINES, LARGE_FILE_THRESHOLD, MAX_FILE_SIZE)
+from deputydev_core.utils.file_type_detector import FileTypeDetector
+
 from .file_summarizer import FileSummarizer
-from deputydev_core.utils.constants.constants import DEFAULT_MAX_SUMMARY_LINES, LARGE_FILE_THRESHOLD, MAX_FILE_SIZE
 
 
 class FileSummarizationService:

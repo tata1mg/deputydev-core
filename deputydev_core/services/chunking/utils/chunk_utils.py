@@ -1,11 +1,8 @@
 import re
 from typing import List, Set, Tuple
 
-
 from deputydev_core.services.chunking.dataclass.main import (
-    ChunkMetadataHierachyObject,
-    NeoSpan,
-)
+    ChunkMetadataHierachyObject, NeoSpan)
 
 
 def get_line_number(index: int, source_code: bytes) -> int:
@@ -46,19 +43,19 @@ def non_whitespace_len(s: str) -> int:
     return len(re.sub(r"\s", "", s))
 
 
-def get_chunk_first_char(current_chunk: NeoSpan, source_code: bytes):
+def get_chunk_first_char(current_chunk: NeoSpan, source_code: bytes) -> str:
     stripped_contents = current_chunk.extract_lines(source_code.decode("utf-8")).strip()
     first_char = stripped_contents[0] if stripped_contents else ""
     return first_char
 
 
-def get_current_chunk_length(chunk: NeoSpan, source_code: bytes):
+def get_current_chunk_length(chunk: NeoSpan, source_code: bytes) -> int:
     if not chunk:
         return 0
     return len(chunk.extract_lines(source_code.decode("utf-8")))
 
 
-def supported_new_chunk_language(language):
+def supported_new_chunk_language(language: str) -> bool:
     return language in [
         "python",
         "javascript",
@@ -70,7 +67,7 @@ def supported_new_chunk_language(language):
     ]
 
 
-def deduplicate_hierarchy(hierarchy_list: List[ChunkMetadataHierachyObject]):
+def deduplicate_hierarchy(hierarchy_list: List[ChunkMetadataHierachyObject]) -> List[ChunkMetadataHierachyObject]:
     """Removes duplicate dictionaries from the hierarchy list while preserving order."""
     seen: Set[Tuple[str, str]] = set()
     deduped: List[ChunkMetadataHierachyObject] = []

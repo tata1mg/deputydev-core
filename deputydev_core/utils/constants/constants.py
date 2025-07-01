@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, Set
+from typing import Dict, List, Set
 
 APP_VERSION = "1.0.4"
 LARGE_NO_OF_CHUNKS = 60
@@ -58,7 +58,7 @@ CHUNKFILE_KEYWORD_PROPERTY_MAP = {
 
 class ExtendedEnum(Enum):
     @classmethod
-    def list(cls):
+    def list(cls) -> List[str]:
         return list(map(lambda c: c.value, cls))
 
 
