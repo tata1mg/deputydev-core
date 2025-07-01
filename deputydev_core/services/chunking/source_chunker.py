@@ -3,10 +3,8 @@ from typing import List, Optional, Set, Tuple
 
 from tree_sitter_language_pack import get_parser
 
-from deputydev_core.services.chunking.strategies.chunk_strategy_factory import \
-    ChunkingStrategyFactory
-from deputydev_core.services.chunking.utils.chunk_utils import \
-    supported_new_chunk_language
+from deputydev_core.services.chunking.strategies.chunk_strategy_factory import ChunkingStrategyFactory
+from deputydev_core.services.chunking.utils.chunk_utils import supported_new_chunk_language
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
 from deputydev_core.utils.file_type_detector import FileTypeDetector
@@ -91,7 +89,7 @@ def chunk_source(
     try:
         final_chunks: List[ChunkInfo] = []
         parser = get_parser(language)
-        tree = parser.parse(bytes(content,"utf-8"))
+        tree = parser.parse(bytes(content, "utf-8"))
         is_eligible_for_new_chunking = use_new_chunking and supported_new_chunk_language(language)
         strategy_chunker = ChunkingStrategyFactory.create_strategy(
             language=language, is_eligible_for_new_chunking=is_eligible_for_new_chunking
@@ -135,7 +133,7 @@ def chunk_source(
                 already_visited_chunk.add(new_chunk_info.denotation)
 
         return final_chunks
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         AppLogger.log_error(f"Error chunking file: {path}: {str(e)}")
         return []
 
