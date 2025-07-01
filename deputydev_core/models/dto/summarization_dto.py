@@ -9,7 +9,7 @@ class ContentType(Enum):
     SUMMARY = "summary"      # Summarized content
 
 
-class SummarizationStrategy(str, Enum):
+class SummarizationStrategy(Enum):
     """Strategy used for summarization"""
     AUTO = "auto"
     CODE = "code"

@@ -10,7 +10,7 @@ from deputydev_core.services.chunking.utils.chunk_utils import (
 )
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
-from deputydev_core.utils.constants.constants import ALL_EXTENSIONS
+from deputydev_core.utils.file_type_detector import FileTypeDetector
 
 from ..tiktoken import TikToken
 from .chunk_info import ChunkInfo, ChunkSourceDetails
@@ -69,10 +69,8 @@ def chunk_source(
     if not MAX_CHARS:
         MAX_CHARS = ConfigManager.configs["CHUNKING"]["CHARACTER_SIZE"]
 
-    ext = path.split(".")[-1]
-    if ext in ALL_EXTENSIONS:
-        language = ALL_EXTENSIONS[ext]
-    else:
+    language = FileTypeDetector.get_language_from_file(path)
+    if not language:
         # Fallback to default chunking if tree_sitter fails
         line_count = 50
         overlap = 0

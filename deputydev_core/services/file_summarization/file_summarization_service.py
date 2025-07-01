@@ -1,6 +1,6 @@
-import os
+from pathlib import Path
 from deputydev_core.models.dto.summarization_dto import FileSummaryResponse
-from .file_type_detector import FileTypeDetector
+from ...utils.file_type_detector import FileTypeDetector
 from .file_summarizer import FileSummarizer
 from deputydev_core.utils.constants.constants import DEFAULT_MAX_SUMMARY_LINES, LARGE_FILE_THRESHOLD, MAX_FILE_SIZE
 
@@ -13,15 +13,15 @@ class FileSummarizationService:
                            max_lines: int = DEFAULT_MAX_SUMMARY_LINES, 
                            include_line_numbers: bool = True) -> FileSummaryResponse:
         """Summarize a file with minimal overhead."""
-        full_path = os.path.join(repo_path, file_path) if repo_path else file_path
+        full_path = Path(repo_path)/file_path if repo_path else Path(file_path)
         
-        if not os.path.exists(full_path):
+        if not full_path.exists():
             raise FileNotFoundError(f"File not found: {full_path}")
         
         if FileTypeDetector.should_ignore_file(file_path):
             raise ValueError(f"File type not supported: {file_path}")
         
-        if os.path.getsize(full_path) > MAX_FILE_SIZE:
+        if full_path.stat().st_size > MAX_FILE_SIZE:
             raise ValueError("File too large for summarization")
         
         # Read file with encoding fallback
@@ -40,11 +40,11 @@ class FileSummarizationService:
         return is_full_file_request and total_lines > LARGE_FILE_THRESHOLD
     
     @classmethod
-    def _read_file_content(cls, file_path: str) -> str:
+    def _read_file_content(cls, file_path: Path) -> str:
         """Read file content with encoding fallback."""
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with file_path.open('r', encoding='utf-8') as f:
                 return f.read()
         except UnicodeDecodeError:
-            with open(file_path, 'r', encoding='latin-1') as f:
+            with file_path.open('r', encoding='latin-1') as f:
                 return f.read()

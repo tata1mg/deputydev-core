@@ -1,3 +1,4 @@
+
 from typing import Optional, Tuple
 import os
 
@@ -5,6 +6,7 @@ import aiofiles
 
 from deputydev_core.models.dto.summarization_dto import FileContent
 from deputydev_core.services.file_summarization.file_summarization_service import FileSummarizationService
+from deputydev_core.utils.app_logger import AppLogger
 
 
 class IterativeFileReader:
@@ -13,7 +15,7 @@ class IterativeFileReader:
     Automatically summarizes large files when reading the entire content.
     """
 
-    def __init__(self, file_path: str, max_lines: Optional[int] = None, repo_path: Optional[str] = None):
+    def __init__(self, file_path: str, max_lines: Optional[int] = None, repo_path: Optional[str] = None)->None:
         """
         Initialize the IterativeFileReader with a file path.
 
@@ -70,7 +72,8 @@ class IterativeFileReader:
                     eof_reached=True
                 )
                 return summary_content, True
-            except Exception:
+            except Exception as e:
+                AppLogger.log_error(f"Summarization failed for {self.file_path}, falling back to regular reading: {str(e)}")
                 # Fall back to regular reading if summarization fails
                 pass
 
@@ -123,21 +126,21 @@ class IterativeFileReader:
         Count total lines in the file efficiently.
         """
         try:
-            async with aiofiles.open(self.file_path, mode="r", encoding="utf-8") as file:
-                line_count = 0
-                async for _ in file:
-                    line_count += 1
-                return line_count
-        except UnicodeDecodeError:
-            # For binary-like files, try with different encoding
+        # Try first with utf-8
             try:
+                async with aiofiles.open(self.file_path, mode="r", encoding="utf-8") as file:
+                    line_count = 0
+                    async for _ in file:
+                        line_count += 1
+                    return line_count
+            except UnicodeDecodeError:
+                # Fall back to latin-1
                 async with aiofiles.open(self.file_path, mode="r", encoding="latin-1") as file:
                     line_count = 0
                     async for _ in file:
                         line_count += 1
                     return line_count
-            except Exception:
-                # If we can't count lines, assume it's not too big
-                return 0
-        except Exception:
+        except Exception as e:
+            # Log the specific error
+            AppLogger.log_error(f"Error counting lines in {self.file_path}: {str(e)}")
             return 0

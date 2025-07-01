@@ -1,7 +1,10 @@
-import os
 import re
+from pathlib import Path
+from typing import Optional
 from deputydev_core.models.dto.summarization_dto import FileType
-from deputydev_core.utils.constants.constants import CODE_EXTENSIONS, TEXT_EXTENSIONS, CONFIG_EXTENSIONS, BINARY_EXTENSIONS, IGNORED_PATHS
+from deputydev_core.utils.constants.constants import (
+    CODE_EXTENSIONS, TEXT_EXTENSIONS, CONFIG_EXTENSIONS, BINARY_EXTENSIONS, 
+    IGNORED_PATHS,SPECIAL_FILENAME_MAP,ALL_EXTENSIONS)
 
 
 class FileTypeDetector:
@@ -10,17 +13,34 @@ class FileTypeDetector:
     @classmethod
     def should_ignore_file(cls, file_path: str) -> bool:
         """Check if file should be ignored."""
-        path_parts = file_path.split(os.sep)
+        path = Path(file_path)
+        path_parts = path.parts
         if any(ignored in path_parts for ignored in IGNORED_PATHS):
             return True
-        ext = os.path.splitext(file_path)[1].lower()
+        ext = path.suffix.lower()
         return ext in BINARY_EXTENSIONS
+    
+    @classmethod
+    def get_language_from_file(cls, file_path: str) -> Optional[str]:
+        """Get tree-sitter language name from file extension."""
+        if not file_path:
+            return None
+            
+        ext = file_path.lower().split('.')[-1] if '.' in file_path else ''
+        filename = file_path.lower().split('/')[-1] if '/' in file_path else file_path.lower()
+        
+        # Check special filenames first
+        if filename in SPECIAL_FILENAME_MAP:
+            return SPECIAL_FILENAME_MAP[filename]
+        
+        return ALL_EXTENSIONS.get(ext)
     
     @classmethod
     def detect_file_type(cls, file_path: str, content_sample: str = "") -> FileType:
         """Detect file type from extension."""
-        ext = os.path.splitext(file_path)[1].lower()
-        filename = os.path.basename(file_path).lower()
+        path = Path(file_path)
+        ext = path.suffix.lower()
+        filename = path.name.lower()
         
         if ext in CODE_EXTENSIONS or filename in ['dockerfile', 'makefile']:
             return FileType.CODE
