@@ -1,0 +1,32 @@
+name: Code Quality
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  pre-commit:
+    name: Run pre-commit on PR changes to main
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Run pre-commit on changed files
+        run: |
+          BASE_REF="origin/${{ github.base_ref }}"
+          HEAD_REF="HEAD"
+          echo "Running pre-commit from $BASE_REF to $HEAD_REF"
+          pre-commit run --from-ref "$BASE_REF" --to-ref "$HEAD_REF"
