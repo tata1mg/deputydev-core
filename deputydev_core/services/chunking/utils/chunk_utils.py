@@ -1,8 +1,7 @@
 import re
 from typing import List, Set, Tuple
 
-from deputydev_core.services.chunking.dataclass.main import (
-    ChunkMetadataHierachyObject, NeoSpan)
+from deputydev_core.services.chunking.dataclass.main import ChunkMetadataHierachyObject, NeoSpan
 
 
 def get_line_number(index: int, source_code: bytes) -> int:
