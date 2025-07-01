@@ -48,6 +48,11 @@ class FocusChunksParams(BaseModel):
     chunks: List[Union[ChunkDetails, CodeSnippetDetails]]
 
 
+class DirectoryStructureParams(BaseModel):
+    repo_path: str
+    directory_path: Optional[str] = None
+
+
 class ChunkInfoAndHash(BaseModel):
     chunk_info: ChunkInfo
     chunk_hash: str
@@ -55,7 +60,7 @@ class ChunkInfoAndHash(BaseModel):
     def __hash__(self) -> int:
         return hash(self.chunk_hash)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, ChunkInfoAndHash):
             return False
         return self.chunk_hash == other.chunk_hash
