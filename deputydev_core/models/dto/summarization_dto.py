@@ -18,7 +18,7 @@ class SummarizationStrategy(Enum):
     SAMPLING = "sampling"
 
 
-class FileType(str, Enum):
+class FileType(Enum):
     """Type of file detected"""
 
     CODE = "code"
