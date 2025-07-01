@@ -1,11 +1,13 @@
 
-from typing import Optional, Tuple
 import os
+from pathlib import Path
+from typing import Optional, Tuple
 
 import aiofiles
 
 from deputydev_core.models.dto.summarization_dto import FileContent
-from deputydev_core.services.file_summarization.file_summarization_service import FileSummarizationService
+from deputydev_core.services.file_summarization.file_summarization_service import \
+    FileSummarizationService
 from deputydev_core.utils.app_logger import AppLogger
 
 
@@ -27,10 +29,10 @@ class IterativeFileReader:
         self.file_path = file_path
         self.max_lines: int = max_lines or 100
         self.repo_path = repo_path
-        
+        path=Path(file_path)
         # If repo_path not provided, try to extract it from file_path
         if not self.repo_path:
-            self.repo_path = os.path.dirname(file_path) if os.path.dirname(file_path) else "."
+            self.repo_path = str(path.parent) if path.parent else "."
 
     async def read_lines(self, start_line: int, end_line: int) -> Tuple[FileContent, bool]:
         """
@@ -46,8 +48,8 @@ class IterativeFileReader:
 
         if start_line < 1 or end_line < 1 or end_line < start_line:
             raise ValueError("Invalid start_line or end_line")
-        
-        if not os.path.exists(self.file_path):
+        path=Path(self.file_path)
+        if not path.exists():
             raise FileNotFoundError(f"File not found: {self.file_path}")
 
         # Check if we should summarize large files

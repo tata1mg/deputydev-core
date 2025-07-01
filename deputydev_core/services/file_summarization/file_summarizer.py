@@ -1,12 +1,16 @@
 import re
-from typing import List,Tuple
-from deputydev_core.models.dto.summarization_dto import FileSummaryResponse, LineRange, SummarizationStrategy, FileType
+from typing import List, Tuple
+
+from tree_sitter_language_pack import get_language, get_parser
+
+from deputydev_core.models.dto.summarization_dto import (FileSummaryResponse,
+                                                         FileType, LineRange,
+                                                         SummarizationStrategy)
 from deputydev_core.utils.app_logger import AppLogger
-from deputydev_core.utils.constants.constants  import (
-    IMPORTANT_NODE_TYPES,CODE_PATTERNS,  DEFAULT_MAX_SUMMARY_LINES, MAX_SIGNATURE_LINES
-)
+from deputydev_core.utils.constants.constants import (
+    CODE_PATTERNS, DEFAULT_MAX_SUMMARY_LINES, IMPORTANT_NODE_TYPES,
+    MAX_SIGNATURE_LINES)
 from deputydev_core.utils.file_type_detector import FileTypeDetector
-from tree_sitter_language_pack import get_parser, get_language
 
 
 class FileSummarizer:
@@ -70,7 +74,8 @@ class FileSummarizer:
             self.language = get_language(language_name)
             self.parser = get_parser(language_name)
             return True
-        except Exception:
+        except Exception as e:
+            AppLogger.log_error(f"Error setting up parser for {file_path}: {str(e)}")
             return False
     
 
@@ -82,7 +87,7 @@ class FileSummarizer:
             ranges = []
                      
             # Extract important nodes from AST
-            nodes_found = self._extract_important_nodes(tree.root_node, content.encode('utf-8'), important_lines, ranges, lines)
+            self._extract_important_nodes(tree.root_node, content.encode('utf-8'), important_lines, ranges, lines)
             
             # Limit results
             important_lines = important_lines[:self.max_lines]
@@ -102,9 +107,9 @@ class FileSummarizer:
             return important_lines, ranges, skipped
             
         except Exception as e:
-            AppLogger.log_error(f"Error With Tree Sitter: {e}")
+            AppLogger.log_error(f"Error with tree-sitter parsing: {str(e)}")
     
-    def _extract_important_nodes(self, node, source_code: bytes, important_lines: List[str], 
+    def _extract_important_nodes(self, node: object, source_code: bytes, important_lines: List[str], 
                                 ranges: List[LineRange], lines: List[str]) -> int:
         """Recursively extract important nodes from AST."""
         nodes_found = 0
@@ -145,7 +150,7 @@ class FileSummarizer:
         
         return nodes_found
     
-    def _extract_construct_name(self, node, source_code: bytes) -> str:
+    def _extract_construct_name(self, node:object, source_code: bytes) -> str:
         """Extract the name of a construct (function, class, etc.) from a tree-sitter node."""
         try:
             # Look for identifier nodes that represent the name
@@ -162,7 +167,8 @@ class FileSummarizer:
                     name = self._extract_construct_name(child, source_code)
                     if name:
                         return name
-        except Exception:
+        except Exception as e:
+            AppLogger.log_error(f"Error in finding construct name: {str(e)}")
             pass
         
         # Fallback: extract from source text using patterns
@@ -181,7 +187,8 @@ class FileSummarizer:
                     return match.group(1)
             elif 'import' in first_line:
                 return first_line.strip()
-        except Exception:
+        except Exception as e:
+            AppLogger.log_error(f"Error in string matching for construct: {str(e)}")
             pass
         
         return "unnamed"
@@ -276,7 +283,8 @@ class FileSummarizer:
                 match = re.search(r'@(\w+)', line)
             
             return match.group(1) if match else "unnamed"
-        except Exception:
+        except Exception as e:
+            AppLogger.log_error(f"Error in regex summarization: {str(e)}")
             return "unnamed"
     
     def _summarize_text(self, lines: List[str]) -> Tuple[List[str], List[LineRange], List[LineRange]]:
