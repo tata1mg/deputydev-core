@@ -138,6 +138,19 @@ class FileContent(BaseModel):
 
         return "\\n".join(formatted_lines)
 
+    @property
+    def denotation(self) -> str:
+        """
+        Returns the denotation of the source chunk.
+
+        Returns:
+            str: The denotation of the source chunk in the format "{source}:{start}-{end}".
+        """
+        return f"{self.source_details.file_path}:{self.source_details.start_line}-{self.source_details.end_line}"
+
+    def get_xml(self) -> str:
+        return f"""<chunk source="{self.denotation}">\n content="{self.content}"\ncontent type="{self.content_type}"\nline ranges="{self.line_ranges}"\n skipped ranges="{self.skipped_ranges}" </chunk>"""
+
 
 class FileSummaryResponse(BaseModel):
     """Response model for file summarization - kept for backward compatibility"""
