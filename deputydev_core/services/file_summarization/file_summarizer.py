@@ -1,5 +1,5 @@
 import re
-from typing import List, Tuple
+from typing import List
 
 from tree_sitter_language_pack import get_language, get_parser
 
@@ -24,39 +24,28 @@ class FileSummarizer:
     def summarize(self, file_path: str, content: str, file_type: FileType) -> FileSummaryResponse:
         """Summarize file content based on type."""
         lines = content.splitlines()
-        total_lines = len(lines)
 
         if file_type == FileType.CODE:
-            summary_lines, ranges, skipped = self._summarize_code(lines, file_path)
+            summary_lines = self._summarize_code(lines, file_path)
             strategy = SummarizationStrategy.CODE
         elif file_type == FileType.TEXT:
-            summary_lines, ranges, skipped = self._summarize_text(lines)
+            summary_lines = self._summarize_text(lines)
             strategy = SummarizationStrategy.TEXT
         else:
-            summary_lines, ranges, skipped = self._sample_lines(lines)
+            summary_lines = self._sample_lines(lines)
             strategy = SummarizationStrategy.SAMPLING
-
-        summary_content = "\n".join(
-            [
-                self._format_line(line, i + 1) if self.include_line_numbers else line
-                for i, line in enumerate(summary_lines)
-            ]
-        )
+        summary_content = ""
+        for i in summary_lines:
+            summary_content = summary_content + i
 
         return FileSummaryResponse(
             file_path=file_path,
             file_type=file_type,
             strategy_used=strategy,
-            total_lines=total_lines,
-            summary_lines=len(summary_lines),
             summary_content=summary_content,
-            line_ranges=ranges,
-            skipped_ranges=skipped,
         )
 
-    def _summarize_code(
-        self, lines: List[str], file_path: str = ""
-    ) -> Tuple[List[str], List[LineRange], List[LineRange]]:
+    def _summarize_code(self, lines: List[str], file_path: str = "") -> List[str]:
         """Extract important code structures using tree-sitter or regex fallback."""
         content = "\n".join(lines)
 
@@ -79,9 +68,7 @@ class FileSummarizer:
             AppLogger.log_error(f"Error setting up parser for {file_path}: {str(e)}")
             return False
 
-    def _summarize_code_with_tree_sitter(
-        self, content: str, lines: List[str]
-    ) -> Tuple[List[str], List[LineRange], List[LineRange]]:
+    def _summarize_code_with_tree_sitter(self, content: str, lines: List[str]) -> List[str]:
         """Use tree-sitter to extract code structures."""
         try:
             tree = self.parser.parse(content.encode("utf-8"))
@@ -95,17 +82,28 @@ class FileSummarizer:
             important_lines = important_lines[: self.max_lines]
             ranges = ranges[: self.max_lines]
 
-            # Log detailed findings
-            structure_counts = {}
-            multi_line_constructs = 0
-
-            for r in ranges:
-                structure_counts[r.content_type] = structure_counts.get(r.content_type, 0) + 1
-                if r.end_line > r.start_line:
-                    multi_line_constructs += 1
-
+            # Calculate skipped ranges
             skipped = self._calculate_skipped(lines, [r.start_line for r in ranges])
-            return important_lines, ranges, skipped
+
+            # Compile everything into formatted strings with line ranges
+            result_strings = []
+
+            # Add important lines with their range information
+            for i, (line, range_info) in enumerate(zip(important_lines, ranges)):
+                if range_info.start_line == range_info.end_line:
+                    formatted_line = f"[Line {range_info.start_line}] {line}"
+                else:
+                    formatted_line = f"[Lines {range_info.start_line}-{range_info.end_line}] {line}"
+                result_strings.append(formatted_line)
+
+            # Add skipped range information
+            for skip_range in skipped:
+                if skip_range.start_line == skip_range.end_line:
+                    result_strings.append(f"[Line {skip_range.start_line} skipped]")
+                else:
+                    result_strings.append(f"[Lines {skip_range.start_line}-{skip_range.end_line} skipped]")
+
+            return result_strings
 
         except Exception as e:  # noqa: BLE001
             AppLogger.log_error(f"Error with tree-sitter parsing: {str(e)}")
@@ -231,7 +229,7 @@ class FileSummarizer:
         return lines[start_line - 1]
 
     def _map_node_type(self, node_type: str) -> str:
-        # todo:  make this common logic across code
+        # TODO:  make this common logic across code
         """Map tree-sitter node types to our content types."""
         if "class" in node_type:
             return "class"
@@ -246,7 +244,7 @@ class FileSummarizer:
         else:
             return "code_structure"
 
-    def _summarize_code_with_regex(self, lines: List[str]) -> Tuple[List[str], List[LineRange], List[LineRange]]:
+    def _summarize_code_with_regex(self, lines: List[str]) -> List[str]:
         """Fallback regex-based code structure extraction."""
         important_lines = []
         ranges = []
@@ -272,12 +270,25 @@ class FileSummarizer:
         important_lines = important_lines[: self.max_lines]
         ranges = ranges[: self.max_lines]
 
-        structure_counts = {}
-        for r in ranges:
-            structure_counts[r.content_type] = structure_counts.get(r.content_type, 0) + 1
-
+        # Calculate skipped ranges
         skipped = self._calculate_skipped(lines, [r.start_line for r in ranges])
-        return important_lines, ranges, skipped
+
+        # Compile everything into formatted strings with line ranges
+        result_strings = []
+
+        # Add important lines with their range information
+        for line, range_info in zip(important_lines, ranges):
+            formatted_line = f"[Line {range_info.start_line}] {line}"
+            result_strings.append(formatted_line)
+
+        # Add skipped range information
+        for skip_range in skipped:
+            if skip_range.start_line == skip_range.end_line:
+                result_strings.append(f"[Line {skip_range.start_line} skipped]")
+            else:
+                result_strings.append(f"[Lines {skip_range.start_line}-{skip_range.end_line} skipped]")
+
+        return result_strings
 
     def _extract_name_from_line(self, line: str, content_type: str) -> str:
         """Extract construct name from a line using regex."""
@@ -296,7 +307,7 @@ class FileSummarizer:
             AppLogger.log_error(f"Error in regex summarization: {str(e)}")
             return "unnamed"
 
-    def _summarize_text(self, lines: List[str]) -> Tuple[List[str], List[LineRange], List[LineRange]]:
+    def _summarize_text(self, lines: List[str]) -> List[str]:  # noqa: C901
         """Extract headers and key text."""
         important_lines = []
         ranges = []
@@ -323,10 +334,27 @@ class FileSummarizer:
                     important_lines.append(lines[i])
                     ranges.append(LineRange(start_line=i + 1, end_line=i + 1, content_type="text"))
 
+        # Calculate skipped ranges
         skipped = self._calculate_skipped(lines, [r.start_line for r in ranges])
-        return important_lines, ranges, skipped
 
-    def _sample_lines(self, lines: List[str]) -> Tuple[List[str], List[LineRange], List[LineRange]]:
+        # Compile everything into formatted strings with line ranges
+        result_strings = []
+
+        # Add important lines with their range information
+        for line, range_info in zip(important_lines, ranges):
+            formatted_line = f"[Line {range_info.start_line}] {line}"
+            result_strings.append(formatted_line)
+
+        # Add skipped range information
+        for skip_range in skipped:
+            if skip_range.start_line == skip_range.end_line:
+                result_strings.append(f"[Line {skip_range.start_line} skipped]")
+            else:
+                result_strings.append(f"[Lines {skip_range.start_line}-{skip_range.end_line} skipped]")
+
+        return result_strings
+
+    def _sample_lines(self, lines: List[str]) -> List[str]:
         """Simple interval sampling."""
         if len(lines) <= self.max_lines:
             summary_lines = lines
@@ -341,7 +369,22 @@ class FileSummarizer:
             ]
             skipped = self._calculate_skipped(lines, [r.start_line for r in ranges])
 
-        return summary_lines, ranges, skipped
+        # Compile everything into formatted strings with line ranges
+        result_strings = []
+
+        # Add sampled lines with their range information
+        for line, range_info in zip(summary_lines, ranges):
+            formatted_line = f"[Line {range_info.start_line}] {line}"
+            result_strings.append(formatted_line)
+
+        # Add skipped range information
+        for skip_range in skipped:
+            if skip_range.start_line == skip_range.end_line:
+                result_strings.append(f"[Line {skip_range.start_line} skipped]")
+            else:
+                result_strings.append(f"[Lines {skip_range.start_line}-{skip_range.end_line} skipped]")
+
+        return result_strings
 
     def _calculate_skipped(self, lines: List[str], included_line_nums: List[int]) -> List[LineRange]:
         """Calculate skipped line ranges."""
