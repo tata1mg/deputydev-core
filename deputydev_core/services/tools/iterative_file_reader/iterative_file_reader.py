@@ -4,7 +4,8 @@ from typing import Optional, Tuple
 
 import aiofiles
 
-from deputydev_core.models.dto.summarization_dto import FileContent
+from deputydev_core.models.dto.summarization_dto import ContentType
+from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
 from deputydev_core.services.file_summarization.file_summarization_service import FileSummarizationService
 from deputydev_core.utils.app_logger import AppLogger
 
@@ -32,14 +33,14 @@ class IterativeFileReader:
         if not self.repo_path:
             self.repo_path = str(path.parent) if path.parent else "."
 
-    async def read_lines(self, start_line: int, end_line: int) -> Tuple[FileContent, bool]:
+    async def read_lines(self, start_line: int, end_line: int) -> Tuple[ChunkInfo, bool]:
         """
         Read a chunk of lines from the file starting from the given offset.
         If reading the entire file and it's >1000 lines, returns a summary instead.
 
         :param start_line: The line number to start reading from.
         :param end_line: The line number to stop reading at.
-        :return: Tuple of (FileContent, eof_reached)
+        :return: Tuple of (ChunkInfo, eof_reached)
 
         Reads the file asynchronously in chunks of max_lines.
         """
@@ -60,15 +61,13 @@ class IterativeFileReader:
                     relative_path, self.repo_path or "", max_lines=200, include_line_numbers=True
                 )
 
-                # Convert FileSummaryResponse to FileContent
-                summary_content = FileContent.create_summary(
-                    summary_content=summary_response.summary_content,
-                    file_path=summary_response.file_path,
-                    file_type=summary_response.file_type,
-                    strategy_used=summary_response.strategy_used,
-                    total_lines=summary_response.total_lines,
-                    line_ranges=summary_response.line_ranges,
-                    skipped_ranges=summary_response.skipped_ranges,
+                summary_source = ChunkSourceDetails(
+                    file_path=summary_response.file_path, start_line=1, end_line=total_lines
+                )
+                summary_content = ChunkInfo(
+                    content=summary_response.summary_content,
+                    source_details=summary_source,
+                    content_type=ContentType.SUMMARY,
                     eof_reached=True,
                 )
                 return summary_content, True
@@ -86,14 +85,13 @@ class IterativeFileReader:
                 line = await file.readline()
                 if not line:
                     # End of file reached
+                    chunk_details = ChunkSourceDetails(
+                        file_path=self.file_path,
+                        start_line=line_iterator + 1,
+                        end_line=line_iterator + 1,
+                    )
                     return (
-                        FileContent.create_chunk(
-                            content="",
-                            file_path=self.file_path,
-                            start_line=line_iterator + 1,
-                            end_line=line_iterator + 1,
-                            eof_reached=True,
-                        ),
+                        ChunkInfo(content="", source_details=chunk_details, eof_reached=True),
                         True,
                     )
 
@@ -111,15 +109,13 @@ class IterativeFileReader:
                     break
                 actual_line_end = start_line + line_iterator
                 file_content += line
-
+            chunk_details = ChunkSourceDetails(
+                file_path=self.file_path,
+                start_line=start_line,
+                end_line=actual_line_end,
+            )
             return (
-                FileContent.create_chunk(
-                    content=file_content,
-                    file_path=self.file_path,
-                    start_line=start_line,
-                    end_line=actual_line_end,
-                    eof_reached=eof_reached,
-                ),
+                ChunkInfo(content=file_content, source_details=chunk_details, eof_reached=eof_reached),
                 eof_reached,
             )
 

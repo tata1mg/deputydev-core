@@ -3,6 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 from xxhash import xxh64
 
+from deputydev_core.models.dto.summarization_dto import ContentType
 from deputydev_core.services.chunking.dataclass.main import ChunkMetadata
 
 
@@ -15,7 +16,7 @@ class ChunkSourceDetails(BaseModel):
 
 class ChunkInfo(BaseModel):
     """
-    Information about a chunk of code.
+    Information about a chunk of code. Also used to send Summary if asked
 
     Attributes:
         content (str): The content of the chunk.
@@ -25,10 +26,14 @@ class ChunkInfo(BaseModel):
     """
 
     content: str
-    embedding: Optional[List[float]] = None
     source_details: ChunkSourceDetails
+    eof_reached: bool = False
+    content_type: Optional[ContentType] = ContentType.CHUNK
+
+    # Chunk-specific fields (only for CHUNK type)
     metadata: Optional[ChunkMetadata] = None
-    search_score: Optional[float] = 0  # vector search score
+    embedding: Optional[List[float]] = None
+    search_score: Optional[float] = 0
 
     def __hash__(self) -> int:
         return hash(self.content_hash)
@@ -38,7 +43,7 @@ class ChunkInfo(BaseModel):
             return False
         return self.content_hash == other.content_hash
 
-    def get_chunk_content(self, add_ellipsis: bool = False, add_lines: bool = True):
+    def get_chunk_content(self, add_ellipsis: bool = False, add_lines: bool = True) -> str:
         """
         Get a content of the chunk.
 
