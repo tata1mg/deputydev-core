@@ -1,5 +1,5 @@
 import re
-from typing import List
+from typing import List, Set, Tuple
 
 from tree_sitter_language_pack import get_language, get_parser
 
@@ -34,9 +34,7 @@ class FileSummarizer:
         else:
             summary_lines = self._sample_lines(lines)
             strategy = SummarizationStrategy.SAMPLING
-        summary_content = ""
-        for i in summary_lines:
-            summary_content = summary_content + i
+        summary_content = "\n".join(summary_lines)
 
         return FileSummaryResponse(
             file_path=file_path,
@@ -85,8 +83,17 @@ class FileSummarizer:
             # important lines and ranges
             important_lines_with_ranges = list(zip(ranges, important_lines))
 
-            # remove duplicates and keep the last occurrence
-            cleaned_important_lines_with_ranges = list(dict.fromkeys(important_lines_with_ranges))
+            # remove duplicates and keep the last occurrence only
+            cleaned_important_lines_with_ranges: List[Tuple[LineRange, str]] = []
+
+            seen_lines: Set[int] = set()
+            for range_info, line in reversed(important_lines_with_ranges):
+                if range_info.start_line not in seen_lines:
+                    cleaned_important_lines_with_ranges.append((range_info, line))
+                    seen_lines.add(range_info.start_line)
+
+            # Reverse to maintain original order
+            cleaned_important_lines_with_ranges.reverse()
 
             # Sort by start line
             cleaned_important_lines_with_ranges.sort(key=lambda x: x[0].start_line)
@@ -261,26 +268,20 @@ class FileSummarizer:
                     )
                     break
 
-        important_lines = important_lines[: self.max_lines]
-        ranges = ranges[: self.max_lines]
+        important_lines: List[str] = important_lines[: self.max_lines]
+        ranges: List[LineRange] = ranges[: self.max_lines]
 
-        # Calculate skipped ranges
-        skipped = self._calculate_skipped(lines, [r.start_line for r in ranges])
+        # important lines and ranges
+        important_lines_with_ranges = list(zip(ranges, important_lines))
 
-        # Compile everything into formatted strings with line ranges
-        result_strings = []
+        # Sort by start line
+        important_lines_with_ranges.sort(key=lambda x: x[0].start_line)
 
-        # Add important lines with their range information
-        for line, range_info in zip(important_lines, ranges):
-            formatted_line = f"[Line {range_info.start_line}] {line}"
+        result_strings: List[str] = []
+
+        for range_info, line in important_lines_with_ranges:
+            formatted_line = f"{range_info.start_line}: {line}"
             result_strings.append(formatted_line)
-
-        # Add skipped range information
-        for skip_range in skipped:
-            if skip_range.start_line == skip_range.end_line:
-                result_strings.append(f"[Line {skip_range.start_line} skipped]")
-            else:
-                result_strings.append(f"[Lines {skip_range.start_line}-{skip_range.end_line} skipped]")
 
         return result_strings
 
@@ -303,8 +304,8 @@ class FileSummarizer:
 
     def _summarize_text(self, lines: List[str]) -> List[str]:  # noqa: C901
         """Extract headers and key text."""
-        important_lines = []
-        ranges = []
+        important_lines: List[str] = []
+        ranges: List[LineRange] = []
 
         for i, line in enumerate(lines):
             stripped = line.strip()
@@ -328,32 +329,28 @@ class FileSummarizer:
                     important_lines.append(lines[i])
                     ranges.append(LineRange(start_line=i + 1, end_line=i + 1, content_type="text"))
 
-        # Calculate skipped ranges
-        skipped = self._calculate_skipped(lines, [r.start_line for r in ranges])
+        # important lines and ranges
+        important_lines_with_ranges = list(zip(ranges, important_lines))
 
-        # Compile everything into formatted strings with line ranges
-        result_strings = []
+        # Sort by start line
+        important_lines_with_ranges.sort(key=lambda x: x[0].start_line)
 
-        # Add important lines with their range information
-        for line, range_info in zip(important_lines, ranges):
-            formatted_line = f"[Line {range_info.start_line}] {line}"
+        result_strings: List[str] = []
+
+        for range_info, line in important_lines_with_ranges:
+            formatted_line = f"{range_info.start_line}: {line}"
             result_strings.append(formatted_line)
-
-        # Add skipped range information
-        for skip_range in skipped:
-            if skip_range.start_line == skip_range.end_line:
-                result_strings.append(f"[Line {skip_range.start_line} skipped]")
-            else:
-                result_strings.append(f"[Lines {skip_range.start_line}-{skip_range.end_line} skipped]")
 
         return result_strings
 
     def _sample_lines(self, lines: List[str]) -> List[str]:
         """Simple interval sampling."""
+
+        summary_lines: List[str] = []
+        ranges: List[LineRange] = []
         if len(lines) <= self.max_lines:
             summary_lines = lines
             ranges = [LineRange(start_line=i + 1, end_line=i + 1, content_type="line") for i in range(len(lines))]
-            skipped = []
         else:
             interval = len(lines) // self.max_lines
             summary_lines = [lines[i] for i in range(0, len(lines), interval)][: self.max_lines]
@@ -361,22 +358,21 @@ class FileSummarizer:
                 LineRange(start_line=i * interval + 1, end_line=i * interval + 1, content_type="sampled")
                 for i in range(len(summary_lines))
             ]
-            skipped = self._calculate_skipped(lines, [r.start_line for r in ranges])
 
         # Compile everything into formatted strings with line ranges
         result_strings = []
 
-        # Add sampled lines with their range information
-        for line, range_info in zip(summary_lines, ranges):
-            formatted_line = f"[Line {range_info.start_line}] {line}"
-            result_strings.append(formatted_line)
+        # important lines and ranges
+        important_lines_with_ranges = list(zip(ranges, summary_lines))
 
-        # Add skipped range information
-        for skip_range in skipped:
-            if skip_range.start_line == skip_range.end_line:
-                result_strings.append(f"[Line {skip_range.start_line} skipped]")
-            else:
-                result_strings.append(f"[Lines {skip_range.start_line}-{skip_range.end_line} skipped]")
+        # Sort by start line
+        important_lines_with_ranges.sort(key=lambda x: x[0].start_line)
+
+        result_strings: List[str] = []
+
+        for range_info, line in important_lines_with_ranges:
+            formatted_line = f"{range_info.start_line}: {line}"
+            result_strings.append(formatted_line)
 
         return result_strings
 
