@@ -15,7 +15,7 @@ class ChunkSourceDetails(BaseModel):
 
 class ChunkInfo(BaseModel):
     """
-    Information about a chunk of code.
+    Information about a chunk of code. Also used to send Summary if asked
 
     Attributes:
         content (str): The content of the chunk.
@@ -25,10 +25,12 @@ class ChunkInfo(BaseModel):
     """
 
     content: str
-    embedding: Optional[List[float]] = None
     source_details: ChunkSourceDetails
+
+    # Chunk-specific fields (only for CHUNK type)
     metadata: Optional[ChunkMetadata] = None
-    search_score: Optional[float] = 0  # vector search score
+    embedding: Optional[List[float]] = None
+    search_score: Optional[float] = 0
 
     def __hash__(self) -> int:
         return hash(self.content_hash)
@@ -38,7 +40,7 @@ class ChunkInfo(BaseModel):
             return False
         return self.content_hash == other.content_hash
 
-    def get_chunk_content(self, add_ellipsis: bool = False, add_lines: bool = True):
+    def get_chunk_content(self, add_ellipsis: bool = False, add_lines: bool = True) -> str:
         """
         Get a content of the chunk.
 

@@ -1,16 +1,13 @@
 import re
 from typing import List, Optional, Set, Tuple
 
-from deputydev_core.services.chunking.strategies.chunk_strategy_factory import (
-    ChunkingStrategyFactory,
-)
-from deputydev_core.services.chunking.utils.chunk_utils import (
-    get_parser,
-    supported_new_chunk_language,
-)
+from tree_sitter_language_pack import get_parser
+
+from deputydev_core.services.chunking.strategies.chunk_strategy_factory import ChunkingStrategyFactory
+from deputydev_core.services.chunking.utils.chunk_utils import supported_new_chunk_language
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.config_manager import ConfigManager
-from deputydev_core.utils.constants.constants import ALL_EXTENSIONS
+from deputydev_core.utils.file_type_detector import FileTypeDetector
 
 from ..tiktoken import TikToken
 from .chunk_info import ChunkInfo, ChunkSourceDetails
@@ -48,10 +45,10 @@ def chunk_source(
     content: str,
     path: str,
     file_hash: Optional[str] = None,
-    MAX_CHARS=None,
-    coalesce=80,
-    nl_desc=False,
-    use_new_chunking=False,
+    max_chars: Optional[int] = None,
+    coalesce: int = 80,
+    nl_desc: bool = False,
+    use_new_chunking: bool = False,
 ) -> list[ChunkInfo]:
     """
     Chunk the given content into smaller segments.
@@ -66,13 +63,11 @@ def chunk_source(
     Returns:
         List[ChunkInfo]: A list of ChunkInfo objects representing the chunks of content.
     """
-    if not MAX_CHARS:
-        MAX_CHARS = ConfigManager.configs["CHUNKING"]["CHARACTER_SIZE"]
+    if not max_chars:
+        max_chars = ConfigManager.configs["CHUNKING"]["CHARACTER_SIZE"]
 
-    ext = path.split(".")[-1]
-    if ext in ALL_EXTENSIONS:
-        language = ALL_EXTENSIONS[ext]
-    else:
+    language = FileTypeDetector.get_language_from_file(path)
+    if not language:
         # Fallback to default chunking if tree_sitter fails
         line_count = 50
         overlap = 0
@@ -94,7 +89,7 @@ def chunk_source(
     try:
         final_chunks: List[ChunkInfo] = []
         parser = get_parser(language)
-        tree = parser.parse(content.encode("utf-8"))
+        tree = parser.parse(bytes(content, "utf-8"))
         is_eligible_for_new_chunking = use_new_chunking and supported_new_chunk_language(language)
         strategy_chunker = ChunkingStrategyFactory.create_strategy(
             language=language, is_eligible_for_new_chunking=is_eligible_for_new_chunking
@@ -102,7 +97,7 @@ def chunk_source(
         all_current_file_chunks = strategy_chunker.chunk_code(
             tree=tree,
             content=content.encode("utf-8"),
-            max_chars=MAX_CHARS,
+            max_chars=max_chars,
             coalesce=coalesce,
             language=language,
         )
@@ -138,8 +133,8 @@ def chunk_source(
                 already_visited_chunk.add(new_chunk_info.denotation)
 
         return final_chunks
-    except Exception:
-        AppLogger.log_error(f"Error chunking file: {path}")
+    except Exception as e:  # noqa: BLE001
+        AppLogger.log_error(f"Error chunking file: {path}: {str(e)}")
         return []
 
 
