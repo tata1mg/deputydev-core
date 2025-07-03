@@ -4,7 +4,6 @@ from typing import Optional, Tuple
 
 import aiofiles
 
-from deputydev_core.models.dto.summarization_dto import ContentType
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
 from deputydev_core.services.file_summarization.file_summarization_service import FileSummarizationService
 from deputydev_core.utils.app_logger import AppLogger
@@ -28,10 +27,10 @@ class IterativeFileReader:
         self.file_path = file_path
         self.max_lines: int = max_lines or 100
         self.repo_path = repo_path
-        path = Path(file_path)
+        self.path = Path(file_path)
         # If repo_path not provided, try to extract it from file_path
         if not self.repo_path:
-            self.repo_path = str(path.parent) if path.parent else "."
+            self.repo_path = str(self.path.parent) if self.path.parent else "."
 
     async def read_lines(self, start_line: int, end_line: int) -> Tuple[ChunkInfo, bool]:
         """
@@ -44,40 +43,8 @@ class IterativeFileReader:
 
         Reads the file asynchronously in chunks of max_lines.
         """
-
         if start_line < 1 or end_line < 1 or end_line < start_line:
             raise ValueError("Invalid start_line or end_line")
-        path = Path(self.file_path)
-        if not path.exists():
-            raise FileNotFoundError(f"File not found: {self.file_path}")
-
-        # Check if we should summarize large files
-        total_lines = await self._count_total_lines()
-
-        if FileSummarizationService.should_summarize(total_lines, start_line, end_line):
-            try:
-                relative_path = os.path.relpath(self.file_path, self.repo_path) if self.repo_path else self.file_path
-                summary_response = await FileSummarizationService.summarize_file(
-                    relative_path, self.repo_path or "", max_lines=200, include_line_numbers=True
-                )
-
-                summary_source = ChunkSourceDetails(
-                    file_path=summary_response.file_path, start_line=1, end_line=total_lines
-                )
-                summary_content = ChunkInfo(
-                    content=summary_response.summary_content,
-                    source_details=summary_source,
-                    content_type=ContentType.SUMMARY,
-                    eof_reached=True,
-                )
-                return summary_content, True
-            except Exception as e:  # noqa: BLE001
-                AppLogger.log_error(
-                    f"Summarization failed for {self.file_path}, falling back to regular reading: {str(e)}"
-                )
-                # Fall back to regular reading if summarization fails
-                pass
-
         # Regular iterative reading
         async with aiofiles.open(self.file_path, mode="r", encoding="utf-8") as file:
             # Move the file pointer to the start_line
@@ -91,7 +58,7 @@ class IterativeFileReader:
                         end_line=line_iterator + 1,
                     )
                     return (
-                        ChunkInfo(content="", source_details=chunk_details, eof_reached=True),
+                        ChunkInfo(content="", source_details=chunk_details),
                         True,
                     )
 
@@ -115,9 +82,41 @@ class IterativeFileReader:
                 end_line=actual_line_end,
             )
             return (
-                ChunkInfo(content=file_content, source_details=chunk_details, eof_reached=eof_reached),
+                ChunkInfo(content=file_content, source_details=chunk_details),
                 eof_reached,
             )
+
+    async def give_summary(self) -> Tuple[ChunkInfo, bool]:
+        if not self.path.exists():
+            raise FileNotFoundError(f"File not found: {self.file_path}")
+        # Check if we should summarize large files
+        total_lines = await self._count_total_lines()
+
+        if FileSummarizationService.should_summarize(total_lines):
+            try:
+                relative_path = os.path.relpath(self.file_path, self.repo_path) if self.repo_path else self.file_path
+                summary_response = await FileSummarizationService.summarize_file(
+                    relative_path, self.repo_path or "", max_lines=200, include_line_numbers=True
+                )
+
+                summary_source = ChunkSourceDetails(
+                    file_path=summary_response.file_path, start_line=1, end_line=total_lines
+                )
+                summary_content = ChunkInfo(
+                    content=summary_response.summary_content,
+                    source_details=summary_source,
+                )
+                return summary_content, True
+            except Exception as e:  # noqa: BLE001
+                AppLogger.log_error(
+                    f"Summarization failed for {self.file_path}, falling back to regular reading: {str(e)}"
+                )
+                # Fall back to regular reading if summarization fails
+                pass
+        async with aiofiles.open(self.file_path, mode="r", encoding="utf-8") as file:
+            lines = await file.readlines()
+            chunk_details = ChunkSourceDetails(file_path=self.file_path, start_line=1, end_line=total_lines)
+            return (ChunkInfo(content="\n".join(lines), source_details=chunk_details), True)
 
     async def _count_total_lines(self) -> int:
         """
