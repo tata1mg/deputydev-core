@@ -40,10 +40,9 @@ class FileSummarizationService:
         return summarizer.summarize(file_path, content, file_type)
 
     @classmethod
-    def should_summarize(cls, total_lines: int, start_line: int, end_line: int) -> bool:
+    def should_summarize(cls, total_lines: int) -> bool:
         """Check if file should be summarized based on size and request."""
-        is_full_file_request = start_line == 1 and end_line >= total_lines
-        return is_full_file_request and total_lines > LARGE_FILE_THRESHOLD
+        return total_lines > LARGE_FILE_THRESHOLD
 
     @classmethod
     def _read_file_content(cls, file_path: Path) -> str:
