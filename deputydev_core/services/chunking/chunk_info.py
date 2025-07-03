@@ -26,6 +26,7 @@ class ChunkInfo(BaseModel):
 
     content: str
     source_details: ChunkSourceDetails
+    has_embedded_lines: bool = False
 
     # Chunk-specific fields (only for CHUNK type)
     metadata: Optional[ChunkMetadata] = None
@@ -130,4 +131,4 @@ class ChunkInfo(BaseModel):
         return f"{self.source_details.file_path}:{self.source_details.start_line}-{self.source_details.end_line}"
 
     def get_xml(self) -> str:
-        return f"""<chunk source="{self.denotation}">\n{self.get_chunk_content_with_meta_data(add_class_function_info=True, add_lines=True)}\n</chunk>"""
+        return f"""<chunk source="{self.denotation}">\n{self.get_chunk_content_with_meta_data(add_class_function_info=True, add_lines=True if not self.has_embedded_lines else False)}\n</chunk>"""
