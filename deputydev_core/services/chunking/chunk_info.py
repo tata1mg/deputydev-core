@@ -3,7 +3,6 @@ from typing import List, Optional
 from pydantic import BaseModel
 from xxhash import xxh64
 
-from deputydev_core.models.dto.summarization_dto import ContentType
 from deputydev_core.services.chunking.dataclass.main import ChunkMetadata
 
 
@@ -27,8 +26,6 @@ class ChunkInfo(BaseModel):
 
     content: str
     source_details: ChunkSourceDetails
-    eof_reached: bool = False
-    content_type: Optional[ContentType] = ContentType.CHUNK
 
     # Chunk-specific fields (only for CHUNK type)
     metadata: Optional[ChunkMetadata] = None
