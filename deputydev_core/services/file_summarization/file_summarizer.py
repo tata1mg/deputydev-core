@@ -72,8 +72,8 @@ class FileSummarizer:
         """Use tree-sitter to extract code structures."""
         try:
             tree = self.parser.parse(content.encode("utf-8"))
-            important_lines = []
-            ranges = []
+            important_lines: List[str] = []
+            ranges: List[LineRange] = []
 
             # Extract important nodes from AST
             self._extract_important_nodes(tree.root_node, content.encode("utf-8"), important_lines, ranges, lines)
@@ -82,26 +82,20 @@ class FileSummarizer:
             important_lines = important_lines[: self.max_lines]
             ranges = ranges[: self.max_lines]
 
-            # Calculate skipped ranges
-            skipped = self._calculate_skipped(lines, [r.start_line for r in ranges])
+            # important lines and ranges
+            important_lines_with_ranges = list(zip(ranges, important_lines))
 
-            # Compile everything into formatted strings with line ranges
-            result_strings = []
+            # remove duplicates and keep the last occurrence
+            cleaned_important_lines_with_ranges = list(dict.fromkeys(important_lines_with_ranges))
 
-            # Add important lines with their range information
-            for i, (line, range_info) in enumerate(zip(important_lines, ranges)):
-                if range_info.start_line == range_info.end_line:
-                    formatted_line = f"[Line {range_info.start_line}] {line}"
-                else:
-                    formatted_line = f"[Lines {range_info.start_line}-{range_info.end_line}] {line}"
+            # Sort by start line
+            cleaned_important_lines_with_ranges.sort(key=lambda x: x[0].start_line)
+
+            result_strings: List[str] = []
+
+            for range_info, line in cleaned_important_lines_with_ranges:
+                formatted_line = f"{range_info.start_line}: {line}"
                 result_strings.append(formatted_line)
-
-            # Add skipped range information
-            for skip_range in skipped:
-                if skip_range.start_line == skip_range.end_line:
-                    result_strings.append(f"[Line {skip_range.start_line} skipped]")
-                else:
-                    result_strings.append(f"[Lines {skip_range.start_line}-{skip_range.end_line} skipped]")
 
             return result_strings
 
