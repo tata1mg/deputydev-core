@@ -35,8 +35,6 @@ class ChunkingStrategyFactory:
         "kotlin": KotlinMetadataChunker,
     }
 
-    supported_languages = []
-
     @classmethod
     def create_strategy(cls, language: str, is_eligible_for_new_chunking: bool) -> BaseChunker:
         """Creates appropriate chunking strategy"""
