@@ -14,7 +14,9 @@ ALL_EXTENSIONS = {
     "cjs": "javascript",
     # TypeScript family
     "ts": "typescript",
-    "tsx": "typescript",
+    "tsx": "tsx",
+    "mts": "typescript",
+    "cts": "typescript",
     # Java
     "java": "java",
     # C/C++
@@ -28,27 +30,9 @@ ALL_EXTENSIONS = {
     "go": "go",
     "rs": "rust",
     "rb": "ruby",
-    "php": "php",
-    "swift": "swift",
-    "kt": "kotlin",
-    "scala": "scala",
-    "css": "css",
     "html": "html",
-    "htm": "html",
+    "kt": "kotlin",
     "json": "json",
-    "yaml": "yaml",
-    "yml": "yaml",
-    "sh": "bash",
-    "sql": "sql",
-    "lua": "lua",
-    "dart": "dart",
-    "r": "r",
-    "toml": "toml",
-    "xml": "xml",
-    "md": "markdown",
-    "tex": "latex",
-    "elm": "elm",
-    "zig": "zig",
 }
 
 
