@@ -20,3 +20,11 @@ class IterativeFileReaderRequestParams(BaseModel):
             raise ValueError(f"{info.field_name} must be a positive integer")
 
         return v
+
+
+class FileSummaryReaderRequestParams(BaseModel):
+    """
+    Request parameters for the FileSummaryReader.
+    """
+
+    file_path: str
