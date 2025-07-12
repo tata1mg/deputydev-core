@@ -1,5 +1,5 @@
-import os
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Dict, List, Optional
 
 from xxhash import xxh64
@@ -13,36 +13,34 @@ class BaseLocalRepo(ABC):
         self,
         repo_path: str,
         chunk_config: Optional[ChunkConfig] = None,
-        chunkable_files: List = None,
-    ):
-        self.repo_path = repo_path
+        chunkable_files: Optional[List[str]] = None,
+    ) -> None:
+        self.repo_path = Path(repo_path)
         self.chunk_config = chunk_config or ChunkConfig()
-        self.chunkable_files = chunkable_files if chunkable_files else []
+        self.chunkable_files = chunkable_files or []
 
     def _get_file_hash(self, file_path: str) -> str:
-        with open(os.path.join(self.repo_path, file_path), "rb") as file:
+        file_full_path = self.repo_path / file_path
+        with file_full_path.open("rb") as file:
             file_content = file.read()
             return xxh64(file_content).hexdigest()
 
     def _is_file_chunkable(self, file_path: str) -> bool:
         try:
-            abs_file_path = os.path.join(self.repo_path, file_path)
-            file_ext = os.path.splitext(abs_file_path)[1]
+            abs_file_path = self.repo_path / file_path
+            file_ext = abs_file_path.suffix
             if file_ext.lower() in self.chunk_config.exclude_exts:
                 return False
-            if not os.path.isfile(abs_file_path):
+            if not abs_file_path.is_file():
                 return False
-            if os.path.getsize(abs_file_path) > self.chunk_config.max_chunkable_file_size_bytes:
+            if abs_file_path.stat().st_size > self.chunk_config.max_chunkable_file_size_bytes:
                 AppLogger.log_debug(f"File size is greater than the max_chunkable_file_size_bytes: {abs_file_path}")
                 return False
-            # check if the filepath startswith any of the exclude_dirs
-            if any(
-                abs_file_path.startswith(os.path.join(self.repo_path, exclude_dir))
-                for exclude_dir in self.chunk_config.exclude_dirs
-            ):
+            # Exclude if any parent directory's name matches an exclude_dir
+            if any(parent.name in self.chunk_config.exclude_dirs for parent in abs_file_path.parents):
                 return False
             return True
-        except Exception as ex:
+        except Exception as ex:  # noqa: BLE001
             AppLogger.log_debug(f"Error while checking if file is chunkable: {ex} for file: {file_path}")
             return False
 

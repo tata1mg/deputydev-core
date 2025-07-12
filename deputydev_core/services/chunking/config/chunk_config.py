@@ -13,19 +13,60 @@ class ChunkConfig:
     max_chunkable_file_size_bytes = 8 * 1024 * 1024  # 8MB
 
     exclude_dirs: list[str] = [
-        # vcs / code editor folders
+        # VCS and editor settings
         ".git",
+        ".hg",
+        ".svn",
+        ".bzr",  # VCS
         ".vscode",
-        # javascript / typescript
+        ".idea",
+        ".DS_Store",  # Editors, OS
+        ".history",
+        ".pytest_cache",
+        ".tox",  # Test/tools
+        # Node/JS
         "node_modules",
+        "bower_components",
+        "jspm_packages",
         "build",
         "dist",
+        "coverage",
+        ".cache",
+        "yarn.lock",
         "package-lock.json",
-        # common
+        "pnpm-lock.yaml",
+        # Python
         ".venv",
         "venv",
+        "__pycache__",
+        "*.pyc",
+        "*.pyo",
+        "Pipfile.lock",
+        "poetry.lock",
+        # Java
+        "target",
+        "out",
+        ".classpath",
+        ".project",
+        ".settings",
+        # Go
+        "bin",
+        "pkg",
+        "vendor",
+        "go.sum",
+        "go.mod",
+        # Ruby
+        ".bundle",
+        "Gemfile.lock",
+        "Rakefile",
+        "config.ru",
+        # Rust
+        "Cargo.lock",
+        "target",
+        # Other build artifacts or binary blobs
         "patch",
         "packages/blobs",
+        ".docker"
         # emailable-report-template.html should be part of repo config and should not be handled here, will be taken care of
         # in the future
         "emailable-report-template.html",
@@ -171,5 +212,5 @@ def get_blocked_dirs(repo: git.Repo) -> List[str]:
         return dirs
     except SystemExit:
         raise SystemExit
-    except Exception:
+    except Exception:  # noqa: BLE001
         return []
