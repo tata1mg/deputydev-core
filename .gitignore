@@ -71,3 +71,4 @@ newrelic.ini
 .python-version
 
 db/schema.sql
+build/*

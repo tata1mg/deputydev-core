@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -45,7 +45,7 @@ class FocusChunksParams(BaseModel):
     search_item_name: Optional[str] = None
     search_item_type: Optional[str] = None
     search_item_path: Optional[str] = None
-    chunks: List[Union[ChunkDetails, CodeSnippetDetails]]
+    chunks: List[ChunkDetails | CodeSnippetDetails]
 
 
 class DirectoryStructureParams(BaseModel):

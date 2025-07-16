@@ -25,6 +25,7 @@ from deputydev_core.services.repository.dataclasses.main import (
 )
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.custom_progress_bar import CustomProgressBar
+from deputydev_core.utils.file_indexing_monitor import FileIndexingMonitor
 
 
 class OneDevExtensionChunker(VectorDBChunker):
@@ -40,8 +41,8 @@ class OneDevExtensionChunker(VectorDBChunker):
         use_new_chunking: bool = True,
         use_async_refresh: bool = True,
         fetch_with_vector: bool = False,
-        file_indexing_progress_monitor=None,
-    ):
+        file_indexing_progress_monitor: Optional[FileIndexingMonitor] = None,
+    ) -> None:
         super().__init__(
             local_repo,
             process_executor,
@@ -75,7 +76,7 @@ class OneDevExtensionChunker(VectorDBChunker):
         )
         return file_wise_chunks
 
-    async def update_embeddings(self, file_wise_chunks):
+    async def update_embeddings(self, file_wise_chunks: Dict[str, List[ChunkInfo]]) -> None:
         # WARNING: Do not change this to pass by value, it will increase memory usage
         batched_chunks: List[ChunkInfo] = []
         for chunks in file_wise_chunks.values():
@@ -83,7 +84,7 @@ class OneDevExtensionChunker(VectorDBChunker):
         if batched_chunks:
             await self.add_chunk_embeddings(batched_chunks)
 
-    async def create_and_store_chunks_for_file_batches(
+    async def create_and_store_chunks_for_file_batches(  # noqa: C901
         self,
         batched_files_to_store: List[List[Tuple[str, str]]],
         custom_timestamp: Optional[datetime] = None,
@@ -140,7 +141,7 @@ class OneDevExtensionChunker(VectorDBChunker):
         asyncio.create_task(self._monitor_embedding_tasks(embedding_tasks, self.embedding_progress_bar))
         return all_file_wise_chunks
 
-    async def _monitor_embedding_tasks(self, tasks, embedding_progress_bar):
+    async def _monitor_embedding_tasks(self, tasks, embedding_progress_bar: Optional[CustomProgressBar]):  # noqa: ANN001, ANN202
         while True:
             if all(task.done() for task in tasks):
                 embedding_progress_bar.mark_finish()

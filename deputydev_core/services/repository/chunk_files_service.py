@@ -23,13 +23,13 @@ from deputydev_core.utils.constants.constants import (
 
 
 class ChunkFilesService(BaseWeaviateRepository):
-    def __init__(self, weaviate_client: WeaviateSyncAndAsyncClients):
+    def __init__(self, weaviate_client: WeaviateSyncAndAsyncClients) -> None:
         super().__init__(weaviate_client, ChunkFiles.collection_name)
 
     async def get_chunk_files_by_commit_hashes(self, file_to_commit_hashes: Dict[str, str]) -> List[ChunkFileDTO]:
         await self.ensure_collection_connections()
-        BATCH_SIZE = 1000
-        MAX_RESULTS_PER_QUERY = 10000
+        BATCH_SIZE = 1000  # noqa: N806
+        MAX_RESULTS_PER_QUERY = 10000  # noqa: N806
         all_chunk_files = []
         try:
             # Convert dictionary items to list for batch processing
@@ -76,8 +76,8 @@ class ChunkFilesService(BaseWeaviateRepository):
         self, file_to_commit_hashes: Dict[str, str]
     ) -> List[ChunkFileDTO]:
         await self.ensure_collection_connections()
-        BATCH_SIZE = 1000
-        MAX_RESULTS_PER_QUERY = 10000
+        BATCH_SIZE = 1000  # noqa: N806
+        MAX_RESULTS_PER_QUERY = 10000  # noqa: N806
         all_chunk_files = []
         try:
             # Convert dictionary items to list for batch processing
@@ -232,7 +232,7 @@ class ChunkFilesService(BaseWeaviateRepository):
             raise ex
 
     async def get_keyword_type_chunks(
-        self, keyword: str, type: str, chunkable_files_and_hashes, limit: int = 50
+        self, keyword: str, type: str, chunkable_files_and_hashes: Dict[str, str], limit: int = 50
     ) -> List[ChunkFileDTO]:
         """
         Search for code symbols using BM25 and fuzzy matching

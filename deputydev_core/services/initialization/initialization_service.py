@@ -38,6 +38,7 @@ class InitializationManager:
         process_executor: Optional[ProcessPoolExecutor] = None,
         one_dev_client: Optional[OneDevClient] = None,
         weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
+        ripgrep_path: Optional[str] = None,
     ) -> None:
         self.repo_path = repo_path
         self.weaviate_client: Optional[WeaviateSyncAndAsyncClients] = weaviate_client
@@ -46,9 +47,12 @@ class InitializationManager:
         self.embedding_manager = embedding_manager(auth_token_key=auth_token_key, one_dev_client=one_dev_client)
         self.process_executor = process_executor
         self.chunk_cleanup_task = None
+        self.ripgrep_path = ripgrep_path
 
-    def get_local_repo(self, chunkable_files: List[str] = None) -> BaseLocalRepo:
-        self.local_repo = LocalRepoFactory.get_local_repo(self.repo_path, chunkable_files=chunkable_files)
+    def get_local_repo(self, chunkable_files: Optional[List[str]] = None) -> BaseLocalRepo:
+        self.local_repo = LocalRepoFactory.get_local_repo(
+            self.repo_path, chunkable_files=chunkable_files, ripgrep_path=self.ripgrep_path
+        )
         return self.local_repo
 
     async def initialize_vector_db(self) -> None:
