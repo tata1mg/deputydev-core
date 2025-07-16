@@ -1,12 +1,12 @@
 import os
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
 from deputydev_core.services.chunking.chunking_manager import ChunkingManger
-from deputydev_core.services.initialization.extension_initialisation_manager import (
-    ExtensionInitialisationManager,
-)
+from deputydev_core.services.embedding.base_embedding_manager import BaseEmbeddingManager
+from deputydev_core.services.initialization.initialization_service import InitializationManager
 from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepoFactory
 from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
 from deputydev_core.services.repository.chunk_service import ChunkService
@@ -34,21 +34,22 @@ from deputydev_core.utils.weaviate import (
 
 
 class RelevantChunks:
-    def __init__(self, repo_path: str) -> None:
+    def __init__(self, repo_path: str, ripgrep_path: Optional[str]) -> None:
         self.repo_path = Path(repo_path)
+        self.ripgrep_path = ripgrep_path
 
     async def get_relevant_chunks(
         self,
         payload: RelevantChunksParams,
-        one_dev_client,
-        embedding_manager,
-        initialization_manager,
-        process_executor,
-        auth_token_key,
+        one_dev_client,  # noqa: ANN001
+        embedding_manager: BaseEmbeddingManager,
+        initialization_manager: InitializationManager,
+        process_executor: ProcessPoolExecutor,
+        auth_token_key: str,
     ) -> Dict[str, Any]:
         repo_path = payload.repo_path
         query = payload.query
-        local_repo = LocalRepoFactory.get_local_repo(repo_path)
+        local_repo = LocalRepoFactory.get_local_repo(repo_path, ripgrep_path=self.ripgrep_path)
         query_vector = await embedding_manager.embed_text_array(texts=[query], store_embeddings=False)
         chunkable_files_and_hashes = await local_repo.get_chunkable_files_and_commit_hashes()
         await SharedChunksManager.update_chunks(repo_path, chunkable_files_and_hashes)
@@ -118,29 +119,31 @@ class RelevantChunks:
                 if chunk_info_and_hash.chunk_info.source_details.file_path == payload.search_item_path
             ]
         # TODO: uncomment this kachra
-        # elif search_type == "class":
-        #     # Filter by class name
-        #     chunk_info_list = [
-        #         chunk_info_and_hash
-        #         for chunk_info_and_hash in chunk_info_list
-        #         if payload.search_item_name
-        #         in chunk_info_and_hash.chunk_info.metadata.all_classes
-        #     ]
-        # elif search_type == "function":
-        #     # Filter by function name
-        #     chunk_info_list = [
-        #         chunk_info_and_hash
-        #         for chunk_info_and_hash in chunk_info_list
-        #         if payload.search_item_name
-        #         in chunk_info_and_hash.chunk_info.metadata.all_functions
-        #     ]
+        """
+        elif search_type == "class":
+            # Filter by class name
+            chunk_info_list = [
+                chunk_info_and_hash
+                for chunk_info_and_hash in chunk_info_list
+                if payload.search_item_name
+                in chunk_info_and_hash.chunk_info.metadata.all_classes
+            ]
+        elif search_type == "function":
+            # Filter by function name
+            chunk_info_list = [
+                chunk_info_and_hash
+                for chunk_info_and_hash in chunk_info_list
+                if payload.search_item_name
+                in chunk_info_and_hash.chunk_info.metadata.all_functions
+            ]
+        """
         return chunk_info_list
 
     async def get_focus_chunks(
-        self, payload: FocusChunksParams, initialization_manager: ExtensionInitialisationManager
+        self, payload: FocusChunksParams, initialization_manager: InitializationManager
     ) -> List[Dict[str, Any]]:
         repo_path = payload.repo_path
-        local_repo = LocalRepoFactory.get_local_repo(repo_path)
+        local_repo = LocalRepoFactory.get_local_repo(repo_path, ripgrep_path=self.ripgrep_path)
         chunkable_files_and_hashes = await local_repo.get_chunkable_files_and_commit_hashes()
 
         await SharedChunksManager.update_chunks(repo_path, chunkable_files_and_hashes)
@@ -232,7 +235,7 @@ class RelevantChunks:
                         chunk_hash=code_snippet.chunk_hash,
                     )
                 )
-            except Exception as ex:
+            except Exception as ex:  # noqa: BLE001
                 AppLogger.log_error(f"Error occurred while fetching code snippet: {ex}")
 
         new_file_path_to_hash_map_for_import_only = {

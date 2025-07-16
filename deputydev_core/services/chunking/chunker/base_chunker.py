@@ -2,6 +2,7 @@ import asyncio
 import os
 from abc import ABC, abstractmethod
 from concurrent.futures import ProcessPoolExecutor
+from pathlib import Path
 from typing import Dict, List, Mapping, Optional
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
@@ -11,6 +12,8 @@ from deputydev_core.services.repo.local_repo.base_local_repo_service import (
 )
 from deputydev_core.utils.config_manager import ConfigManager
 from deputydev_core.utils.config_setter import set_config
+from deputydev_core.utils.custom_progress_bar import CustomProgressBar
+from deputydev_core.utils.file_indexing_monitor import FileIndexingMonitor
 from deputydev_core.utils.file_utils import read_file
 
 
@@ -19,7 +22,7 @@ class FileChunkCreator:
     @staticmethod
     def create_chunks(
         file_path: str,
-        root_dir: str,
+        root_dir: Path,
         file_hash: Optional[str] = None,
         use_new_chunking: bool = False,
         config: Dict = None,
@@ -36,7 +39,7 @@ class FileChunkCreator:
         """
         if config:
             set_config(config)
-        file_contents = read_file(os.path.join(root_dir, file_path))
+        file_contents = read_file(os.path.join(root_dir / file_path))  # noqa: PTH118
         chunks = chunk_source(
             file_contents,
             path=file_path,
@@ -49,12 +52,12 @@ class FileChunkCreator:
     @staticmethod
     async def create_and_get_file_wise_chunks(
         file_paths_and_hashes: Mapping[str, Optional[str]],
-        root_dir: str,
+        root_dir: Path,
         use_new_chunking: bool = False,
         process_executor: Optional[ProcessPoolExecutor] = None,
         set_config_in_new_process: bool = False,
-        progress_bar=None,
-        files_indexing_monitor=None,
+        progress_bar: Optional[CustomProgressBar] = None,
+        files_indexing_monitor: Optional[FileIndexingMonitor] = None,
     ) -> Dict[str, List[ChunkInfo]]:
         """
         Converts the content of a list of files into chunks of code.

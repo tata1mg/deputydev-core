@@ -14,10 +14,12 @@ class BaseLocalRepo(ABC):
         repo_path: str,
         chunk_config: Optional[ChunkConfig] = None,
         chunkable_files: Optional[List[str]] = None,
+        ripgrep_path: Optional[str] = None,
     ) -> None:
         self.repo_path = Path(repo_path)
         self.chunk_config = chunk_config or ChunkConfig()
         self.chunkable_files = chunkable_files or []
+        self.ripgrep_path = ripgrep_path or "rg"
 
     def _get_file_hash(self, file_path: str) -> str:
         file_full_path = self.repo_path / file_path
@@ -28,17 +30,21 @@ class BaseLocalRepo(ABC):
     def _is_file_chunkable(self, file_path: str) -> bool:
         try:
             abs_file_path = self.repo_path / file_path
-            file_ext = abs_file_path.suffix
-            if file_ext.lower() in self.chunk_config.exclude_exts:
+            file_ext = abs_file_path.suffix.lower()
+            if file_ext in self.chunk_config.exclude_exts:
                 return False
+
             if not abs_file_path.is_file():
                 return False
+
             if abs_file_path.stat().st_size > self.chunk_config.max_chunkable_file_size_bytes:
-                AppLogger.log_debug(f"File size is greater than the max_chunkable_file_size_bytes: {abs_file_path}")
+                AppLogger.log_debug(f"File size is greater than the max_chunkable_file_size_bytes: {abs_file_path}")  # noqa: ERA001
                 return False
+
             # Exclude if any parent directory's name matches an exclude_dir
             if any(parent.name in self.chunk_config.exclude_dirs for parent in abs_file_path.parents):
                 return False
+
             return True
         except Exception as ex:  # noqa: BLE001
             AppLogger.log_debug(f"Error while checking if file is chunkable: {ex} for file: {file_path}")

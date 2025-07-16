@@ -1,5 +1,7 @@
-import os
-from typing import Dict, List
+import asyncio
+from asyncio.subprocess import PIPE
+from pathlib import Path
+from typing import Dict, List, Optional
 
 from deputydev_core.services.repo.local_repo.base_local_repo_service import (
     BaseLocalRepo,
@@ -7,19 +9,58 @@ from deputydev_core.services.repo.local_repo.base_local_repo_service import (
 
 
 class NonVCSRepo(BaseLocalRepo):
-    def __init__(self, repo_path: str, chunkable_files: List[str] = None):
-        super().__init__(repo_path, chunkable_files=chunkable_files)
+    def __init__(
+        self, repo_path: str, chunkable_files: Optional[List[str]] = None, ripgrep_path: Optional[str] = None
+    ) -> None:
+        super().__init__(repo_path, chunkable_files=chunkable_files, ripgrep_path=ripgrep_path)
+        # cache ignore globs once
+        exclude_dirs = self.chunk_config.exclude_dirs
+        exclude_exts = self.chunk_config.exclude_exts
+        # Build the ripgrep --glob patterns ONCE
+        self.rg_glob_args: list[str] = []
+        for d in exclude_dirs:
+            # Exclude dir at any depth (works for 95% of cases)
+            self.rg_glob_args.extend(["--glob", f"!{d}/**"])
+            self.rg_glob_args.extend(["--glob", f"!*/{d}/**"])  # Extra for nested dirs
+        for ext in exclude_exts:
+            if ext.startswith("."):
+                self.rg_glob_args.extend(["--glob", f"!*{ext}"])
+            else:
+                self.rg_glob_args.extend(["--glob", f"!*{ext}"])
 
+    # ------------------------------------------------------------------ #
+    # NEW ripgrep-based implementation
+    # ------------------------------------------------------------------ #
     async def get_chunkable_files(self) -> List[str]:
-        ignore_dirs = {"node_modules", ".venv", "build", "venv", "patch"}
-        all_files: List[str] = []
-        for dirpath, dirnames, filenames in os.walk(self.repo_path):
-            # Filter ignored directories
-            dirnames[:] = [d for d in dirnames if d not in ignore_dirs]
-            for file in filenames:
-                # append relative path to the file
-                all_files.append(os.path.relpath(os.path.join(dirpath, file), self.repo_path))
-        return all_files
+        """
+        List all files under the repo that are *not* in the ignore dirs,
+        honouring .gitignore and skipping hidden files.
+        Returns paths **relative to repo root**.
+        """
+        cmd = [
+            self.ripgrep_path,
+            "--files",  # list files only
+            *self.rg_glob_args,  # extra ignore globs
+        ]
+
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            cwd=self.repo_path,  # run inside the repo
+            stdout=PIPE,
+            stderr=PIPE,
+        )
+        stdout, stderr = await proc.communicate()
+
+        if proc.returncode != 0:
+            # rg returns 1 when no files match, >1 on error
+            if proc.returncode == 1:
+                return []
+            raise RuntimeError(f"ripgrep failed (code {proc.returncode}): {stderr.decode().strip()}")
+
+        # split lines, filter out empty strings, ensure posix separators
+        rel_files = [Path(line).as_posix() for line in stdout.decode().splitlines() if line]
+        chunkable_files = [f for f in rel_files if self._is_file_chunkable(f)]
+        return chunkable_files
 
     async def get_chunkable_files_and_commit_hashes(self) -> Dict[str, str]:
         """Get all files in the repo and their hashes."""

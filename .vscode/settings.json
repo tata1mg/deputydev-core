@@ -1,4 +1,9 @@
 {
     "python.analysis.typeCheckingMode": "strict",
     "python.analysis.autoImportCompletions": true,
+    "search.useIgnoreFiles": true,
+    "search.useParentIgnoreFiles": false,
+    "files.exclude": {
+        "**/build": true
+    },
 }
