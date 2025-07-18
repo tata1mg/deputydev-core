@@ -1,9 +1,8 @@
 import asyncio
-import os
 from abc import ABC, abstractmethod
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
-from typing import Dict, List, Mapping, Optional
+from typing import Any, Dict, List, Mapping, Optional
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.chunking.source_chunker import chunk_source
@@ -22,10 +21,10 @@ class FileChunkCreator:
     @staticmethod
     def create_chunks(
         file_path: str,
-        root_dir: Path,
+        root_dir: str,
         file_hash: Optional[str] = None,
         use_new_chunking: bool = False,
-        config: Dict = None,
+        config: Optional[Dict[str, Any]] = None,
     ) -> list[ChunkInfo]:
         """
         Converts the content of a file into chunks of code.
@@ -39,7 +38,7 @@ class FileChunkCreator:
         """
         if config:
             set_config(config)
-        file_contents = read_file(os.path.join(root_dir / file_path))  # noqa: PTH118
+        file_contents = read_file(str(Path(root_dir) / file_path))
         chunks = chunk_source(
             file_contents,
             path=file_path,
@@ -52,7 +51,7 @@ class FileChunkCreator:
     @staticmethod
     async def create_and_get_file_wise_chunks(
         file_paths_and_hashes: Mapping[str, Optional[str]],
-        root_dir: Path,
+        root_dir: str,
         use_new_chunking: bool = False,
         process_executor: Optional[ProcessPoolExecutor] = None,
         set_config_in_new_process: bool = False,

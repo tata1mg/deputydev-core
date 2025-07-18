@@ -158,18 +158,28 @@ class ChunkFilesService(BaseWeaviateRepository):
                     ]
                 ),
             )
+            # 1. Collect the UUIDs in this batch
+            deletable_uuids = [str(obj.uuid) for obj in deletable_objects.objects]
+            AppLogger.log_debug(f"{len(deletable_uuids)} chunk_files to be deleted in batch")
 
-            AppLogger.log_debug(f"{len(deletable_objects.objects)} chunk_files to be deleted in batch")
-
-            if len(deletable_objects.objects) <= 0:
+            # 2. Break if there’s nothing left
+            if not deletable_uuids:
                 break
 
+            # 3. Build a Filter that matches any of those UUIDs
+            uuid_filter = Filter.by_id().contains_any(deletable_uuids)
+
+            # 4. Call delete_many with **where=**
             result = self.sync_collection.data.delete_many(
-                Filter.any_of(
-                    [Filter.by_id().equal(obj.uuid) for obj in deletable_objects.objects],
-                )
+                where=uuid_filter,
             )
+
             AppLogger.log_debug(f"chunk_files deleted. successful - {result.successful}, failed - {result.failed}")
+
+            # 5. Safety-valve: stop if nothing was removed
+            if result.successful == 0 and result.failed == 0:
+                AppLogger.log_warn("delete_many removed 0 objects - breaking to avoid infinite loop.")
+                break
 
     async def get_autocomplete_keyword_chunks(
         self, keyword: str, chunkable_files_and_hashes: Dict[str, str], limit: int = 50

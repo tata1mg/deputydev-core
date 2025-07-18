@@ -315,13 +315,3 @@ class ChunkVectorStoreManager:
             file_wise_chunks.update(file_wise_chunk_info_objects)
 
         return file_wise_chunks
-
-    async def get_vectors_by_chunk_hashes(self, chunk_hashes: List[str]) -> Dict[str, Optional[List[float]]]:
-        """
-        Returns a dict mapping chunk_hash to its vector (or None if missing).
-        """
-        stored_chunks_and_vectors = await ChunkService(self.weaviate_client).get_chunks_by_chunk_hashes(
-            chunk_hashes=chunk_hashes
-        )
-        # Each entry is (ChunkDTO, List[float])
-        return {chunk[0].chunk_hash: chunk[1] if chunk[1] else None for chunk in stored_chunks_and_vectors}
