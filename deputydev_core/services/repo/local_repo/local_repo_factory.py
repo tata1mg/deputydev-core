@@ -6,7 +6,6 @@ from git import InvalidGitRepositoryError, Repo
 from deputydev_core.services.repo.local_repo.base_local_repo_service import (
     BaseLocalRepo,
 )
-from deputydev_core.services.repo.local_repo.managers.git_repo_service import GitRepo
 from deputydev_core.services.repo.local_repo.managers.non_vcs_repo_service import (
     NonVCSRepo,
 )
@@ -32,10 +31,4 @@ class LocalRepoFactory:
     def get_local_repo(
         cls, repo_path: str, chunkable_files: Optional[List[str]] = None, ripgrep_path: Optional[str] = None
     ) -> BaseLocalRepo:
-        if ripgrep_path:
-            return NonVCSRepo(repo_path, chunkable_files=chunkable_files, ripgrep_path=ripgrep_path)
-
-        if cls.is_git_repo(repo_path):
-            return GitRepo(repo_path, chunkable_files=chunkable_files)
-
         return NonVCSRepo(repo_path, chunkable_files=chunkable_files, ripgrep_path=ripgrep_path)
