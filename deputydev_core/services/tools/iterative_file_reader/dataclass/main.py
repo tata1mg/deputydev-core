@@ -15,8 +15,7 @@ class IterativeFileReaderRequestParams(BaseModel):
 
     @field_validator("start_line", "end_line")
     @classmethod
-    def check_positive(cls, v: Any, info: Any) -> Optional[int]:
-        if v is not None and v < 1:
-            raise ValueError(f"{info.field_name} must be a positive integer")
-
-        return v
+    def keep_positive_or_null_startlines(cls, v: Any, info: Any) -> Optional[int]:
+        if v is not None and isinstance(v, int) and v >= 1:
+            return v
+        return None
