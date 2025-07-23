@@ -28,3 +28,14 @@ class FileSummaryReaderRequestParams(BaseModel):
     """
 
     file_path: str
+    repo_path: Optional[str] = None
+    number_of_lines: Optional[int] = None
+    start_line: Optional[int] = None
+    end_line: Optional[int] = None
+
+    @field_validator("start_line", "end_line", "number_of_lines")
+    @classmethod
+    def check_positive(cls, v: Any, info: Any) -> Optional[int]:
+        if v is not None and v < 1:
+            raise ValueError(f"{info.field_name} must be a positive integer")
+        return v
