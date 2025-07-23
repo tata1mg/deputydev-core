@@ -17,18 +17,7 @@ class EditError:
 
 
 class SearchAndReplaceAlgoRunner(BaseDiffAlgoRunner):
-    """Apply STREAM-style SEARCH/REPLACE blocks to a file **non-streamingly**."""
-
-    # ---------------------------------------------------------------------
-    # Config helpers
-    # ---------------------------------------------------------------------
-    @staticmethod
-    def _get_preserve_flag(diff_data: SearchAndReplaceData) -> bool:
-        """
-        Backward compatible extractor for a new flag. If you can't/ don't want to
-        extend SearchAndReplaceData, put the flag in diff_data.extra/options.
-        """
-        return getattr(diff_data, "preserve_trailing_newline", True)
+    """Implements SEARCH/REPLACE diff algorithm with flexible matching strategies."""
 
     # ---------------------------------------------------------------------
     # Helpers ──────────────────────────────────────────────────────────────
