@@ -66,7 +66,6 @@ class ChunkConfig:
         # Other build artifacts or binary blobs
         "patch",
         "packages/blobs",
-        ".docker"
         # emailable-report-template.html should be part of repo config and should not be handled here, will be taken care of
         # in the future
         "emailable-report-template.html",
