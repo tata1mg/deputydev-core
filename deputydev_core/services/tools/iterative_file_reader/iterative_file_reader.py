@@ -27,7 +27,7 @@ class IterativeFileReader:
         self.repo_path = repo_path
         self.max_requested_line_range: int = max_requested_line_range or 1000
 
-    async def _count_total_lines(self) -> int:
+    async def count_total_lines(self) -> int:
         """
         Count total lines in the file efficiently.
         """
@@ -87,7 +87,7 @@ class IterativeFileReader:
 
         # TODO: Add a better logic to count lines
         start_line_to_use: int = start_line or 1
-        end_line_to_use: int = end_line or await self._count_total_lines()
+        end_line_to_use: int = end_line or await self.count_total_lines()
 
         if (
             start_line is None
