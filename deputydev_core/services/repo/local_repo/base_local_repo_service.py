@@ -38,7 +38,7 @@ class BaseLocalRepo(ABC):
                 return False
 
             if abs_file_path.stat().st_size > self.chunk_config.max_chunkable_file_size_bytes:
-                AppLogger.log_debug(f"File size is greater than the max_chunkable_file_size_bytes: {abs_file_path}")  # noqa: ERA001
+                AppLogger.log_debug(f"File size is greater than the max_chunkable_file_size_bytes: {abs_file_path}")
                 return False
 
             # Exclude if any parent directory's name matches an exclude_dir
