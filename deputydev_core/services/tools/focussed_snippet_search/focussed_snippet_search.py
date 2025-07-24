@@ -1,9 +1,10 @@
 import asyncio
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple, cast
 
 from deputydev_core.models.dto.chunk_dto import ChunkDTO
 from deputydev_core.models.dto.chunk_file_dto import ChunkFileDTO
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
+from deputydev_core.services.initialization.initialization_service import InitializationManager
 from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
 from deputydev_core.services.repository.chunk_service import ChunkService
 from deputydev_core.services.repository.dataclasses.main import (
@@ -15,6 +16,7 @@ from deputydev_core.services.shared_chunks.shared_chunks_manager import (
 from deputydev_core.services.tools.focussed_snippet_search.dataclass.main import (
     ChunkDetails,
     ChunkInfoAndHash,
+    CodeSnippetDetails,
     FocusChunksParams,
     FocussedSnippetSearchParams,
     FocussedSnippetSearchResponse,
@@ -23,6 +25,7 @@ from deputydev_core.services.tools.focussed_snippet_search.dataclass.main import
 from deputydev_core.services.tools.relevant_chunks.relevant_chunk import (
     RelevantChunks,
 )
+from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.constants.constants import CHUNKFILE_KEYWORD_PROPERTY_MAP
 
 
@@ -32,15 +35,17 @@ class FocussedSnippetSearch:
         cls,
         payload: FocussedSnippetSearchParams,
         weaviate_client: WeaviateSyncAndAsyncClients,
-        initialization_manager,
-    ):
+        initialization_manager: InitializationManager,
+    ) -> Dict[str, List[FocussedSnippetSearchResponse]]:
         """
         Search for code based on multiple search terms.
         """
-        repo_path = payload.repo_path
-        search_terms = payload.search_terms
+        repo_path: str = payload.repo_path
+        search_terms: List[SearchTerm] = payload.search_terms
 
-        chunkable_files_and_hashes = await SharedChunksManager.initialize_chunks(repo_path)
+        chunkable_files_and_hashes = await SharedChunksManager.initialize_chunks(
+            repo_path, ripgrep_path=initialization_manager.ripgrep_path
+        )
 
         chunk_files_service = ChunkFilesService(weaviate_client)
         chunk_service = ChunkService(weaviate_client)
@@ -67,31 +72,33 @@ class FocussedSnippetSearch:
         cls,
         payload: FocussedSnippetSearchResponse,
         repo_path: str,
-        initialization_manager,
+        initialization_manager: InitializationManager,
     ) -> FocussedSnippetSearchResponse:
         if payload.type not in ["class", "function"] or not payload.chunks:
             return payload
-
-        # get focus chunks
-        new_chunks = await RelevantChunks(repo_path=repo_path).get_focus_chunks(
+        new_chunks = await RelevantChunks(
+            repo_path=repo_path, ripgrep_path=initialization_manager.ripgrep_path
+        ).get_focus_chunks(
             FocusChunksParams(
                 repo_path=repo_path,
                 search_item_name=payload.keyword,
                 search_item_type=payload.type,
-                chunks=[
-                    ChunkDetails(
-                        start_line=_.source_details.start_line,
-                        end_line=_.source_details.end_line,
-                        chunk_hash=_.content_hash,
-                        file_path=_.source_details.file_path,
-                        file_hash=_.source_details.file_hash,
-                    )
-                    for _ in payload.chunks
-                ],
+                chunks=cast(
+                    List[ChunkDetails | CodeSnippetDetails],
+                    [
+                        ChunkDetails(
+                            start_line=_.source_details.start_line,
+                            end_line=_.source_details.end_line,
+                            chunk_hash=_.content_hash,
+                            file_path=_.source_details.file_path,
+                            file_hash=_.source_details.file_hash,
+                        )
+                        for _ in payload.chunks
+                    ],
+                ),
             ),
             initialization_manager,
         )
-
         if not new_chunks:
             return payload
 
@@ -101,7 +108,12 @@ class FocussedSnippetSearch:
         return payload
 
     @classmethod
-    async def search_chunk_files(cls, search_terms, chunkable_files_and_hashes, chunk_files_service):
+    async def search_chunk_files(
+        cls,
+        search_terms: List[SearchTerm],
+        chunkable_files_and_hashes: Dict[str, str],
+        chunk_files_service: ChunkFilesService,
+    ) -> Dict[int, List[ChunkFileDTO]]:
         tasks = [
             cls.process_file_search(idx, chunk_files_service, term, chunkable_files_and_hashes)
             for idx, term in enumerate(search_terms)
@@ -113,11 +125,11 @@ class FocussedSnippetSearch:
     @classmethod
     async def process_file_search(
         cls,
-        idx,
+        idx: int,
         chunk_files_service: ChunkFilesService,
         term: SearchTerm,
-        chunkable_files_and_hashes: Dict,
-    ):
+        chunkable_files_and_hashes: Dict[str, str],
+    ) -> Tuple[int, List[ChunkFileDTO]]:
         """
         Process a single search term
 
@@ -146,26 +158,33 @@ class FocussedSnippetSearch:
         return idx, sorted_chunks
 
     @classmethod
-    def extract_chunk_hashes(cls, chunk_files_results):
+    def extract_chunk_hashes(cls, chunk_files_results: Dict[int, List[ChunkFileDTO]]) -> Set[str]:
         """
         Extract all unique chunk hashes from chunk files results.
 
         Args:
-            chunk_files_results: Dictionary mapping request index to list of chunk files
+            chunk_files_results: Dictionary mapping request index to list of chunk file DTOs
 
         Returns:
             Set of unique chunk hashes
         """
-        all_chunk_hashes = set()
-        for chunks in chunk_files_results.values():
-            for chunk in chunks:
-                chunk_file_dto = ChunkFileDTO(**chunk.properties, id=str(chunk.uuid))
-                all_chunk_hashes.add(chunk_file_dto.chunk_hash)
+        all_chunk_hashes: Set[str] = set()
+
+        for chunk_list in chunk_files_results.values():
+            for chunk in chunk_list:
+                # If chunk is already a ChunkFileDTO, no need to re-construct it
+                # Try both ways for extra robustness (optional)
+                if hasattr(chunk, "chunk_hash"):
+                    all_chunk_hashes.add(chunk.chunk_hash)
+                elif hasattr(chunk, "properties") and "chunk_hash" in chunk.properties:
+                    all_chunk_hashes.add(chunk.properties["chunk_hash"])
+                else:
+                    AppLogger.log_debug(f"[WARN] Could not find chunk_hash in chunk: {chunk}")
 
         return all_chunk_hashes
 
     @classmethod
-    async def fetch_chunks_by_hashes(cls, chunk_hashes: Set[str], chunk_service):
+    async def fetch_chunks_by_hashes(cls, chunk_hashes: Set[str], chunk_service: ChunkService) -> Dict[str, ChunkDTO]:
         """
         Fetch all chunks by their hashes.
 

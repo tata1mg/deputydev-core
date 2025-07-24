@@ -46,6 +46,7 @@ class ExtensionInitialisationManager(InitializationManager):
         one_dev_client: Optional[OneDevClient] = None,
         weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
         embedding_manager: Optional[Type[BaseOneDevEmbeddingManager]] = None,
+        ripgrep_path: Optional[str] = None,
     ) -> None:
         super().__init__(
             ExtensionEmbeddingManager,
@@ -54,6 +55,7 @@ class ExtensionInitialisationManager(InitializationManager):
             process_executor,
             one_dev_client,
             weaviate_client,
+            ripgrep_path,
         )
 
     async def prefill_vector_store(
@@ -66,7 +68,6 @@ class ExtensionInitialisationManager(InitializationManager):
     ) -> None:
         assert self.local_repo, "Local repo is not initialized"
         assert self.weaviate_client, "Connect to vector store"
-
         all_chunks = await OneDevExtensionChunker(
             local_repo=self.local_repo,
             weaviate_client=self.weaviate_client,

@@ -7,24 +7,24 @@ logger = logging.getLogger(__name__)
 
 
 class SharedChunksManager:
-    _files_commit_hashes = {}
+    _files_commit_hashes: Dict[str, Dict[str, str]] = {}
 
     @classmethod
-    async def initialize_chunks(cls, repo_path: str) -> Dict[str, str]:
+    async def initialize_chunks(cls, repo_path: str, ripgrep_path: Optional[str]) -> Dict[str, str]:
         """Initialize or get chunks from shared memory, with fallback"""
         chunks_dict = cls._files_commit_hashes
-        if chunks_dict is not None and repo_path in chunks_dict:
+        if repo_path in chunks_dict:
             return chunks_dict[repo_path]
 
-        return await cls._fetch_and_store_chunks(repo_path)
+        return await cls._fetch_and_store_chunks(repo_path, ripgrep_path=ripgrep_path)
 
     @classmethod
     async def update_chunks(
         cls,
         repo_path: str,
-        chunks: Optional[Dict] = None,
+        chunks: Optional[Dict[str, str]] = None,
         chunkable_files: Optional[List[str]] = None,
-    ):
+    ) -> None:
         chunks_dict = cls._files_commit_hashes or {}
         if repo_path in chunks_dict and chunkable_files:
             existing_chunks = chunks_dict[repo_path]
@@ -35,12 +35,13 @@ class SharedChunksManager:
 
             chunks_dict[repo_path] = existing_chunks
         else:
-            chunks_dict[repo_path] = chunks
+            if chunks is not None:
+                chunks_dict[repo_path] = chunks
 
     @classmethod
-    async def _fetch_and_store_chunks(cls, repo_path: str) -> Dict[str, str]:
+    async def _fetch_and_store_chunks(cls, repo_path: str, ripgrep_path: Optional[str] = None) -> Dict[str, str]:
         """Fetch chunks from repo and store in shared memory"""
-        local_repo = LocalRepoFactory.get_local_repo(repo_path)
+        local_repo = LocalRepoFactory.get_local_repo(repo_path, ripgrep_path=ripgrep_path)
         chunks = await local_repo.get_chunkable_files_and_commit_hashes()
         cls._files_commit_hashes[repo_path] = chunks
         return chunks

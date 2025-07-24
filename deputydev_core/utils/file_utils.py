@@ -1,3 +1,6 @@
+from pathlib import Path
+
+
 def read_file(file_name: str) -> str:
     """
     Reads the content of a file.
@@ -12,9 +15,8 @@ def read_file(file_name: str) -> str:
         SystemExit: If the file cannot be read due to a SystemExit exception.
     """
     try:
-        with open(file_name, "r", encoding="utf-8", errors="ignore") as f:
+        with Path(file_name).open("r", encoding="utf-8", errors="ignore") as f:
             return f.read()
     except SystemExit:
         raise SystemExit
-    except Exception:
-        return ""
+    return ""
