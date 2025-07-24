@@ -1,6 +1,6 @@
 [project]
 name = "deputydev-core"
-version = "7.0.0"
+version = "7.0.1"
 description = "Core library for DeputyDev"
 authors = [{ name = "DeputyDev", email = "deputydev@1mg.com" }]
 readme = "README.md"
@@ -22,6 +22,7 @@ dependencies = [
     "fastmcp==2.3.4",
     "mcp[cli]>=1.8.0",
     "python-Levenshtein==0.27.1",
+    "protobuf==5.29.2",
 ]
 
 [dependency-groups]
