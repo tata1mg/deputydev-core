@@ -1,6 +1,6 @@
 import asyncio
-import os
 import traceback
+from pathlib import Path
 from typing import Dict, List, Optional
 from uuid import uuid4
 
@@ -16,7 +16,7 @@ from deputydev_core.utils.app_logger import AppLogger
 
 
 class GitRepo(BaseLocalRepo):
-    def __init__(self, repo_path: str, chunkable_files: List[str] = None):
+    def __init__(self, repo_path: str, chunkable_files: Optional[List[str]] = None) -> None:
         super().__init__(repo_path, chunkable_files=chunkable_files)
         self.repo = Repo(repo_path)
 
@@ -34,7 +34,7 @@ class GitRepo(BaseLocalRepo):
                     and (parsed_remote_url_to_match["repo"] == parsed_exitsting_remote_url["repo"])
                 ):
                     return remote
-        except Exception:
+        except Exception:  # noqa: BLE001
             AppLogger.log_debug(traceback.format_exc())
         return None
 
@@ -44,8 +44,8 @@ class GitRepo(BaseLocalRepo):
                 return remote.url
         raise ValueError("Origin remote not found")
 
-    def get_repo_name(self):
-        return os.path.splitext(os.path.basename(self.get_origin_remote_url()))[0]
+    def get_repo_name(self) -> str:
+        return Path(self.get_origin_remote_url()).stem
 
     def branch_list(self) -> List[str]:
         return [branch.name for branch in self.repo.branches]
@@ -53,14 +53,14 @@ class GitRepo(BaseLocalRepo):
     def branch_exists(self, branch_name: str) -> bool:
         return branch_name in self.branch_list()
 
-    def get_vcs_type(self):
+    def get_vcs_type(self) -> str:
         remote_url = self.get_origin_remote_url()
         return "bitbucket" if "bitbucket" in remote_url else "github"
 
     def get_active_branch(self) -> str:
         return self.repo.active_branch.name
 
-    def checkout_branch(self, branch_name: str):
+    def checkout_branch(self, branch_name: str) -> None:
         if branch_name not in self.branch_list():
             self.repo.git.branch(branch_name)
 
@@ -87,13 +87,18 @@ class GitRepo(BaseLocalRepo):
 
         modified_files: List[str] = []
         for status in all_statuses:
-            status_without_xy = status[3:]
-            if "->" in status:
-                first_file = status_without_xy.split("->")[0].strip()
-                second_file = status_without_xy.split("->")[1].strip()
-                modified_files.extend([first_file, second_file])
+            # Split into [XY, rest]
+            parts = status.split(None, 1)
+            if len(parts) < 2:
+                continue
+            path_info = parts[1]
+            # Check for rename or copy (contains '->')
+            if "->" in path_info:
+                # Only take the new file path after '->'
+                new_file = path_info.split("->", 1)[1].strip()
+                modified_files.append(new_file)
             else:
-                modified_files.append(status_without_xy)
+                modified_files.append(path_info.strip())
 
         return modified_files
 
@@ -103,7 +108,6 @@ class GitRepo(BaseLocalRepo):
             "git",
             "ls-tree",
             "-r",
-            "--format=%(objecttype) %(objectname) %(path)",
             "HEAD",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
@@ -114,9 +118,9 @@ class GitRepo(BaseLocalRepo):
 
         files_and_hashes: Dict[str, str] = {}
         for file in all_ls_tree_files:
-            file = file.split(" ")
-            if file[0] == "blob" and self._is_file_chunkable(file[2]):
-                files_and_hashes[file[2]] = file[1]
+            file = file.split(None, 3)  # splits by whitespace, up to 4 fields
+            if len(file) == 4 and file[1] == "blob" and self._is_file_chunkable(file[3]):
+                files_and_hashes[file[3]] = file[2]
         return files_and_hashes
 
     async def get_chunkable_files_and_commit_hashes(self) -> Dict[str, str]:
@@ -141,9 +145,9 @@ class GitRepo(BaseLocalRepo):
 
             if not self._is_file_chunkable(file):
                 continue
-
-            # check if the file is on the disk, and if yes, get a content hash for it
-            if os.path.exists(os.path.join(self.repo_path, file)):
+            file_path = Path(self.repo_path) / file
+            if file_path.exists():
+                # check if the file is on the disk, and if yes, get a content hash for it
                 all_files_and_hashes[file] = self._get_file_hash(file)
 
         return all_files_and_hashes
@@ -152,20 +156,20 @@ class GitRepo(BaseLocalRepo):
         files_with_hashes = await self.get_chunkable_files_and_commit_hashes()
         return list(files_with_hashes.keys())
 
-    def stage_changes(self):
+    def stage_changes(self) -> None:
         self.repo.git.add(".")
 
-    def commit_changes(self, commit_message: str, actor: Optional[Actor] = None):  # type: ignore
+    def commit_changes(self, commit_message: str, actor: Optional[Actor] = None) -> None:  # type: ignore
         self.repo.index.commit(message=commit_message, author=actor)
 
-    async def push_to_remote(self, branch_name: str, remote_repo_url: str):
+    async def push_to_remote(self, branch_name: str, remote_repo_url: str) -> None:
         selected_remote = self._find_existing_remote(remote_url=remote_repo_url)
         if not selected_remote:
             selected_remote = self.repo.create_remote(name=uuid4().hex, url=remote_repo_url)
 
         await asyncio.to_thread(selected_remote.push, refspec=branch_name)
 
-    async def sync_with_remote(self, branch_name: str, remote_repo_url: str):
+    async def sync_with_remote(self, branch_name: str, remote_repo_url: str) -> None:
         # get the remote
         selected_remote = self._find_existing_remote(remote_url=remote_repo_url)
         if not selected_remote:

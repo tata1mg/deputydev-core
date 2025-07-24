@@ -22,7 +22,7 @@ from deputydev_core.utils.app_logger import AppLogger
 
 
 class ChunkVectorStoreManager:
-    def __init__(self, local_repo: BaseLocalRepo, weaviate_client: WeaviateSyncAndAsyncClients):
+    def __init__(self, local_repo: BaseLocalRepo, weaviate_client: WeaviateSyncAndAsyncClients) -> None:
         self.local_repo = local_repo
         self.weaviate_client = weaviate_client
 
@@ -104,10 +104,10 @@ class ChunkVectorStoreManager:
         )
         await asyncio.sleep(0.2)
 
-    def get_symbols_from_hierarchy(self, hierarchy) -> Tuple[List[str], List[str]]:
+    def get_symbols_from_hierarchy(self, hierarchy) -> Tuple[List[str], List[str]]:  # noqa: ANN001
         """Extract functions and classes from hierarchy"""
-        functions = set()
-        classes = set()
+        functions: set[str] = set()
+        classes: set[str] = set()
         if not hierarchy:
             return [], []
 
@@ -116,9 +116,11 @@ class ChunkVectorStoreManager:
                 functions.add(item.value)
             elif item.type == ChunkNodeType.CLASS.value:
                 classes.add(item.value)
+            """
             # elif "namespace" in item.type:
             #     functions.append(item.value)
             #     classes.append(item.value)
+            """
 
         return list(functions), list(classes)
 
@@ -261,7 +263,7 @@ class ChunkVectorStoreManager:
         file_path_commit_hash_map: Dict[str, str],
         with_vector: bool,
         chunk_refresh_config: Optional[RefreshConfig] = None,
-        enable_refresh: bool = False,
+        enable_refresh: Optional[bool] = False,
     ) -> Dict[str, List[ChunkInfo]]:
         """
         Get the stored chunks based on the file path and commit hash map.
