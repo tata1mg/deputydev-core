@@ -3,7 +3,7 @@ import json
 import re
 from asyncio.subprocess import PIPE
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Set, Union
 
 from deputydev_core.errors.tools.tool_errors import EmptyToolResponseError, UnhandledToolError
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
@@ -89,7 +89,7 @@ class GrepSearch:
         search_term: str,
         case_insensitive: bool = False,
         use_regex: bool = False,
-    ) -> List[Dict[str, Union[ChunkInfo, int]]]:
+    ) -> List[Dict[str, Union[ChunkInfo, List[int]]]]:
         """
         Search `directory_path` (relative to repo root) for `search_term`.
 
@@ -166,7 +166,7 @@ class GrepSearch:
         return globs
 
     # _run_rg  ──► route stdout to new JSON parser
-    async def _run_rg(self, command: List[str]) -> List[Dict[str, Union[ChunkInfo, int]]]:
+    async def _run_rg(self, command: List[str]) -> List[Dict[str, Union[ChunkInfo, List[int]]]]:
         process = await asyncio.create_subprocess_exec(*command, stdout=PIPE, stderr=PIPE, cwd=str(self.repo_path))
         stdout, stderr = await process.communicate()
 
@@ -180,20 +180,23 @@ class GrepSearch:
     # ---------------------------------------------------------------------
     # OUTPUT PARSING (optimized for performance and clarity)
     # ---------------------------------------------------------------------
-    def _parse_json_stream(self, json_lines: List[str]) -> List[Dict[str, Union[ChunkInfo, int]]]:  # noqa: C901
+    def _parse_json_stream(self, json_lines: List[str]) -> List[Dict[str, Union[ChunkInfo, List[int]]]]:  # noqa: C901
         """
         Consume ripgrep --json output and return our old structure:
-        [{"chunk_info": ChunkInfo, "matched_line": int}, ...]
+        [{"chunk_info": ChunkInfo, "matched_lines": [int, int, ...]}, ...]
         - Groups adjacent matches/context lines into 'chunks'
         - Truncates long lines for output safety
         - Strips 'path:ln:' prefixes for cleaner display
         """
-        results: List[Dict[str, Union[ChunkInfo, int]]] = []
+        results: List[Dict[str, Union[ChunkInfo, List[int]]]] = []
+
+        # Keep this in sync with -C passed to rg in _build_rg_command()
+        CONTEXT_LINES = 2  # noqa: N806
 
         chunk_lines: List[str] = []  # Raw grep-style lines in this chunk
         line_numbers: List[int] = []  # All line numbers (context + matches)
+        match_line_nums: Set[int] = set()  # All match line numbers in this chunk
         current_path: Optional[str] = None  # File currently being chunked
-        match_line_num: Optional[int] = None  # The line number of the match
         prefix_regex: Optional[re.Pattern[str]] = None  # Cached regex for prefix
         MAX_LEN = 200  # Line truncation limit  # noqa: N806
 
@@ -202,13 +205,13 @@ class GrepSearch:
             Emit the current chunk to results, clearing state.
             Only emits if all state fields are valid.
             """
-            nonlocal chunk_lines, line_numbers, match_line_num, current_path, prefix_regex
+            nonlocal chunk_lines, line_numbers, match_line_nums, current_path, prefix_regex
 
-            if not chunk_lines or not line_numbers or current_path is None or match_line_num is None:
+            if not chunk_lines or not line_numbers or current_path is None or not match_line_nums:
                 # Incomplete/inactive chunk, reset and skip
                 chunk_lines.clear()
                 line_numbers.clear()
-                match_line_num = None
+                match_line_nums.clear()
                 current_path = None
                 prefix_regex = None
                 return
@@ -238,14 +241,14 @@ class GrepSearch:
                             end_line=end_line,
                         ),
                     ),
-                    "matched_line": match_line_num,
+                    "matched_line": sorted(match_line_nums),
                 }
             )
 
             # Reset for next chunk
             chunk_lines.clear()
             line_numbers.clear()
-            match_line_num = None
+            match_line_nums.clear()
             current_path = None
             prefix_regex = None
 
@@ -263,8 +266,12 @@ class GrepSearch:
             lno: int = data["line_number"]
             text = data["lines"]["text"].rstrip("\n")
 
-            # New file, or explicit break? Emit previous chunk and start new
+            # If switching files or rg says to break, flush
             if (current_path is not None and path != current_path) or (etype == "context" and data.get("break", False)):
+                flush_chunk()
+
+            # split whenever there’s a non-touching gap
+            if current_path == path and line_numbers and (lno - line_numbers[-1]) >= CONTEXT_LINES:
                 flush_chunk()
 
             # On path switch, recompile the prefix regex for this file
@@ -280,7 +287,7 @@ class GrepSearch:
             line_numbers.append(lno)
 
             if etype == "match":
-                match_line_num = lno
+                match_line_nums.add(lno)
 
         # Flush the final chunk (if any)
         flush_chunk()
