@@ -330,7 +330,9 @@ class SearchAndReplaceAlgoRunner(BaseDiffAlgoRunner):
         matches.sort(key=lambda t: t[0])
         for (s1, e1, _), (s2, _, _) in zip(matches, matches[1:]):
             if s2 < e1:
-                raise ValueError("SEARCH/REPLACE blocks overlap. Make them non‑overlapping or merge them.")
+                raise ValueError(
+                    "SEARCH/REPLACE blocks overlap. Please retry and make them non‑overlapping or merge them."
+                )
 
         # Pass 3: apply edits to the normalised text
         pieces: List[str] = []

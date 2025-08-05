@@ -2,6 +2,8 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, field_validator
 
+from deputydev_core.services.chunking.chunk_info import ChunkInfo
+
 
 class IterativeFileReaderRequestParams(BaseModel):
     """
@@ -19,6 +21,17 @@ class IterativeFileReaderRequestParams(BaseModel):
         if v is not None and isinstance(v, int) and v >= 1:
             return v
         return None
+
+
+class IterativeFileReaderResponse(BaseModel):
+    """
+    Response from IterativeFileReader.
+    """
+
+    chunk: ChunkInfo
+    eof: bool
+    was_summary: bool
+    total_lines: int
 
 
 class FileSummaryReaderRequestParams(BaseModel):
