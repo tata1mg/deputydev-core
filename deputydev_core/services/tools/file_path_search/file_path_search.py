@@ -1,58 +1,87 @@
-import os
+from pathlib import Path
 from typing import List, Optional
 
 from fuzzywuzzy import fuzz
 
+from deputydev_core.errors.tools.tool_errors import (
+    EmptyToolResponseError,
+    InvalidToolParamsError,
+    UnhandledToolError,
+)
+
 
 class FilePathSearch:
-    def __init__(self, repo_path: str):
-        self.repo_path = repo_path
+    def __init__(self, repo_path: str) -> None:
+        if not repo_path.strip():
+            raise InvalidToolParamsError("`repo_path` must be a non-empty string.")
+        self.repo_path = Path(repo_path).resolve()
+        if not self.repo_path.is_dir():
+            raise InvalidToolParamsError(f"`repo_path` is not a directory: {repo_path}")
 
-    def list_files(
+    def list_files(  # noqa: C901
         self,
         directory: str,
         search_terms: Optional[List[str]] = None,
         threshold: int = 70,
     ) -> List[str]:
         """
-        List files in a directory that match the search terms.
+        List matching files under `directory` (relative to repo root).
 
-        Args:
-            directory (str): The directory to search in.
-            search_terms (List[str]): The search terms to match.
-            threshold (int): The threshold for the fuzzy search.
-
-        Returns:
-            List[str]: The list of matching files. Only the first 100 files are returned.
+        - If >100 matches, returns 101 items: first 100 + a final info string with total.
+        - If `directory` doesn't exist inside the repo, raises InvalidToolParamsError (no fallback).
+        - If nothing matches, raises EmptyToolResponseError.
         """
-        abs_dir_path = self.repo_path
-        if directory == "/" or directory == ".":
-            directory = ""
+        try:
+            # Normalize directory (treat "/", ".", "" as repo root), ensure relative semantics
+            dir_arg = directory.strip()
+            if dir_arg in ("/", ".", ""):
+                dir_arg = ""
+            dir_arg = dir_arg.lstrip("/\\")  # prevent absolute paths
 
-        if directory.startswith("/"):
-            directory = directory[1:]
+            abs_dir_path = (self.repo_path / dir_arg).resolve()
 
-        if directory:
-            abs_dir_path = os.path.join(abs_dir_path, directory)
+            # Must be inside repo
+            try:
+                abs_dir_path.relative_to(self.repo_path)
+            except ValueError:
+                raise InvalidToolParamsError("`directory` must be inside the repository.")
+            if not abs_dir_path.is_dir():
+                raise InvalidToolParamsError(f"`directory` does not exist: {directory or '/'}")
 
-        if not os.path.isdir(abs_dir_path):
-            abs_dir_path = self.repo_path
+            matches: List[str] = []
+            total_matches = 0
 
-        matching_files: List[str] = []
+            # Walk with pathlib
+            for p in abs_dir_path.rglob("*"):
+                if not p.is_file():
+                    continue
 
-        for root, _, files in os.walk(abs_dir_path):
-            for file in files:
-                file_path = os.path.join(root, file)
-                path_parts = file_path.split(os.sep)
+                rel_path = p.relative_to(self.repo_path).as_posix()
+                parts = rel_path.split("/")
 
+                is_match = True
                 if search_terms:
-                    if any(
-                        fuzz.ratio(term.lower(), part.lower()) >= threshold
-                        for term in search_terms
-                        for part in path_parts
-                    ):
-                        matching_files.append(os.path.relpath(file_path, self.repo_path))
-                else:
-                    matching_files.append(os.path.relpath(file_path, self.repo_path))
+                    is_match = any(
+                        fuzz.ratio(term.lower(), part.lower()) >= threshold for term in search_terms for part in parts
+                    )
 
-        return matching_files[:100]
+                if is_match:
+                    total_matches += 1
+                    if len(matches) < 100:
+                        matches.append(rel_path)
+
+            if total_matches == 0:
+                raise EmptyToolResponseError(f"No matching files found in '{directory or '/'}'.")
+
+            if total_matches > 100:
+                matches.append(
+                    f"[RESULTS TRUNCATED] {total_matches} files matched in '{directory or '/'}'. "
+                    f"Showing first 100. Refine search_terms or directory."
+                )
+
+            return matches
+
+        except (InvalidToolParamsError, EmptyToolResponseError):
+            raise
+        except Exception as e:
+            raise UnhandledToolError(f"File path search failed: {e}") from e

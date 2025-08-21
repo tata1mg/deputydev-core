@@ -3,6 +3,7 @@ from typing import Optional, Tuple
 
 import aiofiles
 
+from deputydev_core.errors.tools.tool_errors import InvalidToolParamsError
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
 from deputydev_core.services.file_summarization.file_summarization_service import FileSummarizationService
 from deputydev_core.services.tools.iterative_file_reader.dataclass.main import (
@@ -32,6 +33,9 @@ class IterativeFileReader:
         Count total lines in the file efficiently with encoding fallback.
         """
         full_path = Path(self.repo_path) / self.file_path
+        if not full_path.is_file():
+            raise InvalidToolParamsError(f"`file_path` does not exist or is not a file: {full_path.as_posix()}")
+
         try:
             # Try UTF-8 first
             try:
