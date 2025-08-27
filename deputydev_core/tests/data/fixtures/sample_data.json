@@ -1,0 +1,38 @@
+{
+  "sample_chunks": [
+    {
+      "id": "chunk_001",
+      "content": "def hello_world():\n    return 'Hello, World!'",
+      "file_path": "/sample/hello.py",
+      "start_line": 1,
+      "end_line": 2,
+      "language": "python",
+      "metadata": {
+        "function_name": "hello_world",
+        "class_name": null
+      }
+    },
+    {
+      "id": "chunk_002", 
+      "content": "class SampleClass:\n    def __init__(self):\n        self.value = 42",
+      "file_path": "/sample/sample_class.py",
+      "start_line": 1,
+      "end_line": 3,
+      "language": "python",
+      "metadata": {
+        "function_name": "__init__",
+        "class_name": "SampleClass"
+      }
+    }
+  ],
+  "sample_files": [
+    {
+      "id": "file_001",
+      "file_path": "/sample/hello.py",
+      "content": "def hello_world():\n    return 'Hello, World!'\n\nif __name__ == '__main__':\n    print(hello_world())",
+      "file_type": "python",
+      "size": 89,
+      "last_modified": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
