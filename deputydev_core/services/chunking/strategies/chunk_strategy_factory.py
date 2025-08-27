@@ -18,6 +18,9 @@ from deputydev_core.services.chunking.strategies.metadata_chunking.python_metada
 from deputydev_core.services.chunking.strategies.metadata_chunking.ruby_metadata_chunker import (
     RubyMetadataChunker,
 )
+from deputydev_core.services.chunking.strategies.metadata_chunking.swift_metadata_chunker import (
+    SwiftMetadataChunker,
+)
 from deputydev_core.services.chunking.strategies.metadata_chunking.typescript_metadata_chunker import (
     TypescriptMetadataChunker,
 )
@@ -33,6 +36,7 @@ class ChunkingStrategyFactory:
         "java": JavaMetadataChunker,
         "ruby": RubyMetadataChunker,
         "kotlin": KotlinMetadataChunker,
+        "swift": SwiftMetadataChunker,
     }
 
     @classmethod
