@@ -26,19 +26,11 @@ def get_line_number(index: int, source_code: bytes) -> int:
     if not source_code:
         return 1
     
-    if index < 0:
+    if index <= 0:
         return 1
     
     # Convert bytes to string for processing
-    try:
-        text = source_code.decode('utf-8')
-    except UnicodeDecodeError:
-        # Fallback to latin-1 if utf-8 fails
-        text = source_code.decode('latin-1')
-    
-    # Handle edge case where index is 0
-    if index == 0:
-        return 1
+    text = source_code.decode('utf-8')
     
     # Count newlines up to the given index
     line_number = 1
