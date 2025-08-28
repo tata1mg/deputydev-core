@@ -51,6 +51,8 @@ class WindowsWeaviateConnector(BaseWeaviateConnector):
                 f"PERSISTENCE_DATA_PATH={self.persistence_data_path}",
                 "-e",
                 f"LOG_LEVEL={self.env_variables['LOG_LEVEL']}",
+                "-e",
+                f"DISK_USE_READONLY_PERCENTAGE={self.env_variables['DISK_USE_READONLY_PERCENTAGE']}",
                 f"semitechnologies/weaviate:{self.weaviate_version}",
             ]
 
