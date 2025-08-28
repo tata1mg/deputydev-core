@@ -12,7 +12,7 @@ class SwiftMetadataChunker(BaseMetadataChunker):
             "initializer_declaration",
             "subscript_declaration",
             "operator_declaration",
-            "init_declaration"
+            "init_declaration",
         ],
         LanguageIdentifiers.CLASS_DEFINITION.value: [
             "class_declaration",
@@ -25,11 +25,7 @@ class SwiftMetadataChunker(BaseMetadataChunker):
             "simple_identifier",
             "identifier",
         ],
-        LanguageIdentifiers.CLASS_IDENTIFIER.value: [
-            "simple_identifier",
-            "identifier",
-            "type_identifier"
-        ],
+        LanguageIdentifiers.CLASS_IDENTIFIER.value: ["simple_identifier", "identifier", "type_identifier"],
         LanguageIdentifiers.DECORATOR.value: "NA",
         LanguageIdentifiers.FUNCTION_CLASS_WRAPPER.value: [],
         LanguageIdentifiers.NAMESPACE.value: [],
