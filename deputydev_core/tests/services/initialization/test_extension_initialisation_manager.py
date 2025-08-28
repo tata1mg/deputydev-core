@@ -119,6 +119,7 @@ class TestExtensionInitialisationManager:
             )
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_prefill_vector_store_success(self, manager, sample_chunkable_files, mock_dependencies):
         """Test successful prefill_vector_store execution."""
         # Setup
@@ -159,6 +160,7 @@ class TestExtensionInitialisationManager:
             manager.process_chunks_cleanup.assert_called_once_with(mock_chunks)
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_prefill_vector_store_without_refresh(self, manager, sample_chunkable_files, mock_dependencies):
         """Test prefill_vector_store without refresh enabled."""
         # Setup
@@ -189,6 +191,7 @@ class TestExtensionInitialisationManager:
             manager.process_chunks_cleanup.assert_not_called()
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_prefill_vector_store_with_progress_bars(self, manager, sample_chunkable_files, mock_dependencies):
         """Test prefill_vector_store with progress bars and monitors."""
         # Setup
@@ -229,6 +232,7 @@ class TestExtensionInitialisationManager:
             )
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_prefill_vector_store_local_repo_not_initialized(self, manager, sample_chunkable_files, mock_dependencies):
         """Test prefill_vector_store raises assertion when local_repo is not initialized."""
         manager.local_repo = None
@@ -237,6 +241,7 @@ class TestExtensionInitialisationManager:
             await manager.prefill_vector_store(sample_chunkable_files)
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_prefill_vector_store_weaviate_client_not_initialized(self, manager, sample_chunkable_files, mock_dependencies):
         """Test prefill_vector_store raises assertion when weaviate_client is not initialized."""
         manager.local_repo = Mock()
@@ -246,6 +251,7 @@ class TestExtensionInitialisationManager:
             await manager.prefill_vector_store(sample_chunkable_files)
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_sync_schema_and_return_cleanup_status_new_schema(self, manager, mock_dependencies):
         """Test _sync_schema_and_return_cleanup_status with new schema."""
         # Setup
@@ -277,6 +283,7 @@ class TestExtensionInitialisationManager:
             mock_service_instance.set_schema_version.assert_called_once()
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_sync_schema_and_return_cleanup_status_existing_schema(self, manager, mock_dependencies):
         """Test _sync_schema_and_return_cleanup_status with existing schema."""
         # Setup
@@ -308,6 +315,7 @@ class TestExtensionInitialisationManager:
             mock_service_instance.set_schema_version.assert_not_called()
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_initialize_vector_db_with_clean(self, manager, mock_dependencies):
         """Test initialize_vector_db with clean flag."""
         # Setup
@@ -329,6 +337,7 @@ class TestExtensionInitialisationManager:
                 mock_sync.assert_called_once_with(should_clean=True)
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_initialize_vector_db_without_clean(self, manager, mock_dependencies):
         """Test initialize_vector_db without clean flag."""
         # Setup
@@ -350,6 +359,7 @@ class TestExtensionInitialisationManager:
                 mock_sync.assert_called_once_with(should_clean=False)
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_initialize_vector_db_default_parameters(self, manager, mock_dependencies):
         """Test initialize_vector_db with default parameters."""
         # Setup
@@ -370,6 +380,7 @@ class TestExtensionInitialisationManager:
                 mock_sync.assert_called_once_with(should_clean=False)
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_prefill_vector_store_chunker_exception(self, manager, sample_chunkable_files, mock_dependencies):
         """Test prefill_vector_store handles chunker exceptions properly."""
         # Setup
@@ -392,6 +403,7 @@ class TestExtensionInitialisationManager:
                 await manager.prefill_vector_store(sample_chunkable_files)
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_sync_schema_exception_handling(self, manager, mock_dependencies):
         """Test _sync_schema_and_return_cleanup_status handles exceptions properly."""
         # Setup
@@ -403,6 +415,7 @@ class TestExtensionInitialisationManager:
                 await manager._sync_schema_and_return_cleanup_status(should_clean=True)
 
     @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_full_initialization_workflow(self, manager_kwargs, mock_dependencies):
         """Integration test for the complete initialization workflow."""
         with patch(
@@ -460,6 +473,7 @@ class TestExtensionInitialisationManager:
         assert len(collection_names) >= 0  # Basic sanity check
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_prefill_vector_store_empty_files(self, manager, mock_dependencies):
         """Test prefill_vector_store with empty chunkable files."""
         # Setup
@@ -486,6 +500,7 @@ class TestExtensionInitialisationManager:
             mock_chunker_instance.create_chunks_and_docs.assert_called_once_with(enable_refresh=False)
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_multiple_sync_schema_calls(self, manager, mock_dependencies):
         """Test multiple calls to _sync_schema_and_return_cleanup_status."""
         # Setup
