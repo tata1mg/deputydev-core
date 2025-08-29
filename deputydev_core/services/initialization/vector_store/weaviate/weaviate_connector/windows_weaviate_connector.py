@@ -6,13 +6,14 @@ from deputydev_core.services.initialization.vector_store.weaviate.weaviate_conne
     BaseWeaviateConnector,
 )
 from deputydev_core.utils.app_logger import AppLogger
+from asyncio.subprocess import Process
 
 
 class WindowsWeaviateConnector(BaseWeaviateConnector):
     DEFAULT_HTTP_PORT = 8080
     DEFAULT_GRPC_PORT = 50051
 
-    async def initialize(self):
+    async def initialize(self) -> Process | None:
         weaviate_process = await self._spin_up_via_docker()
         await super().initialize()
         return weaviate_process
@@ -29,7 +30,7 @@ class WindowsWeaviateConnector(BaseWeaviateConnector):
         await async_client.connect()
         return async_client
 
-    async def _spin_up_via_docker(self):
+    async def _spin_up_via_docker(self) -> Process | None:
         if not await self._is_weaviate_running():
             AppLogger.log_info("Starting Weaviate binary")
 
