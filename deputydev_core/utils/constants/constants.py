@@ -33,6 +33,7 @@ ALL_EXTENSIONS = {
     "html": "html",
     "kt": "kotlin",
     "json": "json",
+    "swift": "swift",
 }
 
 
@@ -129,6 +130,7 @@ CODE_EXTENSIONS: Set[str] = {
     ".zig",
     ".sh",
     ".bash",
+    ".swift",
 }
 
 TEXT_EXTENSIONS: Set[str] = {".md", ".txt", ".rst", ".tex", ".org", ".adoc", ".textile"}
