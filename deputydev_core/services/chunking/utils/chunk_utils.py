@@ -63,6 +63,7 @@ def supported_new_chunk_language(language: str) -> bool:
         "java",
         "ruby",
         "kotlin",
+        "swift",
     ]
 
 
