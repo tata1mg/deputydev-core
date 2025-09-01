@@ -1,4 +1,5 @@
 import asyncio
+from asyncio.subprocess import Process
 
 from weaviate import WeaviateAsyncClient, WeaviateClient
 
@@ -6,7 +7,6 @@ from deputydev_core.services.initialization.vector_store.weaviate.weaviate_conne
     BaseWeaviateConnector,
 )
 from deputydev_core.utils.app_logger import AppLogger
-from asyncio.subprocess import Process
 
 
 class WindowsWeaviateConnector(BaseWeaviateConnector):

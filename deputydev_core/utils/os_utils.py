@@ -14,16 +14,16 @@ def clean_directory_except(target_dir: str, except_path: str):
             if os.path.abspath(item_path) == os.path.abspath(except_path):
                 continue
 
-            if os.path.isfile(item_path) or os.path.islink(item_path):
-                os.remove(item_path)
-            elif os.path.isdir(item_path):
+            if os.path.isfile(item_path) or os.path.islink(item_path):  # noqa: PTH107
+                os.remove(item_path)  # noqa: PTH107
+            elif os.path.isdir(item_path):  # noqa: PTH112
                 shutil.rmtree(item_path)
-    except Exception as e:
+    except Exception as e: # noqa: BLE001
         AppLogger.log_debug(f"Error cleaning directory - {target_dir}: {str(e)}")
 
 
 def get_supported_os() -> SupportedPlatforms:
     try:
         return SupportedPlatforms(platform.system().lower())
-    except Exception:
+    except Exception:  # noqa: BLE001
         raise RuntimeError(f"Unsupported OS: {platform.system().lower()}")
