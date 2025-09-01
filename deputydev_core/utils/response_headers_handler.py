@@ -6,10 +6,10 @@ def handle_response_headers(
     func: Callable[..., Awaitable[Dict[str, Any]]],
 ) -> Callable[..., Awaitable[Optional[Dict[str, Any]]]]:
     @wraps(func)
-    async def wrapper(*args: Any, **kwargs: Any) -> Optional[Dict[str, Any]]:
+    async def wrapper(*args, **kwargs) -> Optional[Dict[str, Any]]:
         result, response_headers = await func(*args, **kwargs)
         if response_headers.get("new_session_data"):
-            print(response_headers.get("new_session_data"))  # noqa: T201
+            print(response_headers.get("new_session_data"))
         return result
 
     return wrapper
