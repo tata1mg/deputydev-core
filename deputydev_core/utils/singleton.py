@@ -1,7 +1,10 @@
+from typing import Any
+
+
 class Singleton(type):
     _instances = {}
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any):  # noqa
         if self not in self._instances:
             self._instances[self] = super(Singleton, self).__call__(*args, **kwargs)
         return self._instances[self]

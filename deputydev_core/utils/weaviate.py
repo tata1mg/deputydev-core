@@ -9,17 +9,15 @@ from deputydev_core.services.repository.dataclasses.main import (
 from deputydev_core.utils.app_logger import AppLogger
 
 
-async def weaviate_connection():
+async def weaviate_connection() -> "WeaviateSyncAndAsyncClients":
     app = Sanic.get_app()
     if not hasattr(app.ctx, "weaviate_client"):
         return
     if app.ctx.weaviate_client:
         weaviate_clients: "WeaviateSyncAndAsyncClients" = app.ctx.weaviate_client
         if not weaviate_clients.async_client.is_connected():
-            print("Async Connection was dropped, Reconnecting")
             await weaviate_clients.async_client.connect()
         if not weaviate_clients.sync_client.is_connected():
-            print("Sync Connection was dropped, Reconnecting")
             weaviate_clients.sync_client.connect()
         return weaviate_clients
 
