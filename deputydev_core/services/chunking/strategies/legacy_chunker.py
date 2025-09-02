@@ -1,6 +1,6 @@
 from typing import List
 
-from tree_sitter import Node
+from tree_sitter import Node, Tree
 
 from deputydev_core.services.chunking.dataclass.main import Span
 from deputydev_core.services.chunking.utils.chunk_utils import (
@@ -20,7 +20,7 @@ class LegacyChunker(BaseChunker):
     code structure while respecting maximum chunk sizes.
     """
 
-    def chunk_code(self, tree, content: bytes, max_chars: int, coalesce: int, language: str) -> List[Span]:
+    def chunk_code(self, tree: Tree, content: bytes, max_chars: int, coalesce: int, language: str) -> List[Span]:
         """
         Chunk source code based on AST structure and size constraints.
 
