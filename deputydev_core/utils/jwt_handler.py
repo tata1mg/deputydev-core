@@ -53,22 +53,3 @@ class JWTHandler:
             raise jwt.ExpiredSignatureError("The token has expired.")
         except jwt.InvalidTokenError:
             raise jwt.InvalidTokenError("Invalid token.")
-
-    def verify_token_without_signature_verification(token: str) -> Dict[str, Any]:
-        """Verifies the JWT token without signature verification and checks for expiration.
-
-        Args:
-            token (str): The JWT token to verify.
-
-        Returns:
-            dict: The decoded payload if the token is valid.
-
-        Raises:
-            jwt.DecodeError: If the token is invalid.
-        """
-        try:
-            # Decode the JWT token without verifying the signature
-            payload = jwt.decode(token, options={"verify_signature": False})
-            return payload
-        except jwt.InvalidTokenError:
-            raise jwt.InvalidTokenError("Invalid token.")
