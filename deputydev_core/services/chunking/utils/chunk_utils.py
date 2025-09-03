@@ -1,4 +1,3 @@
-import re
 from typing import List, Set, Tuple
 
 from deputydev_core.services.chunking.dataclass.main import ChunkMetadataHierachyObject, NeoSpan
@@ -9,23 +8,38 @@ def get_line_number(index: int, source_code: bytes) -> int:
     Gets the line number corresponding to a given character index in the source code.
 
     Args:
-        index (int): The character index.
-        source_code (str): The source code string.
+        index (int): The character index (0-based).
+        source_code (bytes): The source code as bytes.
 
     Returns:
         int: The line number (1-indexed) where the character index is located.
 
     Example:
-        >>> code = "def hello():\n    print('Hello, world!')"
+        >>> code = b"def hello():\n    print('Hello, world!')"
         >>> get_line_number(13, code)
         2
+
+    Note:
+        If the index is beyond the end of the source code, returns the last line number.
+        If the source code is empty, returns 1.
     """
-    total_chars = 0
-    line_number = 0
-    for line_number, line in enumerate(source_code.splitlines(keepends=True), start=1):
-        total_chars += len(line)
-        if total_chars > index:
-            return line_number - 1
+    if not source_code:
+        return 1
+
+    if index <= 0:
+        return 1
+
+    # Convert bytes to string for processing
+    text = source_code.decode("utf-8")
+
+    # Count newlines up to the given index
+    line_number = 1
+    for i, char in enumerate(text):
+        if i >= index:
+            break
+        if char == "\n":
+            line_number += 1
+
     return line_number
 
 
@@ -33,13 +47,20 @@ def non_whitespace_len(s: str) -> int:
     """
     Calculates the length of a string excluding whitespace characters.
 
+    This is more efficient than using regex substitution for counting
+    non-whitespace characters.
+
     Args:
         s (str): The input string.
 
     Returns:
         int: The length of the string excluding whitespace characters.
+
+    Example:
+        >>> non_whitespace_len("hello world\\n\\t")
+        10
     """
-    return len(re.sub(r"\s", "", s))
+    return sum(1 for char in s if not char.isspace())
 
 
 def get_chunk_first_char(current_chunk: NeoSpan, source_code: bytes) -> str:
