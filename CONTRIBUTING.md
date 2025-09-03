@@ -112,19 +112,27 @@ If you add a test suite (recommended for non-trivial features):
 
 ## Submitting changes
 
-1) Create a feature branch
+1) Fork-based workflow (default; non-maintainers)
+- Non-maintainers cannot create branches on the upstream repository.
+- Fork this repository to your GitHub account.
+- In your fork, create a branch using the same conventions: feat/…, fix/…, chore/…, docs/…
+- Push to your fork and open a Pull Request against the upstream default branch (usually main). If unsure, target main.
+- Enable "Allow edits by maintainers" on the PR.
+
+2) Maintainers-only workflow (optional)
+- Maintainers may create branches directly in the upstream repository.
 - Branch naming: feat/…, fix/…, chore/…, docs/…
 
-2) Ensure quality gates pass
+3) Ensure quality gates pass
 - Local lint/format pass (ruff format, ruff check)
 - Pre-commit hooks pass
 - Update README.md if you introduce user-visible changes or configuration
 - Add tests or usage notes for behavioral changes
 
-3) Commit messages
+4) Commit messages
 - Prefer clear, conventional-style messages (feat:, fix:, chore:, docs:, refactor:)
 
-4) Open a Pull Request
+5) Open a Pull Request
 - Describe the motivation, what changed, and how you validated it
 - Link related issues
 - Avoid bumping the version; maintainers handle releases
