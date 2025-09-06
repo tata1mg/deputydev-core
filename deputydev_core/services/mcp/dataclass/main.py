@@ -18,7 +18,7 @@ class BaseConfigModel(BaseModel):
 
     @field_validator("read_timeout")
     @classmethod
-    def validate_timeout(cls, v):
+    def validate_timeout(cls, v: Optional[int]) -> Optional[int]:
         if v and v < 1:
             raise ValueError(f"Timeout must be at least {1} seconds")
         return v
@@ -28,13 +28,6 @@ class TransportTypes(Enum):
     stdio = "stdio"
     sse = "sse"
     streamable_http = "streamable-http"
-
-
-class McpResourceTemplate(BaseModel):
-    id: str
-    name: str
-    description: str
-    schema: Dict[str, Any]
 
 
 class McpToolCallResponse(BaseModel):
@@ -60,8 +53,8 @@ class SseConfigModel(BaseConfigModel):
     url: str
     transport_type: str = TransportTypes.sse.value
 
-    def dict(self, *args, **kwargs):
-        result = super().dict(*args, **kwargs)
+    def dict(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
+        result = super().model_dump(*args, **kwargs)
         result["url"] = str(result["url"])
         return result
 
@@ -73,8 +66,8 @@ class StreamableHTTP(BaseConfigModel):
     url: str
     transport_type: str = TransportTypes.streamable_http.value
 
-    def dict(self, *args, **kwargs):
-        result = super().dict(*args, **kwargs)
+    def dict(self, *args: Any, **kwargs: Any) -> Dict[str, Any]:
+        result = super().model_dump(*args, **kwargs)
         result["url"] = str(result["url"])
         return result
 
@@ -120,7 +113,7 @@ class McpDefaultSettings(BaseModel):
 
 
 class McpSettingsModel(BaseModel):
-    mcp_servers: OrderedDict[str, ServerConfigModel] = Field(default_factory=dict)
+    mcp_servers: OrderedDict[str, ServerConfigModel] = Field(default_factory=OrderedDict)
     default_settings: Optional[McpDefaultSettings] = None
 
 
@@ -134,7 +127,7 @@ class ServersDetails(BaseModel):
 
 
 class ServerFilters(BaseModel):
-    connection_status: List[ConnectionStatus] = ConnectionStatus.connected
+    connection_status: List[ConnectionStatus] = [ConnectionStatus.connected]
 
 
 class Tools(BaseModel):
