@@ -22,22 +22,17 @@ from deputydev_core.llm_handler.dataclasses.main import (
 )
 from deputydev_core.llm_handler.dataclasses.unified_conversation_turn import UnifiedConversationTurn
 from deputydev_core.llm_handler.dataclasses.main import Reasoning
-from deputydev_core.llm_handler.interfaces.cancellation_interface import CancellationCheckerInterface
-from deputydev_core.llm_handler.interfaces.caches_interface import SessionCacheInterface
-from deputydev_core.llm_handler.interfaces.config_interface import ConfigInterface
 
 
 class BaseLLMProvider(ABC):
     """Abstract LLM interface"""
 
     def __init__(
-            self,
-            llm_type: str,
-            config: Optional[ConfigInterface] = None,
-            session_cache: Optional[SessionCacheInterface] = None,
-            checker: Optional[CancellationCheckerInterface] = None
+        self,
+        config,
+        session_cache,
+        checker,
     ) -> None:
-        self.llm_type = llm_type
         self.config = config or {}
         self.session_cache = session_cache
         self.checker = checker
@@ -69,8 +64,6 @@ class BaseLLMProvider(ABC):
         raise NotImplementedError("Must implement format_conversation in subclass")
 
     def _get_model_config(self, model: LLModels) -> Dict[str, Any]:
-        if not self.config:
-            raise ValueError(f"No configuration provided for {self.llm_type} provider")
         llm_models = self.config.get("LLM_MODELS")
         if model.value not in llm_models:
             raise ValueError(f"Model {model.value} not found in configuration")
@@ -132,7 +125,7 @@ class BaseLLMProvider(ABC):
         try:
             from deputydev_core.utils.app_logger import AppLogger
 
-            from deputydev_core.llm_handler.exceptions.exceptions import InputTokenLimitExceededError
+            from deputydev_core.exceptions.exceptions import InputTokenLimitExceededError
 
             # Extract content from payload
             payload_content = self._extract_payload_content_for_token_counting(llm_payload)

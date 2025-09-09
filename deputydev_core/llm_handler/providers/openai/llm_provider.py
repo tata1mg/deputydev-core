@@ -4,7 +4,6 @@ import json
 import uuid
 from typing import Any, AsyncIterator, Dict, List, Literal, Optional, Tuple, Type
 
-from deputydev_core.llm_handler.interfaces.caches_interface import SessionCacheInterface
 from deputydev_core.services.tiktoken import TikToken
 from deputydev_core.utils.app_logger import AppLogger
 from openai.types import responses
@@ -21,7 +20,6 @@ from openai.types.responses.response_input_item_param import FunctionCallOutput,
 from openai.types.responses.response_stream_event import ResponseStreamEvent
 from pydantic import BaseModel
 
-from deputydev_core.llm_handler.constants.constants import LLMProviders
 from deputydev_core.llm_handler.models.dto.message_thread_dto import (
     ContentBlockCategory,
     ExtendedThinkingContent,
@@ -42,7 +40,7 @@ from deputydev_core.llm_handler.services.chat_file_upload.dataclasses.chat_file_
     Attachment,
     ChatAttachmentDataWithObjectBytes,
 )
-from deputydev_core.llm_handler.services.chat_file_upload.file_processor import FileProcessor
+from deputydev_core.llm_handler.utils.file_processor import get_base64_file_content
 from deputydev_core.llm_handler.core.base_llm_provider import BaseLLMProvider
 from deputydev_core.llm_handler.dataclasses.main import (
     ConversationRole,
@@ -75,28 +73,25 @@ from deputydev_core.llm_handler.dataclasses.unified_conversation_turn import (
     UserConversationTurn,
 )
 from deputydev_core.llm_handler.interfaces.cancellation_interface import CancellationCheckerInterface
+from deputydev_core.llm_handler.interfaces.caches_interface import SessionCacheInterface
 from deputydev_core.llm_handler.dataclasses.main import Reasoning
 
 
-
-
 class OpenAI(BaseLLMProvider):
-    def __init__(self, config: Optional[Dict[str, Any]] = None, session_cache: Optional[SessionCacheInterface] = None, checker: Optional[CancellationCheckerInterface] = None) -> None:
-        super().__init__(LLMProviders.OPENAI.value, config, session_cache, checker=checker)
+    def __init__(self, config: Dict, session_cache: SessionCacheInterface, checker: Optional[CancellationCheckerInterface] = None) -> None:
+        super().__init__(config, session_cache, checker=checker)
         self._active_streams: Dict[str, AsyncIterator] = {}
         self.anthropic_client = None
         self._initialize_client()
 
-
-    def _initialize_client(self):
+    def _initialize_client(self) -> None:
         """Initialize OpenAI client with injected config"""
         if not self.config:
             raise ValueError("OpenAI configuration not provided")
 
         openai_config = self.config.get("OPENAI", {})
         self.client = OpenAIServiceClient(
-            api_key=openai_config.get("OPENAI_KEY"),
-            timeout=openai_config.get("OPENAI_TIMEOUT", 60)
+            api_key=openai_config.get("OPENAI_KEY"), timeout=openai_config.get("OPENAI_TIMEOUT", 60)
         )
 
     def _get_openai_response_item_param_from_user_conversation_turn(
@@ -236,7 +231,7 @@ class OpenAI(BaseLLMProvider):
                         user_message["content"].append(
                             {
                                 "type": "input_image",
-                                "image_url": f"data:{attachment_data.attachment_metadata.file_type};base64,{FileProcessor.get_base64_file_content(attachment_data.object_bytes)}",
+                                "image_url": f"data:{attachment_data.attachment_metadata.file_type};base64,{get_base64_file_content(attachment_data.object_bytes)}",
                             }
                         )
             messages.append(user_message)
@@ -316,7 +311,7 @@ class OpenAI(BaseLLMProvider):
                                 "content": [
                                     {
                                         "type": "input_image",
-                                        "image_url": f"data:{attachment_data.attachment_metadata.file_type};base64,{FileProcessor.get_base64_file_content(attachment_data.object_bytes)}",
+                                        "image_url": f"data:{attachment_data.attachment_metadata.file_type};base64,{get_base64_file_content(attachment_data.object_bytes)}",
                                     }
                                 ],
                             }

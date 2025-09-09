@@ -6,7 +6,6 @@ from collections import defaultdict
 from functools import reduce
 from typing import Any, AsyncIterator, Dict, List, Literal, Optional, Type
 
-from deputydev_core.llm_handler.interfaces.caches_interface import SessionCacheInterface
 from deputydev_core.services.tiktoken import TikToken
 from deputydev_core.utils.app_logger import AppLogger
 from openai.types import responses
@@ -14,7 +13,6 @@ from openai.types.chat import ChatCompletionChunk
 from openai.types.responses import Response
 from pydantic import BaseModel
 
-from deputydev_core.llm_handler.constants.constants import LLMProviders
 from deputydev_core.llm_handler.models.dto.message_thread_dto import (
     ExtendedThinkingContent,
     LLModels,
@@ -34,7 +32,7 @@ from deputydev_core.llm_handler.services.chat_file_upload.dataclasses.chat_file_
     Attachment,
     ChatAttachmentDataWithObjectBytes,
 )
-from deputydev_core.llm_handler.services.chat_file_upload.file_processor import FileProcessor
+from deputydev_core.llm_handler.utils.file_processor import get_base64_file_content
 from deputydev_core.llm_handler.core.base_llm_provider import BaseLLMProvider
 from deputydev_core.llm_handler.dataclasses.main import (
     ConversationRole,
@@ -59,12 +57,13 @@ from deputydev_core.llm_handler.dataclasses.main import (
 )
 from deputydev_core.llm_handler.dataclasses.unified_conversation_turn import UnifiedConversationTurn
 from deputydev_core.llm_handler.interfaces.cancellation_interface import CancellationCheckerInterface
+from deputydev_core.llm_handler.interfaces.caches_interface import SessionCacheInterface
 from deputydev_core.llm_handler.dataclasses.main import Reasoning
 
 
 class OpenRouter(BaseLLMProvider):
-    def __init__(self, config: Optional[Dict[str, Any]] = None, session_cache: Optional[SessionCacheInterface] = None, checker: Optional[CancellationCheckerInterface] = None) -> None:
-        super().__init__(LLMProviders.OPENAI.value, config, session_cache, checker=checker)
+    def __init__(self, config: Dict, session_cache: SessionCacheInterface, checker: Optional[CancellationCheckerInterface] = None) -> None:
+        super().__init__(config, session_cache, checker=checker)
         self._active_streams: Dict[str, AsyncIterator] = {}
         self.anthropic_client = None
 
@@ -149,7 +148,7 @@ class OpenRouter(BaseLLMProvider):
 
                 data_url = (
                     f"data:{attachment_data.attachment_metadata.file_type};"
-                    f"base64,{FileProcessor.get_base64_file_content(attachment_data.object_bytes)}"
+                    f"base64,{get_base64_file_content(attachment_data.object_bytes)}"
                 )
                 image_parts.append({"type": "image_url", "image_url": {"url": data_url}})
 
@@ -246,7 +245,7 @@ class OpenRouter(BaseLLMProvider):
                     if attachment_data.attachment_metadata.file_type.startswith("image/"):
                         data_url = (
                             f"data:{attachment_data.attachment_metadata.file_type};"
-                            f"base64,{FileProcessor.get_base64_file_content(attachment_data.object_bytes)}"
+                            f"base64,{get_base64_file_content(attachment_data.object_bytes)}"
                         )
                         conversation_turns.append(
                             {
