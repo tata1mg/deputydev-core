@@ -3,7 +3,6 @@ import base64
 import json
 from typing import Any, AsyncIterable, AsyncIterator, Dict, List, Literal, Optional, Tuple, Type, cast
 
-from deputydev_core.llm_handler.interfaces.caches_interface import SessionCacheInterface
 from deputydev_core.services.tiktoken import TikToken
 from deputydev_core.utils.app_logger import AppLogger
 from pydantic import BaseModel
@@ -12,7 +11,6 @@ from types_aiobotocore_bedrock_runtime.type_defs import (
     InvokeModelResponseTypeDef,
     InvokeModelWithResponseStreamResponseTypeDef,
 )
-from deputydev_core.llm_handler.constants.constants import LLMProviders
 from deputydev_core.llm_handler.models.dto.message_thread_dto import (
     ContentBlockCategory,
     ExtendedThinkingContent,
@@ -33,7 +31,7 @@ from deputydev_core.llm_handler.services.chat_file_upload.dataclasses.chat_file_
     Attachment,
     ChatAttachmentDataWithObjectBytes,
 )
-from deputydev_core.llm_handler.services.chat_file_upload.file_processor import FileProcessor
+from deputydev_core.llm_handler.utils.file_processor import get_base64_file_content
 from deputydev_core.llm_handler.core.base_llm_provider import BaseLLMProvider
 from deputydev_core.llm_handler.dataclasses.main import (
     ConversationRole,
@@ -76,12 +74,13 @@ from deputydev_core.llm_handler.providers.anthropic.dataclass.main import (
     AnthropicResponseTypes,
 )
 from deputydev_core.llm_handler.interfaces.cancellation_interface import CancellationCheckerInterface
+from deputydev_core.llm_handler.interfaces.caches_interface import SessionCacheInterface
 from deputydev_core.llm_handler.dataclasses.main import Reasoning
 
 
 class Anthropic(BaseLLMProvider):
-    def __init__(self, config: Optional[Dict[str, Any]] = None, session_cache: Optional[SessionCacheInterface] = None, checker: Optional[CancellationCheckerInterface] = None) -> None:
-        super().__init__(LLMProviders.ANTHROPIC.value, config, session_cache, checker=checker)
+    def __init__(self, config: Dict, session_cache: SessionCacheInterface, checker: Optional[CancellationCheckerInterface] = None) -> None:
+        super().__init__(config, session_cache, checker=checker)
         self.anthropic_clients: Dict[str, BedrockServiceClient] = {}
 
     async def get_conversation_turns(  # noqa: C901
@@ -165,7 +164,7 @@ class Anthropic(BaseLLMProvider):
                                 "source": {
                                     "type": "base64",
                                     "media_type": attachment_data.attachment_metadata.file_type,
-                                    "data": FileProcessor.get_base64_file_content(attachment_data.object_bytes),
+                                    "data": get_base64_file_content(attachment_data.object_bytes),
                                 },
                             }
                         )
@@ -293,7 +292,7 @@ class Anthropic(BaseLLMProvider):
                                 "source": {
                                     "type": "base64",
                                     "media_type": attachment_data.attachment_metadata.file_type,
-                                    "data": FileProcessor.get_base64_file_content(attachment_data.object_bytes),
+                                    "data": get_base64_file_content(attachment_data.object_bytes),
                                 },
                             },
                         )
@@ -370,7 +369,9 @@ class Anthropic(BaseLLMProvider):
             session_id, model_name, model_config
         )
         if not self.anthropic_clients.get(selected_region):
-            self.anthropic_clients[selected_region] = BedrockServiceClient(region_name=selected_region, aws_config=self.config)
+            self.anthropic_clients[selected_region] = BedrockServiceClient(
+                region_name=selected_region, aws_config=self.config
+            )
 
         return self.anthropic_clients[selected_region], selected_model_identifier
 

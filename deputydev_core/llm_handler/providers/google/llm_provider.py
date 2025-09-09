@@ -3,13 +3,10 @@ import json
 import uuid
 from typing import Any, AsyncIterator, Dict, List, Literal, Optional, Tuple, Type
 
-from deputydev_core.llm_handler.interfaces.caches_interface import SessionCacheInterface
 from deputydev_core.utils.app_logger import AppLogger
 from google.genai import types as google_genai_types
 from pydantic import BaseModel
 
-# Your existing DTOs and base class
-from deputydev_core.llm_handler.constants.constants import LLMProviders
 from deputydev_core.llm_handler.models.dto.message_thread_dto import (
     ContentBlockCategory,
     ExtendedThinkingContent,
@@ -64,16 +61,16 @@ from deputydev_core.llm_handler.dataclasses.unified_conversation_turn import (
 )
 from deputydev_core.llm_handler.dataclasses.main import Reasoning
 from deputydev_core.llm_handler.interfaces.cancellation_interface import CancellationCheckerInterface
-
+from deputydev_core.llm_handler.interfaces.caches_interface import SessionCacheInterface
 
 
 class Google(BaseLLMProvider):
-    def __init__(self, config: Optional[Dict[str, Any]] = None, session_cache: Optional[SessionCacheInterface] = None, checker: Optional[CancellationCheckerInterface] = None) -> None:
-        super().__init__(LLMProviders.GOOGLE.value, config, session_cache, checker=checker)
+    def __init__(self, config: Dict, session_cache: SessionCacheInterface, checker: Optional[CancellationCheckerInterface] = None) -> None:
+        super().__init__(config, session_cache, checker=checker)
         self._active_streams: Dict[str, AsyncIterator] = {}
         self._initialize_client()
 
-    def _initialize_client(self):
+    def _initialize_client(self) -> None:
         """Initialize Gemini client with injected config"""
         if not self.config:
             raise ValueError("Gemini configuration not provided")

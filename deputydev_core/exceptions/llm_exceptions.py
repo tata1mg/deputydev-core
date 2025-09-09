@@ -52,7 +52,7 @@ class GeminiThrottledError(LLMThrottledError):
 
 class OpenAIThrottledError(LLMThrottledError):
     """
-    Throttling/rate limit error from OpenAI.
+    Throttling/rate limit error from OpenAI.ll
     """
 
     def __init__(
