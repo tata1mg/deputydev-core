@@ -9,6 +9,7 @@ from deputydev_core.utils.config_manager import ConfigManager  # type: ignore
 
 from deputydev_core.clients.aws.dataclasses.aws_client_manager import AWSConfig, AWSConnectionParams
 
+
 class AWSClientManager:
     DEFAULT_TIMEOUT_IN_SECONDS = 10
     DEFAULT_MAX_POOL_CONNECTIONS = MAX_POOL_CONNECTIONS

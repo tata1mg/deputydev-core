@@ -78,7 +78,9 @@ from deputydev_core.llm_handler.dataclasses.main import Reasoning
 
 
 class OpenAI(BaseLLMProvider):
-    def __init__(self, config: Dict, session_cache: SessionCacheInterface, checker: Optional[CancellationCheckerInterface] = None) -> None:
+    def __init__(
+        self, config: Dict, session_cache: SessionCacheInterface, checker: Optional[CancellationCheckerInterface] = None
+    ) -> None:
         super().__init__(config, session_cache, checker=checker)
         self._active_streams: Dict[str, AsyncIterator] = {}
         self.anthropic_client = None

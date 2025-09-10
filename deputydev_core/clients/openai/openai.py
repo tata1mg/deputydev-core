@@ -20,7 +20,7 @@ from pydantic import BaseModel
 
 
 class OpenAIServiceClient(metaclass=Singleton):
-    def __init__(self, api_key, timeout) -> None:
+    def __init__(self, api_key: str, timeout: int) -> None:
         self.__client = AsyncOpenAI(
             api_key=api_key,
             timeout=timeout,
