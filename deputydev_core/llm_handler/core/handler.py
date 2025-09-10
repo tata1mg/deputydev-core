@@ -176,7 +176,18 @@ class LLMHandler(Generic[PromptFeatures]):
             LLModels.QWEN_3_CODER: lambda checker: OpenRouter(
                 checker=checker, session_cache=self.session_cache, config=self.config.get_openrouter_config()
             ),
-            # add more mappings as needed
+            LLModels.OPENROUTER_GPT_5: lambda checker: OpenRouter(
+                checker=checker, session_cache=self.session_cache, config=self.config.get_openrouter_config()
+            ),
+            LLModels.OPENROUTER_GROK_CODE_FAST_1: lambda checker: OpenRouter(
+                checker=checker, session_cache=self.session_cache, config=self.config.get_openrouter_config()
+            ),
+            LLModels.OPENROUTER_GPT_5_MINI: lambda checker: OpenRouter(
+                checker=checker, session_cache=self.session_cache, config=self.config.get_openrouter_config()
+            ),
+            LLModels.OPENROUTER_GPT_5_NANO: lambda checker: OpenRouter(
+                checker=checker, session_cache=self.session_cache, config=self.config.get_openrouter_config()
+            ),
         }
 
     def _get_provider(
