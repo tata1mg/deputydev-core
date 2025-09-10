@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any, AsyncIterator, Dict, List, Literal, Optional, TypedDict
 
 import httpx
-from deputydev_core.utils.singleton import Singleton
 from openai import AsyncOpenAI
 from openai._streaming import AsyncStream
 from openai.types.chat import (
@@ -15,6 +14,7 @@ from openai.types.responses.response_stream_event import ResponseStreamEvent
 
 from deputydev_core.clients.exceptions import OpenrouterThrottledError
 from deputydev_core.llm_handler.dataclasses.main import Reasoning
+from deputydev_core.utils.singleton import Singleton
 
 
 class FunctionDict(TypedDict):

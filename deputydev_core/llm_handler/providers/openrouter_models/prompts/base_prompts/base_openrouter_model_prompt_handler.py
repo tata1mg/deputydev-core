@@ -3,7 +3,6 @@ from typing import Any, AsyncIterator, Dict, List, Optional, Union
 
 from pydantic import BaseModel
 
-from deputydev_core.llm_handler.models.dto.message_thread_dto import LLMUsage, MessageData
 from deputydev_core.llm_handler.dataclasses.main import (
     ExtendedThinkingBlockDelta,
     ExtendedThinkingBlockEnd,
@@ -19,6 +18,7 @@ from deputydev_core.llm_handler.dataclasses.main import (
     ToolUseRequestEnd,
     ToolUseRequestStart,
 )
+from deputydev_core.llm_handler.models.dto.message_thread_dto import LLMUsage, MessageData
 from deputydev_core.llm_handler.prompts.base_prompt import BasePrompt
 from deputydev_core.llm_handler.providers.openrouter_models.prompts.base_prompts.dataclasses.main import (
     XMLWrappedContentPosition,

@@ -3,12 +3,12 @@ from typing import Any, AsyncIterator, Dict, List, Literal, Optional, Type
 
 from pydantic import BaseModel
 
-from deputydev_core.llm_handler.models.dto.message_thread_dto import LLModels, MessageData
 from deputydev_core.llm_handler.dataclasses.main import (
     NonStreamingResponse,
     StreamingResponse,
     UserAndSystemMessages,
 )
+from deputydev_core.llm_handler.models.dto.message_thread_dto import LLModels, MessageData
 
 
 class BasePrompt(ABC):

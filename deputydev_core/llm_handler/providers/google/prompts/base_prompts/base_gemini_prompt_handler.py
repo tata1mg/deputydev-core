@@ -3,7 +3,6 @@ from typing import Any, AsyncIterator, Dict, List, Optional, Union
 
 from pydantic import BaseModel
 
-from deputydev_core.llm_handler.models.dto.message_thread_dto import MessageData
 from deputydev_core.llm_handler.dataclasses.main import (
     MalformedToolUseRequest,
     StreamingEvent,
@@ -17,6 +16,7 @@ from deputydev_core.llm_handler.dataclasses.main import (
     ToolUseRequestEnd,
     ToolUseRequestStart,
 )
+from deputydev_core.llm_handler.models.dto.message_thread_dto import MessageData
 from deputydev_core.llm_handler.prompts.base_prompt import BasePrompt
 from deputydev_core.llm_handler.providers.google.prompts.base_prompts.dataclass.main import (
     XMLWrappedContentPosition,

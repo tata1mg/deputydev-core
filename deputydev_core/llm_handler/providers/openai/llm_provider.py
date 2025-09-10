@@ -4,8 +4,6 @@ import json
 import uuid
 from typing import Any, AsyncIterator, Dict, List, Literal, Optional, Tuple, Type
 
-from deputydev_core.services.tiktoken import TikToken
-from deputydev_core.utils.app_logger import AppLogger
 from openai.types import responses
 from openai.types.responses import (
     EasyInputMessageParam,
@@ -20,27 +18,7 @@ from openai.types.responses.response_input_item_param import FunctionCallOutput,
 from openai.types.responses.response_stream_event import ResponseStreamEvent
 from pydantic import BaseModel
 
-from deputydev_core.llm_handler.models.dto.message_thread_dto import (
-    ContentBlockCategory,
-    ExtendedThinkingContent,
-    LLModels,
-    LLMUsage,
-    MessageThreadActor,
-    MessageThreadDTO,
-    ResponseData,
-    TextBlockContent,
-    TextBlockData,
-    ToolUseRequestContent,
-    ToolUseRequestData,
-    ToolUseResponseContent,
-    ToolUseResponseData,
-)
 from deputydev_core.clients.openai.openai import OpenAIServiceClient
-from deputydev_core.llm_handler.services.chat_file_upload.dataclasses.chat_file_upload import (
-    Attachment,
-    ChatAttachmentDataWithObjectBytes,
-)
-from deputydev_core.llm_handler.utils.file_processor import get_base64_file_content
 from deputydev_core.llm_handler.core.base_llm_provider import BaseLLMProvider
 from deputydev_core.llm_handler.dataclasses.main import (
     ConversationRole,
@@ -48,6 +26,7 @@ from deputydev_core.llm_handler.dataclasses.main import (
     LLMCallResponseTypes,
     NonStreamingResponse,
     PromptCacheConfig,
+    Reasoning,
     StreamingEvent,
     StreamingEventType,
     StreamingResponse,
@@ -73,7 +52,28 @@ from deputydev_core.llm_handler.dataclasses.unified_conversation_turn import (
     UserConversationTurn,
 )
 from deputydev_core.llm_handler.interfaces.cancellation_interface import CancellationCheckerInterface
-from deputydev_core.llm_handler.dataclasses.main import Reasoning
+from deputydev_core.llm_handler.models.dto.message_thread_dto import (
+    ContentBlockCategory,
+    ExtendedThinkingContent,
+    LLModels,
+    LLMUsage,
+    MessageThreadActor,
+    MessageThreadDTO,
+    ResponseData,
+    TextBlockContent,
+    TextBlockData,
+    ToolUseRequestContent,
+    ToolUseRequestData,
+    ToolUseResponseContent,
+    ToolUseResponseData,
+)
+from deputydev_core.llm_handler.services.chat_file_upload.dataclasses.chat_file_upload import (
+    Attachment,
+    ChatAttachmentDataWithObjectBytes,
+)
+from deputydev_core.llm_handler.utils.file_processor import get_base64_file_content
+from deputydev_core.services.tiktoken import TikToken
+from deputydev_core.utils.app_logger import AppLogger
 
 
 class OpenAI(BaseLLMProvider):

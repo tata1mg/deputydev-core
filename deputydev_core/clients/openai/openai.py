@@ -1,7 +1,6 @@
 from typing import Any, AsyncIterator, Dict, Iterable, List, Literal, Optional, Type, Union, cast
 
 import httpx
-from deputydev_core.utils.singleton import Singleton
 from openai import AsyncOpenAI
 from openai._streaming import AsyncStream
 from openai.types.chat import ChatCompletion
@@ -17,6 +16,8 @@ from openai.types.shared_params.response_format_json_object import ResponseForma
 from openai.types.shared_params.response_format_text import ResponseFormatText
 from openai.types.shared_params.responses_model import ResponsesModel
 from pydantic import BaseModel
+
+from deputydev_core.utils.singleton import Singleton
 
 
 class OpenAIServiceClient(metaclass=Singleton):
