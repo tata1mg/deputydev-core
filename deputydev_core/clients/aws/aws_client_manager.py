@@ -4,10 +4,10 @@ from aiobotocore.client import AioBaseClient  # type: ignore
 from aiobotocore.config import AioConfig  # type: ignore
 from aiobotocore.endpoint import MAX_POOL_CONNECTIONS  # type: ignore
 from aiobotocore.session import AioSession, ClientCreatorContext, get_session  # type: ignore
-from deputydev_core.utils.app_logger import AppLogger  # type: ignore
-from deputydev_core.utils.config_manager import ConfigManager  # type: ignore
 
 from deputydev_core.clients.aws.dataclasses.aws_client_manager import AWSConfig, AWSConnectionParams
+from deputydev_core.utils.app_logger import AppLogger  # type: ignore
+from deputydev_core.utils.config_manager import ConfigManager  # type: ignore
 
 
 class AWSClientManager:

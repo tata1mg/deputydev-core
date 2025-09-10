@@ -1,11 +1,11 @@
 from typing import Any, AsyncIterator, Dict, List, Optional
 
-from deputydev_core.utils.singleton import Singleton
 from google import genai
 from google.genai import errors, types
 from google.oauth2 import service_account
 
 from deputydev_core.clients.exceptions import GeminiThrottledError
+from deputydev_core.utils.singleton import Singleton
 
 
 class GeminiServiceClient(metaclass=Singleton):

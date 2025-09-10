@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
+
+from deputydev_core.llm_handler.models.dto.chat_attachments_dto import ChatAttachmentsDTO
 from deputydev_core.llm_handler.models.dto.message_thread_dto import (
+    MessageCallChainCategory,
     MessageThreadData,
     MessageThreadDTO,
-    MessageCallChainCategory,
 )
-from deputydev_core.llm_handler.models.dto.chat_attachments_dto import ChatAttachmentsDTO
 
 
 class MessageThreadsRepositoryInterface(ABC):
