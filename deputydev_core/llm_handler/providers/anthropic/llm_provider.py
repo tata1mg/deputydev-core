@@ -74,15 +74,12 @@ from deputydev_core.llm_handler.providers.anthropic.dataclass.main import (
     AnthropicResponseTypes,
 )
 from deputydev_core.llm_handler.interfaces.cancellation_interface import CancellationCheckerInterface
-from deputydev_core.llm_handler.interfaces.caches_interface import SessionCacheInterface
 from deputydev_core.llm_handler.dataclasses.main import Reasoning
 
 
 class Anthropic(BaseLLMProvider):
-    def __init__(
-        self, config: Dict, session_cache: SessionCacheInterface, checker: Optional[CancellationCheckerInterface] = None
-    ) -> None:
-        super().__init__(config, session_cache, checker=checker)
+    def __init__(self, config: Dict, checker: Optional[CancellationCheckerInterface] = None) -> None:
+        super().__init__(config, checker=checker)
         self.anthropic_clients: Dict[str, BedrockServiceClient] = {}
 
     async def get_conversation_turns(  # noqa: C901
@@ -620,9 +617,8 @@ class Anthropic(BaseLLMProvider):
 
             try:
                 async for event in response_body:
-                    if self.checker and self.checker.is_cancelled() and self.session_cache:
-                        await self.session_cache.cleanup_session_data(session_id)
-                        raise asyncio.CancelledError()
+                    if self.checker:
+                        await self.checker.enforce_cancellation_with_cleanup()
                     chunk = json.loads(event["chunk"]["bytes"])
                     # yield content block delta
                     try:

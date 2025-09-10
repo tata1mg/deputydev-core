@@ -42,12 +42,3 @@ class ConfigInterface(ABC):
     @abstractmethod
     def get_aws_config(self) -> Optional[Dict[str, Any]]:
         pass
-
-    # --- File upload / S3 config ---
-    @abstractmethod
-    def get_s3_config(self) -> Dict[str, Any]:
-        pass
-
-    @abstractmethod
-    def get_file_upload_paths(self) -> Dict[str, str]:
-        pass

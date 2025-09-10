@@ -100,64 +100,54 @@ class LLMHandler(Generic[PromptFeatures]):
         """Initialize providers with their specific configurations (factories that accept a checker)."""
         self.model_to_provider_class_map = {
             LLModels.CLAUDE_3_POINT_5_SONNET: lambda checker: Anthropic(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_anthropic_config()
+                checker=checker, config=self.config.get_anthropic_config()
             ),
             LLModels.CLAUDE_3_POINT_7_SONNET: lambda checker: Anthropic(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_anthropic_config()
+                checker=checker, config=self.config.get_anthropic_config()
             ),
             LLModels.CLAUDE_4_SONNET: lambda checker: Anthropic(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_anthropic_config()
+                checker=checker, config=self.config.get_anthropic_config()
             ),
             LLModels.CLAUDE_4_SONNET_THINKING: lambda checker: Anthropic(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_anthropic_config()
+                checker=checker, config=self.config.get_anthropic_config()
             ),
-            LLModels.GPT_4O: lambda checker: OpenAI(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_openai_config()
-            ),
-            LLModels.GPT_40_MINI: lambda checker: OpenAI(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_openai_config()
-            ),
+            LLModels.GPT_4O: lambda checker: OpenAI(checker=checker, config=self.config.get_openai_config()),
+            LLModels.GPT_40_MINI: lambda checker: OpenAI(checker=checker, config=self.config.get_openai_config()),
             LLModels.GEMINI_2_POINT_5_PRO: lambda checker: Google(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_gemini_config()
+                checker=checker, config=self.config.get_gemini_config()
             ),
             LLModels.GEMINI_2_POINT_0_FLASH: lambda checker: Google(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_gemini_config()
+                checker=checker, config=self.config.get_gemini_config()
             ),
             LLModels.GEMINI_2_POINT_5_FLASH: lambda checker: Google(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_gemini_config()
+                checker=checker, config=self.config.get_gemini_config()
             ),
             LLModels.GEMINI_2_POINT_5_FLASH_LITE: lambda checker: Google(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_gemini_config()
+                checker=checker, config=self.config.get_gemini_config()
             ),
-            LLModels.GPT_4_POINT_1: lambda checker: OpenAI(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_openai_config()
-            ),
+            LLModels.GPT_4_POINT_1: lambda checker: OpenAI(checker=checker, config=self.config.get_openai_config()),
             LLModels.GPT_4_POINT_1_NANO: lambda checker: OpenAI(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_openai_config()
+                checker=checker, config=self.config.get_openai_config()
             ),
             LLModels.GPT_4_POINT_1_MINI: lambda checker: OpenAI(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_openai_config()
+                checker=checker, config=self.config.get_openai_config()
             ),
-            LLModels.GPT_O3_MINI: lambda checker: OpenAI(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_openai_config()
-            ),
-            LLModels.KIMI_K2: lambda checker: OpenRouter(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_openrouter_config()
-            ),
+            LLModels.GPT_O3_MINI: lambda checker: OpenAI(checker=checker, config=self.config.get_openai_config()),
+            LLModels.KIMI_K2: lambda checker: OpenRouter(checker=checker, config=self.config.get_openrouter_config()),
             LLModels.QWEN_3_CODER: lambda checker: OpenRouter(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_openrouter_config()
+                checker=checker, config=self.config.get_openrouter_config()
             ),
             LLModels.OPENROUTER_GPT_5: lambda checker: OpenRouter(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_openrouter_config()
+                checker=checker, config=self.config.get_openrouter_config()
             ),
             LLModels.OPENROUTER_GROK_CODE_FAST_1: lambda checker: OpenRouter(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_openrouter_config()
+                checker=checker, config=self.config.get_openrouter_config()
             ),
             LLModels.OPENROUTER_GPT_5_MINI: lambda checker: OpenRouter(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_openrouter_config()
+                checker=checker, config=self.config.get_openrouter_config()
             ),
             LLModels.OPENROUTER_GPT_5_NANO: lambda checker: OpenRouter(
-                checker=checker, session_cache=self.session_cache, config=self.config.get_openrouter_config()
+                checker=checker, config=self.config.get_openrouter_config()
             ),
         }
 

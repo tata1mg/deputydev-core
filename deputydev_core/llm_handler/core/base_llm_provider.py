@@ -22,7 +22,6 @@ from deputydev_core.llm_handler.dataclasses.main import (
 )
 from deputydev_core.llm_handler.dataclasses.unified_conversation_turn import UnifiedConversationTurn
 from deputydev_core.llm_handler.interfaces.cancellation_interface import CancellationCheckerInterface
-from deputydev_core.llm_handler.interfaces.caches_interface import SessionCacheInterface
 from deputydev_core.llm_handler.dataclasses.main import Reasoning
 
 
@@ -32,11 +31,9 @@ class BaseLLMProvider(ABC):
     def __init__(
         self,
         config: Dict,
-        session_cache: SessionCacheInterface,
         checker: Optional[CancellationCheckerInterface] = None,
     ) -> None:
         self.config = config or {}
-        self.session_cache = session_cache
         self.checker = checker
 
     @abstractmethod

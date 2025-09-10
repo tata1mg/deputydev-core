@@ -73,15 +73,12 @@ from deputydev_core.llm_handler.dataclasses.unified_conversation_turn import (
     UserConversationTurn,
 )
 from deputydev_core.llm_handler.interfaces.cancellation_interface import CancellationCheckerInterface
-from deputydev_core.llm_handler.interfaces.caches_interface import SessionCacheInterface
 from deputydev_core.llm_handler.dataclasses.main import Reasoning
 
 
 class OpenAI(BaseLLMProvider):
-    def __init__(
-        self, config: Dict, session_cache: SessionCacheInterface, checker: Optional[CancellationCheckerInterface] = None
-    ) -> None:
-        super().__init__(config, session_cache, checker=checker)
+    def __init__(self, config: Dict, checker: Optional[CancellationCheckerInterface] = None) -> None:
+        super().__init__(config, checker=checker)
         self._active_streams: Dict[str, AsyncIterator] = {}
         self.anthropic_client = None
         self._initialize_client()
@@ -491,9 +488,8 @@ class OpenAI(BaseLLMProvider):
             try:
                 async for event in response:
                     # Check for task cancellation
-                    if self.checker and self.checker.is_cancelled() and self.session_cache:
-                        await self.session_cache.cleanup_session_data(session_id)
-                        raise asyncio.CancelledError()
+                    if self.checker:
+                        await self.checker.enforce_cancellation_with_cleanup()
                     try:
                         event_block, _event_block_category, event_usage = await self._get_parsed_stream_event(event)
 
