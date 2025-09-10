@@ -8,7 +8,6 @@ import xxhash
 from deputydev_core.utils.app_logger import AppLogger
 from pydantic import BaseModel
 
-# from deputydev_core.llm_handler.caches.code_gen_tasks_cache import CodeGenTasksCache
 
 from deputydev_core.llm_handler.interfaces.caches_interface import SessionCacheInterface
 from deputydev_core.llm_handler.interfaces.repositories_interface import (
@@ -37,13 +36,8 @@ from deputydev_core.llm_handler.models.dto.message_thread_dto import (
     ToolUseResponseData,
 )
 
-# from deputydev_core.llm_handler.repositories.chat_attachments.repository import ChatAttachmentsRepository
-# from deputydev_core.llm_handler.repositories.message_threads.repository import (
-#     MessageThreadsRepository,
-# )
 from deputydev_core.exceptions.llm_exceptions import LLMThrottledError
 
-# from deputydev_core.llm_handler.services.chat_file_upload.chat_file_upload import ChatFileUpload
 from deputydev_core.llm_handler.services.chat_file_upload.dataclasses.chat_file_upload import (
     Attachment,
 )
@@ -79,28 +73,6 @@ PromptFeatures = TypeVar("PromptFeatures", bound=Enum)
 
 
 class LLMHandler(Generic[PromptFeatures]):
-    # model_to_provider_class_map: Dict[LLModels, Type[BaseLLMProvider]] = {
-    #     LLModels.CLAUDE_3_POINT_5_SONNET: Anthropic,
-    #     LLModels.CLAUDE_3_POINT_7_SONNET: Anthropic,
-    #     LLModels.CLAUDE_4_SONNET: Anthropic,
-    #     LLModels.CLAUDE_4_SONNET_THINKING: Anthropic,
-    #     LLModels.GPT_4O: OpenAI,
-    #     LLModels.GPT_40_MINI: OpenAI,
-    #     LLModels.GEMINI_2_POINT_5_PRO: Google,
-    #     LLModels.GEMINI_2_POINT_0_FLASH: Google,
-    #     LLModels.GEMINI_2_POINT_5_FLASH: Google,
-    #     LLModels.GEMINI_2_POINT_5_FLASH_LITE: Google,
-    #     LLModels.GPT_4_POINT_1: OpenAI,
-    #     LLModels.GPT_4_POINT_1_NANO: OpenAI,
-    #     LLModels.GPT_4_POINT_1_MINI: OpenAI,
-    #     LLModels.GPT_O3_MINI: OpenAI,
-    #     LLModels.KIMI_K2: OpenRouter,
-    #     LLModels.QWEN_3_CODER: OpenRouter,
-    #     LLModels.OPENROUTER_GPT_5: OpenRouter,
-    #     LLModels.OPENROUTER_GPT_5_MINI: OpenRouter,
-    #     LLModels.OPENROUTER_GPT_5_NANO: OpenRouter,
-    # }
-
     def __init__(
         self,
         prompt_factory: Type[BasePromptFeatureFactory[PromptFeatures]],
@@ -119,7 +91,6 @@ class LLMHandler(Generic[PromptFeatures]):
         self.config = config
         self.cache_config = cache_config
 
-        # Will hold callables: LLModels -> Callable[[Optional[CancellationCheckerInterface]], BaseLLMProvider]
         self.model_to_provider_class_map: Dict[
             LLModels, Callable[[Optional[CancellationCheckerInterface]], BaseLLMProvider]
         ] = {}
@@ -413,34 +384,6 @@ class LLMHandler(Generic[PromptFeatures]):
                 query_id=query_id,
             )
 
-    # async def _get_attachment_data_task_map(
-    #     self,
-    #     previous_responses: List[MessageThreadDTO],
-    #     current_attachments: List[Attachment],
-    # ) -> Dict[int, asyncio.Task[ChatAttachmentDataWithObjectBytes]]:
-    #     """
-    #     map attachment id to attachment data fetch task
-    #     """
-    #
-    #     previous_attachments: List[Attachment] = []
-    #     for message in previous_responses:
-    #         for data in message.message_data:
-    #             if data.type == ContentBlockCategory.FILE:
-    #                 result = await self.chat_attachments_repo.get_attachment_by_id(
-    #                     attachment_id=data.content.attachment_id
-    #                 )
-    #                 if result and result.status == "deleted":
-    #                     continue
-    #                 previous_attachments.append(
-    #                     Attachment(
-    #                         attachment_id=data.content.attachment_id,
-    #                     )
-    #                 )
-    #
-    #     all_attachments = previous_attachments + current_attachments
-    #
-    #     return ChatFileUpload.get_attachment_data_task_map(all_attachments)
-
     async def fetch_and_parse_llm_response(  # noqa: C901
         self,
         client: BaseLLMProvider,
@@ -488,11 +431,6 @@ class LLMHandler(Generic[PromptFeatures]):
         Returns:
             :return: Parsed LLM response
         """
-        # check and get attachment data task map
-        # attachment_data_task_map = await self._get_attachment_data_task_map(
-        #     previous_responses=previous_responses,
-        #     current_attachments=attachments,
-        # )
         attachment_data_task_map = {}
 
         if not user_and_system_messages:

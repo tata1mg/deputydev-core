@@ -79,7 +79,9 @@ from deputydev_core.llm_handler.dataclasses.main import Reasoning
 
 
 class Anthropic(BaseLLMProvider):
-    def __init__(self, config: Dict, session_cache: SessionCacheInterface, checker: Optional[CancellationCheckerInterface] = None) -> None:
+    def __init__(
+        self, config: Dict, session_cache: SessionCacheInterface, checker: Optional[CancellationCheckerInterface] = None
+    ) -> None:
         super().__init__(config, session_cache, checker=checker)
         self.anthropic_clients: Dict[str, BedrockServiceClient] = {}
 
