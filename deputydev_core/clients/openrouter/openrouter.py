@@ -39,7 +39,7 @@ class OpenRouterServiceClient(metaclass=Singleton):
     token streaming.
     """
 
-    def __init__(self, config) -> None:
+    def __init__(self, config: Dict[str, Any]) -> None:
         self._client = AsyncOpenAI(
             base_url=config.get("BASE_URL", "https://openrouter.ai/api/v1"),
             api_key=config["API_KEY"],

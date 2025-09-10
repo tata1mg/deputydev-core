@@ -9,7 +9,7 @@ from deputydev_core.utils.singleton import Singleton
 
 
 class GeminiServiceClient(metaclass=Singleton):
-    def __init__(self, vertex_config) -> None:
+    def __init__(self, vertex_config: Dict[str, Any]) -> None:
         credentials_dict = {
             "type": vertex_config.get("type"),
             "project_id": vertex_config.get("project_id"),
