@@ -71,9 +71,6 @@ class Google(BaseLLMProvider):
 
     def _initialize_client(self) -> None:
         """Initialize Gemini client with injected config"""
-        if not self.config:
-            raise ValueError("Gemini configuration not provided")
-
         vertex_config = self.config.get("VERTEX", {})
         self.client = GeminiServiceClient(vertex_config)
 
