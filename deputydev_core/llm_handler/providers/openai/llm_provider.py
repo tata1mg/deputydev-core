@@ -80,17 +80,14 @@ class OpenAI(BaseLLMProvider):
     def __init__(self, config: Dict, checker: Optional[CancellationCheckerInterface] = None) -> None:
         super().__init__(config, checker=checker)
         self._active_streams: Dict[str, AsyncIterator] = {}
-        self.anthropic_client = None
+        self.client = None
         self._initialize_client()
 
     def _initialize_client(self) -> None:
         """Initialize OpenAI client with injected config"""
-        if not self.config:
-            raise ValueError("OpenAI configuration not provided")
-
         openai_config = self.config.get("OPENAI", {})
         self.client = OpenAIServiceClient(
-            api_key=openai_config.get("OPENAI_KEY"), timeout=openai_config.get("OPENAI_TIMEOUT", 60)
+            api_key=openai_config.get("API_KEY"), timeout=openai_config.get("TIMEOUT", 60)
         )
 
     def _get_openai_response_item_param_from_user_conversation_turn(
