@@ -67,12 +67,13 @@ class OpenRouter(BaseLLMProvider):
     def __init__(self, config: Dict, checker: Optional[CancellationCheckerInterface] = None) -> None:
         super().__init__(config, checker=checker)
         self._active_streams: Dict[str, AsyncIterator] = {}
-        self.anthropic_client = None
+        self.client = None
+        self._initialize_client()
 
     def _initialize_client(self) -> None:
         """Initialize OpenAI client with injected config"""
         if not self.config:
-            raise ValueError("OpenAI configuration not provided")
+            raise ValueError("OpenRouter configuration not provided")
 
         openrouter_config = self.config.get("OPENROUTER", {})
         self.client = OpenRouterServiceClient(config=openrouter_config)
@@ -328,7 +329,7 @@ class OpenRouter(BaseLLMProvider):
         model_config = self._get_model_config(model)
         stream_id = str(uuid.uuid4())
         if stream:
-            response = await OpenRouterServiceClient(self.config["OPENROUTER"]).get_llm_stream_response(
+            response = await self.client.get_llm_stream_response(
                 model=model_config["NAME"],
                 max_tokens=model_config["MAX_TOKENS"],
                 temperature=model_config["TEMPERATURE"],
@@ -344,7 +345,7 @@ class OpenRouter(BaseLLMProvider):
             )
             return await self._parse_streaming_response(response, stream_id, session_id, model_config)
         else:
-            response = await OpenRouterServiceClient(self.config["OPENROUTER"]).get_llm_non_stream_response(
+            response = await self.client.get_llm_non_stream_response(
                 model=model_config["NAME"],
                 max_tokens=model_config["MAX_TOKENS"],
                 temperature=model_config["TEMPERATURE"],
