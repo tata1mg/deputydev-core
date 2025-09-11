@@ -30,10 +30,10 @@ class BaseLLMProvider(ABC):
 
     def __init__(
         self,
-        config: Dict,
+        config: Dict[str, Any],
         checker: Optional[CancellationCheckerInterface] = None,
     ) -> None:
-        self.config = config or {}
+        self.config: Dict[str, Any] = config or {}
         self.checker = checker
 
     @abstractmethod
