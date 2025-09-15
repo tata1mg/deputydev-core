@@ -8,7 +8,7 @@ class JWTHandler:
     A class to generate and verify JWT tokens.
     """
 
-    def __init__(self, signing_key: str, algorithm="HS256"):
+    def __init__(self, signing_key: str, algorithm: str = "HS256") -> None:
         """
         Initialize the JWTHandler.
 
@@ -20,7 +20,7 @@ class JWTHandler:
         self.secret_key = signing_key
         self.algorithm = algorithm
 
-    def create_token(self, payload) -> str:
+    def create_token(self, payload: Dict[str, Any]) -> str:
         """
         Create a JWT token with the given payload.
 
@@ -51,24 +51,5 @@ class JWTHandler:
             return payload
         except jwt.ExpiredSignatureError:
             raise jwt.ExpiredSignatureError("The token has expired.")
-        except jwt.InvalidTokenError:
-            raise jwt.InvalidTokenError("Invalid token.")
-
-    def verify_token_without_signature_verification(token: str) -> Dict[str, Any]:
-        """Verifies the JWT token without signature verification and checks for expiration.
-
-        Args:
-            token (str): The JWT token to verify.
-
-        Returns:
-            dict: The decoded payload if the token is valid.
-
-        Raises:
-            jwt.DecodeError: If the token is invalid.
-        """
-        try:
-            # Decode the JWT token without verifying the signature
-            payload = jwt.decode(token, options={"verify_signature": False})
-            return payload
         except jwt.InvalidTokenError:
             raise jwt.InvalidTokenError("Invalid token.")

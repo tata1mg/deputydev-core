@@ -1,4 +1,5 @@
 import asyncio
+from asyncio.subprocess import Process
 
 from weaviate import WeaviateAsyncClient, WeaviateClient
 
@@ -12,7 +13,7 @@ class WindowsWeaviateConnector(BaseWeaviateConnector):
     DEFAULT_HTTP_PORT = 8080
     DEFAULT_GRPC_PORT = 50051
 
-    async def initialize(self):
+    async def initialize(self) -> Process | None:
         weaviate_process = await self._spin_up_via_docker()
         await super().initialize()
         return weaviate_process
@@ -29,7 +30,7 @@ class WindowsWeaviateConnector(BaseWeaviateConnector):
         await async_client.connect()
         return async_client
 
-    async def _spin_up_via_docker(self):
+    async def _spin_up_via_docker(self) -> Process | None:
         if not await self._is_weaviate_running():
             AppLogger.log_info("Starting Weaviate binary")
 
@@ -51,6 +52,8 @@ class WindowsWeaviateConnector(BaseWeaviateConnector):
                 f"PERSISTENCE_DATA_PATH={self.persistence_data_path}",
                 "-e",
                 f"LOG_LEVEL={self.env_variables['LOG_LEVEL']}",
+                "-e",
+                f"DISK_USE_READONLY_PERCENTAGE={self.env_variables['DISK_USE_READONLY_PERCENTAGE']}",
                 f"semitechnologies/weaviate:{self.weaviate_version}",
             ]
 
