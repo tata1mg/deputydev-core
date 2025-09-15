@@ -30,8 +30,8 @@ class BaseWeaviateConnector:
         env_variables: dict[str, Any],
     ) -> None:
         self.weaviate_version = weaviate_version
-        self.base_dir = os.path.expanduser(base_dir)
-        self.persistence_data_path = os.path.expanduser(env_variables["PERSISTENCE_DATA_PATH"])
+        self.base_dir = os.path.expanduser(base_dir)  # noqa: PTH111
+        self.persistence_data_path = os.path.expanduser(env_variables["PERSISTENCE_DATA_PATH"])  # noqa: PTH111
         self.weaviate_host = weaviate_host
         self.weaviate_http_port = weaviate_http_port
         self.weaviate_grpc_port = weaviate_grpc_port
@@ -83,7 +83,7 @@ class BaseWeaviateConnector:
 
         return async_client
 
-    def get_embedded_options(self):
+    def get_embedded_options(self) -> EmbeddedOptions:
         resolved_binary_path = Path(ConfigManager.configs["WEAVIATE_EMBEDDED_DB_BINARY_PATH"]).expanduser().resolve()
 
         return EmbeddedOptions(
@@ -97,10 +97,11 @@ class BaseWeaviateConnector:
                 "LOG_LEVEL": self.env_variables["LOG_LEVEL"],
                 "CLUSTER_ADVERTISE_ADDR": self.env_variables["CLUSTER_ADVERTISE_ADDR"],
                 "LIMIT_RESOURCES": self.env_variables["LIMIT_RESOURCES"],
+                "DISK_USE_READONLY_PERCENTAGE": self.env_variables["DISK_USE_READONLY_PERCENTAGE"],
             },
         )
 
-    def get_connection_params(self):
+    def get_connection_params(self) -> ConnectionParams:
         return ConnectionParams(
             http=ProtocolParams(
                 host=ConfigManager.configs["WEAVIATE_HOST"],
@@ -114,7 +115,7 @@ class BaseWeaviateConnector:
             ),
         )
 
-    def get_additional_config(self):
+    def get_additional_config(self) -> AdditionalConfig:
         timeouts = ConfigManager.configs["WEAVIATE_CLIENT_TIMEOUTS"]
         return AdditionalConfig(
             timeout=Timeout(
@@ -131,7 +132,7 @@ class BaseWeaviateConnector:
                     f"http://{self.weaviate_host}:{self.weaviate_http_port}/v1/.well-known/ready"
                 ) as resp:
                     return resp.status == 200
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             AppLogger.log_debug(f"Error checking Weaviate status: {str(e)}")
             return False
 
@@ -149,7 +150,7 @@ class BaseWeaviateConnector:
 
             await asyncio.sleep(self.startup_healthcheck_interval)
 
-    async def initialize(self):
+    async def initialize(self) -> None:
         async_client = await self.get_async_client()
         sync_client = self.get_sync_client()
         self.weaviate_client = WeaviateSyncAndAsyncClients(
