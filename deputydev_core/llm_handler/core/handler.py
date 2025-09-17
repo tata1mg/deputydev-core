@@ -149,6 +149,12 @@ class LLMHandler(Generic[PromptFeatures]):
             LLModels.OPENROUTER_GPT_4_POINT_1: lambda checker: OpenRouter(
                 checker=checker, config=self.config.get_openrouter_config()
             ),
+            LLModels.OPENROUTER_SONOMA_SKY_ALPHA: lambda checker: OpenRouter(
+                checker=checker, config=self.config.get_openrouter_config()
+            ),
+            LLModels.OPENROUTER_SONOMA_DUSK_ALPHA: lambda checker: OpenRouter(
+                checker=checker, config=self.config.get_openrouter_config()
+            ),
         }
 
     def _get_provider(
