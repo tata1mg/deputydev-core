@@ -10,6 +10,7 @@
 | Pratham Verma | [pratham-verma-1mg][pratham-verma-1mg] | <pratham.verma@1mg.com> |
 | Anand Raj     | [anand-1mg][anand-1mg]           | <anand.raj@1mg.com>        |
 | Satyam Kumar  | [satyamtg][satyamtg]             | <io.satyamtg@gmail.com>    |
+| Ankit         | [ankit27755][ankit27755]           | <ankit.rana1@1mg.com>            |
 
 **Release Managers**
 
@@ -19,13 +20,13 @@
 | Anand Raj     | [anand-1mg][anand-1mg]           | <anand.raj@1mg.com>        |
 | Vaibhav Meena | [vaibhavmeena1][vaibhavmeena1]   | <vaibhav.meena@1mg.com>    |
 | Pratham Verma | [pratham-verma-1mg][pratham-verma-1mg] | <pratham.verma@1mg.com> |
-| Ankit         | [ankit-1mg][ankit-1mg]           | <ankit@1mg.com>            |
+| Ankit         | [ankit27755][ankit27755]           | <ankit.rana1@1mg.com>            |
 
 **Retired Maintainers**
 
 | Name           | GitHub                          | Email                       |
 |----------------|---------------------------------|-----------------------------|
-| Sachendra Jain | [sachendracodes][sachendracodes]| <sachendra.jain@1mg.com>    |
+| Sachendra Jain | [sachendracodes][sachendracodes]| <sachinjain74754@gmail.com>    |
 
 ---
 
@@ -35,5 +36,5 @@
 [pratham-verma-1mg]: https://github.com/pratham-verma-1mg  
 [anand-1mg]: https://github.com/anand-1mg  
 [satyamtg]: https://github.com/satyamtg  
-[ankit-1mg]: https://github.com/ankit-1mg  
+[ankit27755]: https://github.com/ankit27755  
 [sachendracodes]: https://github.com/sachendracodes  
