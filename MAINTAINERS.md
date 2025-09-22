@@ -4,22 +4,12 @@
 
 | Name          | GitHub                           | Email                      |
 |---------------|----------------------------------|----------------------------|
-| Vishal Khare  | [vishalof1mg][vishalof1mg]       | <vishal.khare@1mg.com>     |
+| Vishal Khare  | [iamvishalkhare][iamvishalkhare]       | <vishal.khare@1mg.com>     |
 | Deepak Sharma | [deepaks-1mg][deepaks-1mg]       | <deepak.sharma1@1mg.com>   |
 | Vaibhav Meena | [vaibhavmeena1][vaibhavmeena1]   | <vaibhav.meena@1mg.com>    |
 | Pratham Verma | [pratham-verma-1mg][pratham-verma-1mg] | <pratham.verma@1mg.com> |
 | Anand Raj     | [anand-1mg][anand-1mg]           | <anand.raj@1mg.com>        |
 | Satyam Kumar  | [satyamtg][satyamtg]             | <io.satyamtg@gmail.com>    |
-| Ankit         | [ankit27755][ankit27755]           | <ankit.rana1@1mg.com>            |
-
-**Release Managers**
-
-| Name          | GitHub                           | Email                      |
-|---------------|----------------------------------|----------------------------|
-| Satyam Kumar  | [satyamtg][satyamtg]             | <io.satyamtg@gmail.com>    |
-| Anand Raj     | [anand-1mg][anand-1mg]           | <anand.raj@1mg.com>        |
-| Vaibhav Meena | [vaibhavmeena1][vaibhavmeena1]   | <vaibhav.meena@1mg.com>    |
-| Pratham Verma | [pratham-verma-1mg][pratham-verma-1mg] | <pratham.verma@1mg.com> |
 | Ankit         | [ankit27755][ankit27755]           | <ankit.rana1@1mg.com>            |
 
 **Retired Maintainers**
@@ -30,7 +20,7 @@
 
 ---
 
-[vishalof1mg]: https://github.com/vishalof1mg  
+[iamvishalkhare]: https://github.com/iamvishalkhare  
 [deepaks-1mg]: https://github.com/deepaks-1mg  
 [vaibhavmeena1]: https://github.com/vaibhavmeena1  
 [pratham-verma-1mg]: https://github.com/pratham-verma-1mg  
