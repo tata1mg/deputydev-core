@@ -10,7 +10,7 @@
 | Pratham Verma | [pratham-verma-1mg][pratham-verma-1mg] | <pratham.verma@1mg.com> |
 | Anand Raj     | [anand-1mg][anand-1mg]           | <anand.raj@1mg.com>        |
 | Satyam Kumar  | [satyamtg][satyamtg]             | <io.satyamtg@gmail.com>    |
-| Ankit         | [ankit27755][ankit27755]           | <ankit.rana1@1mg.com>            |
+| Ankit Rana    | [ankit27755][ankit27755]           | <ankit.rana1@1mg.com>            |
 
 **Retired Maintainers**
 
