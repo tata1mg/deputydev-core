@@ -16,6 +16,11 @@ from deputydev_core.clients.openrouter.openrouter import OpenRouterServiceClient
 from deputydev_core.llm_handler.core.base_llm_provider import BaseLLMProvider
 from deputydev_core.llm_handler.dataclasses.main import (
     ConversationTool,
+    ExtendedThinkingBlockDelta,
+    ExtendedThinkingBlockDeltaContent,
+    ExtendedThinkingBlockEnd,
+    ExtendedThinkingBlockEndContent,
+    ExtendedThinkingBlockStart,
     LLMCallResponseTypes,
     NonStreamingResponse,
     PromptCacheConfig,
@@ -386,7 +391,7 @@ class OpenRouter(BaseLLMProvider):
             current_tool_id: Optional[str] = None
             current_tool_name: Optional[str] = None
             text_block_open = False
-
+            extended_thinking_open = False
             try:
                 async for chunk in response:
                     # Cancellation check
@@ -410,6 +415,57 @@ class OpenRouter(BaseLLMProvider):
                     finish_reason = chunk.choices[0].finish_reason
                     text_part = delta.content or ""
                     tool_calls = getattr(delta, "tool_calls", []) or []
+                    reasoning_text = getattr(delta, "reasoning", None)
+                    reasoning_details = getattr(delta, "reasoning_details", None)
+                    # --- Extended Thinking Handling ---
+                    if reasoning_details:
+                        # Normalize for type safety
+                        if isinstance(reasoning_details, dict):
+                            reasoning_dict: Dict[str, Any] = reasoning_details
+                            if reasoning_dict.get("type") == "reasoning.encrypted":
+                                continue
+                        elif isinstance(reasoning_details, list):
+                            reasoning_list: List[Dict[str, Any]] = [d for d in reasoning_details if isinstance(d, dict)]
+                            if any(d.get("type") == "reasoning.encrypted" for d in reasoning_list):
+                                continue
+
+                    if reasoning_text or reasoning_details:
+                        if not extended_thinking_open:
+                            start_event = ExtendedThinkingBlockStart()
+                            accumulated_events.append(start_event)
+                            yield start_event
+                            extended_thinking_open = True
+
+                        # Normalize reasoning_details into a list of dicts
+                        details_list: List[Dict[str, Any]] = []
+                        if reasoning_details:
+                            if isinstance(reasoning_details, dict):
+                                details_list = [reasoning_details]  # wrap single dict
+                            elif isinstance(reasoning_details, list):
+                                details_list = [d for d in reasoning_details if isinstance(d, dict)]
+
+                        # Prefer reasoning_text, else join summaries or data fields
+                        thinking_delta: str = reasoning_text or " ".join(
+                            str(d.get("summary") or d.get("data") or "") for d in details_list
+                        )
+
+                        delta_event = ExtendedThinkingBlockDelta(
+                            type=StreamingEventType.EXTENDED_THINKING_BLOCK_DELTA,
+                            content=ExtendedThinkingBlockDeltaContent(thinking_delta=thinking_delta),
+                        )
+                        accumulated_events.append(delta_event)
+                        yield delta_event
+                        continue  # don’t drop into text/tool flow
+
+                    # If reasoning was open and now we see text/tool/stop → close it
+                    if extended_thinking_open and (text_part or tool_calls or finish_reason in {"stop", "tool_calls"}):
+                        end_event = ExtendedThinkingBlockEnd(
+                            type=StreamingEventType.EXTENDED_THINKING_BLOCK_END,
+                            content=ExtendedThinkingBlockEndContent(signature=""),
+                        )
+                        accumulated_events.append(end_event)
+                        yield end_event
+                        extended_thinking_open = False
 
                     # Tool-call event handling
                     if tool_calls:
