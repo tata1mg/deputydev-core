@@ -3,5 +3,5 @@ from deputydev_core.llm_handler.providers.openrouter_models.prompts.base_prompts
 )
 
 
-class BaseSonomaAlphaPrompt(BaseOpenrouterModelPromptHandler):
+class BaseGrok4FastPrompt(BaseOpenrouterModelPromptHandler):
     pass

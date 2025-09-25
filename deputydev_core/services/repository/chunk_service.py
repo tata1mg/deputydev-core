@@ -10,6 +10,7 @@ from deputydev_core.models.dto.chunk_dto import (
     ChunkDTOWithScore,
     ChunkDTOWithVector,
 )
+from deputydev_core.services.chunking.chunk_info import ChunkInfo
 from deputydev_core.services.repository.base_weaviate_repository import (
     BaseWeaviateRepository,
 )
@@ -20,7 +21,7 @@ from deputydev_core.utils.app_logger import AppLogger
 
 
 class ChunkService(BaseWeaviateRepository):
-    def __init__(self, weaviate_client: WeaviateSyncAndAsyncClients):
+    def __init__(self, weaviate_client: WeaviateSyncAndAsyncClients) -> None:
         super().__init__(weaviate_client, Chunks.collection_name)
 
     async def perform_filtered_vector_hybrid_search(
@@ -56,20 +57,20 @@ class ChunkService(BaseWeaviateRepository):
             raise ex
 
     async def get_chunks_by_chunk_hashes(self, chunk_hashes: List[str]) -> List[Tuple[ChunkDTO, List[float]]]:
-        BATCH_SIZE = 1000
+        batch_size = 1000
         all_chunks: List[Tuple[ChunkDTO, List[float]]] = []
-        MAX_RESULTS_PER_QUERY = 10000
+        max_results_per_query = 10000
         try:
             await self.ensure_collection_connections()
             # Process chunk hashes in batches
-            for i in range(0, len(chunk_hashes), BATCH_SIZE):
-                batch_hashes = chunk_hashes[i : i + BATCH_SIZE]
+            for i in range(0, len(chunk_hashes), batch_size):
+                batch_hashes = chunk_hashes[i : i + batch_size]
                 batch_chunks = await self.async_collection.query.fetch_objects(
                     filters=Filter.any_of(
                         [Filter.by_id().equal(generate_uuid5(chunk_hash)) for chunk_hash in batch_hashes]
                     ),
                     include_vector=True,
-                    limit=MAX_RESULTS_PER_QUERY,
+                    limit=max_results_per_query,
                 )
                 # Break if no more results
                 if batch_chunks.objects:
@@ -85,10 +86,9 @@ class ChunkService(BaseWeaviateRepository):
 
             return all_chunks
 
-        except Exception:
+        except Exception as ex:
             AppLogger.log_error(
-                "Failed to get chunk files by commit hashes",
-                # extra={"chunk_hashes_count": len(chunk_hashes), "error": str(ex)},
+                f"Failed to get chunk files by commit hashes chunk_hashes_count: {len(chunk_hashes)}, error: {str(ex)}"
             )
             raise
 
@@ -96,11 +96,22 @@ class ChunkService(BaseWeaviateRepository):
         await self.ensure_collection_connections()
         with self.sync_collection.batch.dynamic() as _batch:
             for chunk in chunks:
-                _batch.add_object(
-                    properties=chunk.dto.model_dump(mode="json", exclude={"id"}),
-                    vector=chunk.vector,
-                    uuid=generate_uuid5(chunk.dto.chunk_hash),
-                )
+                properties = chunk.dto.model_dump(mode="json", exclude={"id"})
+                uuid = generate_uuid5(chunk.dto.chunk_hash)
+
+                # Only include vector if it’s non-empty and valid
+                if chunk.vector and len(chunk.vector) > 0:
+                    _batch.add_object(
+                        properties=properties,
+                        vector=chunk.vector,
+                        uuid=uuid,
+                    )
+                else:
+                    # Insert without vector
+                    _batch.add_object(
+                        properties=properties,
+                        uuid=uuid,
+                    )
 
     async def cleanup_old_chunks(self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]) -> None:
         await self.ensure_collection_connections()
@@ -131,9 +142,9 @@ class ChunkService(BaseWeaviateRepository):
             )
             AppLogger.log_debug(f"chunks deleted. successful - {result.successful}, failed - {result.failed}")
 
-    async def update_embedding(self, chunk) -> None:
+    async def update_embedding(self, chunk: ChunkInfo) -> None:
         await self.ensure_collection_connections()
         try:
             await self.async_collection.data.update(uuid=generate_uuid5(chunk.content_hash), vector=chunk.embedding)
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             AppLogger.log_error(f"Could not update embedding: {error}")

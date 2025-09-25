@@ -54,6 +54,8 @@ class WindowsWeaviateConnector(BaseWeaviateConnector):
                 f"LOG_LEVEL={self.env_variables['LOG_LEVEL']}",
                 "-e",
                 f"DISK_USE_READONLY_PERCENTAGE={self.env_variables['DISK_USE_READONLY_PERCENTAGE']}",
+                "-e",
+                f"DISK_USE_WARNING_PERCENTAGE={self.env_variables['DISK_USE_WARNING_PERCENTAGE']}",
                 f"semitechnologies/weaviate:{self.weaviate_version}",
             ]
 
