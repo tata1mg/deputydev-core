@@ -31,6 +31,9 @@ class ConfigInterface(ABC):
     def get_anthropic_config(self) -> Optional[Dict[str, Any]]:
         pass
 
+    def get_gemini_config(self) -> Optional[Dict[str, Any]]:
+        pass
+
     @abstractmethod
     def get_openrouter_config(self) -> Optional[Dict[str, Any]]:
         pass
