@@ -32,10 +32,6 @@ class ConfigInterface(ABC):
         pass
 
     @abstractmethod
-    def get_gemini_config(self) -> Optional[Dict[str, Any]]:
-        pass
-
-    @abstractmethod
     def get_openrouter_config(self) -> Optional[Dict[str, Any]]:
         pass
 
