@@ -5,4 +5,4 @@ from deputydev_core.llm_handler.providers.anthropic.prompts.base_prompts.base_cl
 
 
 class BaseClaude4SonnetPromptHandler(BaseClaudePromptHandler):
-    model_name = LLModels.CLAUDE_4_SONNET
+    model_name = LLModels.CLAUDE_4_POINT_5_SONNET
