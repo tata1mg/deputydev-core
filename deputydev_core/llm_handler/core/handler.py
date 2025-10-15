@@ -108,6 +108,9 @@ class LLMHandler(Generic[PromptFeatures]):
             LLModels.CLAUDE_4_POINT_5_SONNET: lambda checker: Anthropic(
                 checker=checker, config=self.config.get_anthropic_config()
             ),
+            LLModels.CLAUDE_4_POINT_5_HAIKU: lambda checker: Anthropic(
+                checker=checker, config=self.config.get_anthropic_config()
+            ),
             LLModels.GPT_4O: lambda checker: OpenAI(checker=checker, config=self.config.get_openai_config()),
             LLModels.GPT_40_MINI: lambda checker: OpenAI(checker=checker, config=self.config.get_openai_config()),
             LLModels.GEMINI_2_POINT_5_PRO: lambda checker: Google(
