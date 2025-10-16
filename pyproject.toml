@@ -1,6 +1,6 @@
 [project]
 name = "deputydev-core"
-version = "8.0.3"
+version = "8.0.4"
 description = "Core library for DeputyDev"
 authors = [{ name = "DeputyDev", email = "deputydev@1mg.com" }]
 readme = "README.md"
