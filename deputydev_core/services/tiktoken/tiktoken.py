@@ -9,7 +9,7 @@ class TikToken:
     Wrapper class for managing text encoding using TikToken library.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize TikToken class with supported language models.
         """
@@ -43,7 +43,9 @@ class TikToken:
         """
         if not max_tokens:
             max_tokens = ConfigManager.configs["EMBEDDING"]["TOKEN_LIMIT"]
-        tokens = self.llm_models[model].encode(text, disallowed_special=())[:max_tokens]
+        tokens = self.llm_models[model].encode(text, disallowed_special=())[
+            : max_tokens - 1
+        ]  # -1 to account for potential special tokens while decoding
         return self.llm_models[model].decode(tokens)
 
     def split_text_by_tokens(self, text: str, model: str = "gpt-4", max_tokens: int = None) -> list:
