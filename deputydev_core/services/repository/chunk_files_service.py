@@ -1,3 +1,4 @@
+import asyncio
 import time
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -120,6 +121,43 @@ class ChunkFilesService(BaseWeaviateRepository):
         except Exception as ex:
             AppLogger.log_error("Failed to get chunk files by commit hashes")
             raise ex
+
+    async def update_timestamps(
+        self,
+        chunk_hashes: List[str],
+        updated_at: datetime,
+        created_at: Optional[datetime] = None,
+    ) -> None:
+        """
+        Efficiently update timestamps for chunk files without re-inserting full objects.
+        """
+        await self.ensure_collection_connections()
+        BATCH_SIZE = 500  # noqa: N806
+
+        try:
+            ts_updates = {"updated_at": updated_at.isoformat()}
+            if created_at:
+                ts_updates["created_at"] = created_at.isoformat()
+
+            for i in range(0, len(chunk_hashes), BATCH_SIZE):
+                batch = chunk_hashes[i : i + BATCH_SIZE]
+
+                # Using Weaviate's partial object patch API
+                await asyncio.gather(
+                    *[
+                        self.async_collection.data.update(
+                            uuid=generate_uuid5(chunk_hash),
+                            properties=ts_updates,
+                        )
+                        for chunk_hash in batch
+                    ]
+                )
+
+                AppLogger.log_debug(f"Updated timestamps for {len(batch)} chunk_files")
+
+        except Exception as ex:
+            AppLogger.log_error(f"Failed to update timestamps for {len(chunk_hashes)} chunk_files, error: {ex}")
+            raise
 
     async def bulk_insert(self, chunks: List[ChunkFileDTO]) -> None:
         await self.ensure_collection_connections()

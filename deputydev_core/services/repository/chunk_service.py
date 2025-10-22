@@ -1,5 +1,6 @@
+import asyncio
 from datetime import datetime
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from weaviate.classes.query import Filter, MetadataQuery
 from weaviate.util import generate_uuid5
@@ -56,7 +57,9 @@ class ChunkService(BaseWeaviateRepository):
             AppLogger.log_error("Failed to get chunk files by commit hashes")
             raise ex
 
-    async def get_chunks_by_chunk_hashes(self, chunk_hashes: List[str]) -> List[Tuple[ChunkDTO, List[float]]]:
+    async def get_chunks_by_chunk_hashes(
+        self, chunk_hashes: List[str], with_vector: bool = False
+    ) -> List[Tuple[ChunkDTO, List[float]]]:
         batch_size = 1000
         all_chunks: List[Tuple[ChunkDTO, List[float]]] = []
         max_results_per_query = 10000
@@ -69,7 +72,7 @@ class ChunkService(BaseWeaviateRepository):
                     filters=Filter.any_of(
                         [Filter.by_id().equal(generate_uuid5(chunk_hash)) for chunk_hash in batch_hashes]
                     ),
-                    include_vector=True,
+                    include_vector=with_vector,
                     limit=max_results_per_query,
                 )
                 # Break if no more results
@@ -141,6 +144,44 @@ class ChunkService(BaseWeaviateRepository):
                 )
             )
             AppLogger.log_debug(f"chunks deleted. successful - {result.successful}, failed - {result.failed}")
+
+    async def update_timestamps(
+        self,
+        chunk_hashes: List[str],
+        updated_at: datetime,
+        created_at: Optional[datetime] = None,
+    ) -> None:
+        """
+        Efficiently update timestamps for chunk_files without re-inserting full objects.
+        Uses Weaviate's async partial update (PATCH) API.
+        """
+        await self.ensure_collection_connections()
+
+        props = {"updated_at": updated_at.isoformat()}
+        if created_at is not None:
+            props["created_at"] = created_at.isoformat()
+
+        BATCH_SIZE = 500  # noqa: N806
+        try:
+            for i in range(0, len(chunk_hashes), BATCH_SIZE):
+                batch = chunk_hashes[i : i + BATCH_SIZE]
+
+                # Use concurrent async updates (not batch mode)
+                await asyncio.gather(
+                    *[
+                        self.async_collection.data.update(
+                            uuid=generate_uuid5(chunk_hash),
+                            properties=props,
+                        )
+                        for chunk_hash in batch
+                    ]
+                )
+
+                AppLogger.log_debug(f"Patched timestamps for {len(batch)} chunk_files")
+
+        except Exception as ex:
+            AppLogger.log_error(f"Failed to update timestamps for {len(chunk_hashes)} chunk_files, error: {ex}")
+            raise
 
     async def update_embedding(self, chunk: ChunkInfo) -> None:
         await self.ensure_collection_connections()
