@@ -27,7 +27,6 @@ class FocussedSnippetSearchResponse(BaseModel):
 class ChunkDetails(BaseModel):
     start_line: int
     end_line: int
-    chunk_hash: str
     file_path: str
     file_hash: str
     meta_info: Optional[ChunkMetadata] = None
