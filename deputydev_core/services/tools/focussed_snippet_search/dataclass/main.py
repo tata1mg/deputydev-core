@@ -48,6 +48,14 @@ class FocusChunksParams(BaseModel):
     chunks: List[ChunkDetails | CodeSnippetDetails]
 
 
+class FocusChunksParams2(BaseModel):
+    repo_path: str
+    search_item_name: str
+    search_item_type: str
+    search_item_path: str
+    chunk: ChunkDetails | None = None
+
+
 class DirectoryStructureParams(BaseModel):
     repo_path: str
     directory_path: Optional[str] = None

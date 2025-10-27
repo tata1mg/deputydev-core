@@ -153,34 +153,38 @@ class ChunkService(BaseWeaviateRepository):
     ) -> None:
         """
         Efficiently update timestamps for chunk_files without re-inserting full objects.
-        Uses Weaviate's async partial update (PATCH) API.
+        Uses Weaviate's async partial update (PATCH) API with concurrency control.
         """
         await self.ensure_collection_connections()
 
-        props = {"updated_at": updated_at.isoformat()}
+        ts_updates = {"updated_at": updated_at.isoformat()}
         if created_at is not None:
-            props["created_at"] = created_at.isoformat()
+            ts_updates["created_at"] = created_at.isoformat()
 
         BATCH_SIZE = 500  # noqa: N806
+        MAX_CONCURRENCY = 50  # prevent httpcore.PoolTimeout by limiting simultaneous connections  # noqa: N806
+        sem = asyncio.Semaphore(MAX_CONCURRENCY)
+
+        async def safe_update(uuid_key: str) -> None:
+            """Update a single chunk safely with semaphore + error isolation."""
+            async with sem:
+                try:
+                    await self.async_collection.data.update(
+                        uuid=generate_uuid5(uuid_key),
+                        properties=ts_updates,
+                    )
+                except Exception as e:  # noqa: BLE001
+                    # Log but continue other updates
+                    AppLogger.log_warn(f"⚠️ Failed to update chunk_file {uuid_key}: {e}")
+
         try:
             for i in range(0, len(chunk_hashes), BATCH_SIZE):
                 batch = chunk_hashes[i : i + BATCH_SIZE]
-
-                # Use concurrent async updates (not batch mode)
-                await asyncio.gather(
-                    *[
-                        self.async_collection.data.update(
-                            uuid=generate_uuid5(chunk_hash),
-                            properties=props,
-                        )
-                        for chunk_hash in batch
-                    ]
-                )
-
-                AppLogger.log_debug(f"Patched timestamps for {len(batch)} chunk_files")
+                await asyncio.gather(*(safe_update(ch) for ch in batch))
+                AppLogger.log_debug(f"✅ Patched timestamps for {len(batch)} chunk_files")
 
         except Exception as ex:
-            AppLogger.log_error(f"Failed to update timestamps for {len(chunk_hashes)} chunk_files, error: {ex}")
+            AppLogger.log_error(f"❌ Failed to update timestamps for {len(chunk_hashes)} chunk_files, error: {ex}")
             raise
 
     async def update_embedding(self, chunk: ChunkInfo) -> None:

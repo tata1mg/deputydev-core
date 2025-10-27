@@ -124,39 +124,44 @@ class ChunkFilesService(BaseWeaviateRepository):
 
     async def update_timestamps(
         self,
-        chunk_hashes: List[str],
+        chunk_file_keys: List[str],
         updated_at: datetime,
         created_at: Optional[datetime] = None,
     ) -> None:
         """
-        Efficiently update timestamps for chunk files without re-inserting full objects.
+        Efficiently update timestamps for chunk_files without re-inserting full objects.
+        Uses Weaviate's partial object patch API with concurrency limits for stability.
         """
         await self.ensure_collection_connections()
+
+        ts_updates = {"updated_at": updated_at.isoformat()}
+        if created_at is not None:
+            ts_updates["created_at"] = created_at.isoformat()
+
         BATCH_SIZE = 500  # noqa: N806
+        MAX_CONCURRENCY = 50  # prevents PoolTimeout in httpcore  # noqa: N806
+        sem = asyncio.Semaphore(MAX_CONCURRENCY)
+
+        async def safe_update(key: str) -> None:
+            """Update a single chunk_file safely with concurrency control."""
+            async with sem:
+                try:
+                    await self.async_collection.data.update(
+                        uuid=generate_uuid5(key),
+                        properties=ts_updates,
+                    )
+                except Exception as e:  # noqa: BLE001
+                    AppLogger.log_warn(f"⚠️ Failed to patch chunk_file {key}: {e}")
 
         try:
-            ts_updates = {"updated_at": updated_at.isoformat()}
-            if created_at:
-                ts_updates["created_at"] = created_at.isoformat()
-
-            for i in range(0, len(chunk_hashes), BATCH_SIZE):
-                batch = chunk_hashes[i : i + BATCH_SIZE]
-
-                # Using Weaviate's partial object patch API
-                await asyncio.gather(
-                    *[
-                        self.async_collection.data.update(
-                            uuid=generate_uuid5(chunk_hash),
-                            properties=ts_updates,
-                        )
-                        for chunk_hash in batch
-                    ]
-                )
-
-                AppLogger.log_debug(f"Updated timestamps for {len(batch)} chunk_files")
+            total = len(chunk_file_keys)
+            for i in range(0, total, BATCH_SIZE):
+                batch = chunk_file_keys[i : i + BATCH_SIZE]
+                await asyncio.gather(*(safe_update(k) for k in batch))
+                AppLogger.log_debug(f"✅ Patched timestamps for {len(batch)} chunk_files ({i + len(batch)}/{total})")
 
         except Exception as ex:
-            AppLogger.log_error(f"Failed to update timestamps for {len(chunk_hashes)} chunk_files, error: {ex}")
+            AppLogger.log_error(f"❌ Failed to update timestamps for {len(chunk_file_keys)} chunk_files, error: {ex}")
             raise
 
     async def bulk_insert(self, chunks: List[ChunkFileDTO]) -> None:

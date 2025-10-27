@@ -226,25 +226,48 @@ class ChunkVectorStoreManager:
         :param chunk_refresh_config: RefreshConfig
         :return: None
         """
+        import time
+
         if not chunk_refresh_config:
             return
         ts = chunk_refresh_config.refresh_timestamp
 
-        # Collect all chunk_hashes once
+        # ✅ Prepare correct identifiers for each service
         chunk_hashes: List[str] = []
+        chunk_file_keys: List[str] = []
+
         for chunks in file_wise_chunks.values():
             for ch in chunks:
-                if ch and hasattr(ch, "source_details"):
-                    chunk_hashes.append(ch.content_hash)
+                if not ch or not hasattr(ch, "source_details"):
+                    continue
 
-        async def _do_patch() -> None:
-            # metadata-only patch, no reinsert
+                # For ChunkService (uses chunk_hash)
+                chunk_hashes.append(ch.content_hash)
+
+                # For ChunkFilesService (uses composite key)
+                file_path = ch.source_details.file_path
+                file_hash = ch.source_details.file_hash or ""
+                start = ch.source_details.start_line
+                end = ch.source_details.end_line
+                chunk_file_keys.append(f"{file_path}{file_hash}{start}{end}")
+
+        async def _do_patch(
+            chunk_hashes: List[str] = chunk_hashes, chunk_file_keys: List[str] = chunk_file_keys
+        ) -> None:
+            start = time.perf_counter()
             await asyncio.gather(
                 ChunkService(self.weaviate_client).update_timestamps(chunk_hashes, updated_at=ts, created_at=ts),
-                ChunkFilesService(self.weaviate_client).update_timestamps(chunk_hashes, updated_at=ts, created_at=ts),
+                ChunkFilesService(self.weaviate_client).update_timestamps(
+                    chunk_file_keys, updated_at=ts, created_at=ts
+                ),
+            )
+            end = time.perf_counter()
+            AppLogger.log_info(
+                f"timestamp updated for {len(chunk_hashes)} chunks and {len(chunk_file_keys)} chunk files in {end - start:.2f} seconds"
             )
 
-        task = asyncio.create_task(_do_patch())
+        # Run in background or wait depending on config
+        task = asyncio.create_task(_do_patch(chunk_hashes, chunk_file_keys))
         if chunk_refresh_config.async_refresh:
             return
         await task
