@@ -145,7 +145,7 @@ class RelevantChunks:
         self, payload: FocusChunksParams, initialization_manager: InitializationManager
     ) -> List[Dict[str, Any]]:
         repo_path = payload.repo_path
-        local_repo = LocalRepoFactory.get_local_repo(repo_path, ripgrep_path=self.ripgrep_path)
+        local_repo = LocalRepoFactory.get_local_repo(repo_path, ripgrep_path=self.ripgrep_path)  # todo: remove
         chunkable_files_and_hashes = await local_repo.get_chunkable_files_and_commit_hashes()
 
         weaviate_client = await get_weaviate_client(initialization_manager)
