@@ -1,7 +1,7 @@
 import copy
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
 from deputydev_core.services.chunking.chunker.base_chunker import BaseChunker
@@ -252,7 +252,6 @@ class ChunkingManger:
         query: str,
         related_chunks: List[ChunkInfo],
         reranker: Optional[BaseChunkReranker] = None,
-        one_dev_client: Optional[Any] = None,
         focus_chunks_details: List[ChunkInfo] = [],
         auth_token_key: Optional[str] = None,
     ) -> List[ChunkInfo]:
