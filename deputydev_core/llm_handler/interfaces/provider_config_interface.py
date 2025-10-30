@@ -13,7 +13,6 @@ class ProviderConfigInterface(ABC):
     def get_anthropic_config(self) -> Optional[Dict[str, Any]]:
         pass
 
-    @abstractmethod
     def get_gemini_config(self) -> Optional[Dict[str, Any]]:
         pass
 

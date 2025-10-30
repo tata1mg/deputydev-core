@@ -31,7 +31,6 @@ from deputydev_core.llm_handler.interfaces.caches_interface import SessionCacheI
 from deputydev_core.llm_handler.interfaces.cancellation_interface import CancellationCheckerInterface
 from deputydev_core.llm_handler.interfaces.config_interface import ConfigInterface
 from deputydev_core.llm_handler.interfaces.repositories_interface import (
-    ChatAttachmentsRepositoryInterface,
     MessageThreadsRepositoryInterface,
 )
 from deputydev_core.llm_handler.models.dto.message_thread_dto import (
@@ -75,15 +74,13 @@ class LLMHandler(Generic[PromptFeatures]):
         prompt_factory: Type[BasePromptFeatureFactory[PromptFeatures]],
         prompt_features: Type[PromptFeatures],
         message_threads_repo: MessageThreadsRepositoryInterface,
-        chat_attachments_repo: ChatAttachmentsRepositoryInterface,
-        session_cache: SessionCacheInterface,
         config: ConfigInterface,
+        session_cache: Optional[SessionCacheInterface] = None,
         cache_config: PromptCacheConfig = PromptCacheConfig(tools=False, system_message=False, conversation=False),
     ) -> None:
         self.prompt_handler_map = prompt_factory
         self.prompt_features = prompt_features
         self.message_threads_repo = message_threads_repo
-        self.chat_attachments_repo = chat_attachments_repo
         self.session_cache = session_cache
         self.config = config
         self.cache_config = cache_config
@@ -106,6 +103,9 @@ class LLMHandler(Generic[PromptFeatures]):
                 checker=checker, config=self.config.get_anthropic_config()
             ),
             LLModels.CLAUDE_4_SONNET_THINKING: lambda checker: Anthropic(
+                checker=checker, config=self.config.get_anthropic_config()
+            ),
+            LLModels.CLAUDE_4_POINT_5_SONNET: lambda checker: Anthropic(
                 checker=checker, config=self.config.get_anthropic_config()
             ),
             LLModels.GPT_4O: lambda checker: OpenAI(checker=checker, config=self.config.get_openai_config()),
@@ -715,7 +715,7 @@ class LLMHandler(Generic[PromptFeatures]):
             call_chain_category=call_chain_category,
             metadata=metadata,
         )
-        if save_to_redis:
+        if save_to_redis and self.session_cache:
             await self.session_cache.set_session_query_id(prompt_thread.session_id, prompt_thread.id)
         return await self.fetch_and_parse_llm_response(
             client=client,

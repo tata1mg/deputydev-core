@@ -100,18 +100,18 @@ class ChunkService(BaseWeaviateRepository):
                 uuid = generate_uuid5(chunk.dto.chunk_hash)
 
                 # Only include vector if it’s non-empty and valid
-                if chunk.vector and len(chunk.vector) > 0:
-                    _batch.add_object(
-                        properties=properties,
-                        vector=chunk.vector,
-                        uuid=uuid,
-                    )
-                else:
-                    # Insert without vector
-                    _batch.add_object(
-                        properties=properties,
-                        uuid=uuid,
-                    )
+                # if chunk.vector and len(chunk.vector) > 0:
+                #     _batch.add_object(
+                #         properties=properties,  # noqa: ERA001
+                #         vector=chunk.vector,  # noqa: ERA001
+                #         uuid=uuid,  # noqa: ERA001
+                #     )  # noqa: ERA001
+                # else:  # noqa: ERA001
+                # Insert without vector
+                _batch.add_object(
+                    properties=properties,
+                    uuid=uuid,
+                )
 
     async def cleanup_old_chunks(self, last_used_lt: datetime, exclusion_chunk_hashes: List[str]) -> None:
         await self.ensure_collection_connections()

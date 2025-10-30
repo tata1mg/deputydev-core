@@ -25,7 +25,6 @@ from deputydev_core.services.repo.local_repo.base_local_repo_service import (
 from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
-from deputydev_core.utils.app_logger import AppLogger
 
 
 class VectorDBChunker(BaseChunker):
@@ -39,7 +38,7 @@ class VectorDBChunker(BaseChunker):
         use_new_chunking: bool = True,
         use_async_refresh: bool = False,
         fetch_with_vector: bool = False,
-    ):
+    ) -> None:
         """
         Initializes the VectorDBChunker class.
         Args:
@@ -158,7 +157,7 @@ class VectorDBChunker(BaseChunker):
             all_file_wise_chunks.update(file_wise_chunks_for_batch)
         return all_file_wise_chunks
 
-    async def create_chunks_and_docs(self, enable_refresh=False) -> List[ChunkInfo]:
+    async def create_chunks_and_docs(self, enable_refresh: Optional[bool] = False) -> List[ChunkInfo]:
         """
         Converts the content of a list of files into chunks of code.
         Returns:
@@ -199,15 +198,15 @@ class VectorDBChunker(BaseChunker):
             for file, file_hash in file_path_commit_hash_map.items()
             if file not in existing_file_wise_chunks.keys()
         }
-        count = 0
-        # Handle missing embeddings
-        for file, chunks in existing_file_wise_chunks.items():
-            if file in file_path_commit_hash_map:
-                for chunk in chunks:
-                    if not chunk.embedding:
-                        count += 1
-                        files_to_chunk[file] = file_path_commit_hash_map[file]
-        AppLogger.log_info(f"Missing chunks which do not have embedding: {count}")
+        # count = 0  # noqa: ERA001
+        # # Handle missing embeddings
+        # for file, chunks in existing_file_wise_chunks.items():
+        #     if file in file_path_commit_hash_map:
+        #         for chunk in chunks:
+        #             if not chunk.embedding:
+        #                 count += 1  # noqa: ERA001
+        #                 files_to_chunk[file] = file_path_commit_hash_map[file]  # noqa: ERA001
+        # AppLogger.log_info(f"Missing chunks which do not have embedding: {count}")  # noqa: ERA001
         # batchify the files for insertion
         batchified_files_for_insertion = self.batchify_files_for_insertion(
             files_to_chunk=files_to_chunk,
