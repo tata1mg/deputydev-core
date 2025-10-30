@@ -1,7 +1,7 @@
 import copy
-import os
 from concurrent.futures import ProcessPoolExecutor
-from typing import Dict, List, Optional, Tuple
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
 from deputydev_core.services.chunking.chunker.base_chunker import BaseChunker
@@ -23,7 +23,7 @@ from deputydev_core.utils.file_utils import read_file
 
 class ChunkingManger:
     @classmethod
-    def build_focus_query(cls, user_query: str, custom_context_code_chunks: List[ChunkInfo]):
+    def build_focus_query(cls, user_query: str, custom_context_code_chunks: List[ChunkInfo]) -> str:
         if not custom_context_code_chunks:
             return user_query
 
@@ -46,7 +46,7 @@ class ChunkingManger:
         search_type: SearchTypes = SearchTypes.VECTOR_DB_BASED,
         weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None,
         chunking_handler: Optional[BaseChunker] = None,
-    ):
+    ) -> List[ChunkInfo]:
         filtered_files = {
             file_path: chunkable_files_with_hashes[file_path]
             for file_path in focus_file_paths
@@ -74,7 +74,7 @@ class ChunkingManger:
         for focus_code_chunk in focus_code_chunks:
             filepath, lines = focus_code_chunk.split(":")
             lines = lines.split("-")
-            abs_filepath = os.path.join(local_repo.repo_path, filepath)
+            abs_filepath = Path(local_repo.repo_path) / filepath
             file_content = read_file(abs_filepath)
             custom_context_chunks.append(
                 ChunkInfo(
@@ -94,8 +94,8 @@ class ChunkingManger:
         cls,
         query: str,
         local_repo: BaseLocalRepo,
-        custom_context_files: List[str],
-        custom_context_code_chunks: List[str],
+        custom_context_files: Optional[List[str]],
+        custom_context_code_chunks: Optional[List[str]],
         chunkable_files_with_hashes: Dict[str, str],
         embedding_manager: BaseEmbeddingManager,
         process_executor: ProcessPoolExecutor,
@@ -167,9 +167,9 @@ class ChunkingManger:
         embedding_manager: BaseEmbeddingManager,
         process_executor: ProcessPoolExecutor,
         max_chunks_to_return: int,
-        focus_files: List[str] = [],
-        focus_chunks: List[str] = [],
-        focus_directories: List[str] = [],
+        focus_files: Optional[List[str]] = None,
+        focus_chunks: Optional[List[str]] = None,
+        focus_directories: Optional[List[str]] = None,
         query_vector: Optional[List[float]] = None,
         only_focus_code_chunks: bool = False,
         search_type: SearchTypes = SearchTypes.VECTOR_DB_BASED,
@@ -180,15 +180,15 @@ class ChunkingManger:
     ) -> Tuple[list[ChunkInfo], int, list[ChunkInfo]]:
         # Get all chunks from the repository
         focus_chunks_details = await cls.get_focus_chunk(
-            query,
-            local_repo,
-            focus_files,
-            focus_chunks,
-            chunkable_files_with_hashes,
-            embedding_manager,
-            process_executor,
-            max_chunks_to_return,
-            query_vector,
+            query=query,
+            local_repo=local_repo,
+            custom_context_files=focus_files,
+            custom_context_code_chunks=focus_chunks,
+            chunkable_files_with_hashes=chunkable_files_with_hashes,
+            embedding_manager=embedding_manager,
+            process_executor=process_executor,
+            max_chunks_to_return=max_chunks_to_return,
+            query_vector=query_vector,
             search_type=search_type,
             weaviate_client=weaviate_client,
             chunking_handler=chunking_handler,
@@ -225,7 +225,9 @@ class ChunkingManger:
         return reranked_chunks, input_tokens, focus_chunks_details
 
     @classmethod
-    def get_focus_files_from_focus_directories(cls, chunkable_files_with_hashes, focus_directories):
+    def get_focus_files_from_focus_directories(
+        cls, chunkable_files_with_hashes: Dict[str, str], focus_directories: List[str]
+    ) -> List[str]:
         focus_files = set()
 
         for directory in focus_directories:
@@ -236,14 +238,24 @@ class ChunkingManger:
         return list(focus_files)
 
     @classmethod
-    def exclude_focused_chunks(cls, related_chunk, focus_chunks_details):
+    def exclude_focused_chunks(
+        cls, related_chunk: List[ChunkInfo], focus_chunks_details: List[ChunkInfo]
+    ) -> List[ChunkInfo]:
         related_chunk = [
             chunk for chunk in related_chunk if chunk.content not in [chunk.content for chunk in focus_chunks_details]
         ]
         return related_chunk
 
     @classmethod
-    async def rerank_related_chunks(cls, query, related_chunks, reranker, focus_chunks_details, auth_token_key):
+    async def rerank_related_chunks(
+        cls,
+        query: str,
+        related_chunks: List[ChunkInfo],
+        reranker: Optional[BaseChunkReranker] = None,
+        one_dev_client: Optional[Any] = None,
+        focus_chunks_details: List[ChunkInfo] = [],
+        auth_token_key: Optional[str] = None,
+    ) -> List[ChunkInfo]:
         related_chunks = cls.exclude_focused_chunks(related_chunks, focus_chunks_details)
         if reranker:
             related_chunks = await reranker.rerank(focus_chunks_details, related_chunks, query, auth_token_key)

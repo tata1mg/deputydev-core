@@ -23,6 +23,7 @@ from deputydev_core.services.repository.chunk_service import ChunkService
 from deputydev_core.services.repository.dataclasses.main import (
     WeaviateSyncAndAsyncClients,
 )
+from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.custom_progress_bar import CustomProgressBar
 from deputydev_core.utils.file_indexing_monitor import FileIndexingMonitor
 
@@ -103,7 +104,7 @@ class OneDevExtensionChunker(VectorDBChunker):
             self.indexing_progress_bar.initialise(total_files_to_process=total_files_to_process)
         if self.embedding_progress_bar:
             self.embedding_progress_bar.initialise(total_files_to_process=total_files_to_process)
-        # embedding_tasks = []  # noqa: ERA001
+        embedding_tasks = []
         for index, batch_files in enumerate(batched_files_to_store):
             if self.indexing_progress_bar:
                 self.indexing_progress_bar.set_current_batch_percentage(len(batch_files))
@@ -121,25 +122,23 @@ class OneDevExtensionChunker(VectorDBChunker):
                 custom_create_timestamp=custom_timestamp,
                 custom_update_timestamp=custom_timestamp,
             )
-            # if not embedding_tasks:
-            #     AppLogger.log_info(f"Embedding starts for {self.local_repo.repo_path}")  # noqa: ERA001
-            # embedding_task = asyncio.create_task(self.update_embeddings(file_wise_chunks_for_batch))  # noqa: ERA001
-            # embedding_tasks.append(embedding_task)  # noqa: ERA001
+            if not embedding_tasks:
+                AppLogger.log_info(f"Embedding starts for {self.local_repo.repo_path}")
+            embedding_task = asyncio.create_task(self.update_embeddings(file_wise_chunks_for_batch))
+            embedding_tasks.append(embedding_task)
 
             # remove the embeddings if not required
-            # if not self.fetch_with_vector:
-            #     # remove the embeddings from the chunks
-            #     for chunks in file_wise_chunks_for_batch.values():
-            #         for chunk in chunks:
-            #             chunk.embedding = None  # noqa: ERA001
+            if not self.fetch_with_vector:
+                # remove the embeddings from the chunks
+                for chunks in file_wise_chunks_for_batch.values():
+                    for chunk in chunks:
+                        chunk.embedding = None
 
             # merge the chunks
             all_file_wise_chunks.update(file_wise_chunks_for_batch)
         if self.indexing_progress_bar:
             self.indexing_progress_bar.mark_finish()
-        # asyncio.create_task(self._monitor_embedding_tasks(embedding_tasks, self.embedding_progress_bar))  # noqa: ERA001
-        if self.embedding_progress_bar:
-            self.embedding_progress_bar.mark_finish()
+        asyncio.create_task(self._monitor_embedding_tasks(embedding_tasks, self.embedding_progress_bar))
         return all_file_wise_chunks
 
     async def _monitor_embedding_tasks(self, tasks, embedding_progress_bar: Optional[CustomProgressBar]):  # noqa: ANN001, ANN202

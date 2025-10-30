@@ -1,7 +1,6 @@
 from typing import Any, List, Optional, Tuple
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
-from deputydev_core.services.chunking.chunking_manager import ChunkingManger
 from deputydev_core.services.reranker.base_chunk_reranker import BaseChunkReranker
 from deputydev_core.utils.chunk_utils import filter_chunks_by_denotation, jsonify_chunks
 from deputydev_core.utils.config_manager import ConfigManager
@@ -15,46 +14,40 @@ class RerankerService(BaseChunkReranker):
 
     async def rerank(
         self,
-        focus_chunks: List[ChunkInfo],
-        relevant_chunks: List[ChunkInfo],
         query: str,
+        relevant_chunks: List[ChunkInfo],
         is_llm_reranking_enabled: bool,
-        one_dev_client: Optional[Any] = None,
-        auth_token_key: str = None,
+        one_dev_client: Any,
+        auth_token_key: str,
+        focus_chunks: Optional[List[ChunkInfo]] = None,
     ) -> Tuple[List[ChunkInfo], Optional[int]]:
-        relevant_chunks = ChunkingManger.exclude_focused_chunks(relevant_chunks, focus_chunks)
-        if is_llm_reranking_enabled:
-            payload = {
-                "query": query,
-                "relevant_chunks": jsonify_chunks(relevant_chunks),
-                "focus_chunks": jsonify_chunks(focus_chunks),
-            }
-            headers = {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {ContextValue.get(auth_token_key)}",
-            }
-            if self.session_id:
-                headers["X-Session-Id"] = str(self.session_id)
+        payload = {
+            "query": query,
+            "relevant_chunks": jsonify_chunks(relevant_chunks),
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {ContextValue.get(auth_token_key)}",
+        }
+        if self.session_id:
+            headers["X-Session-Id"] = str(self.session_id)
 
-            if self.session_type:
-                headers["X-Session-Type"] = self.session_type
-            data = await one_dev_client.llm_reranking(payload, headers=headers)
-            filtered_and_ranked_chunks_denotations = data.get("reranked_denotations") if data else None
-            returned_session_id = data["session_id"]
+        if self.session_type:
+            headers["X-Session-Type"] = self.session_type
+        data = await one_dev_client.llm_reranking(payload, headers=headers)
+        filtered_and_ranked_chunks_denotations = data.get("reranked_denotations") if data else None
+        returned_session_id = data["session_id"]
 
-            if not filtered_and_ranked_chunks_denotations:
-                return relevant_chunks + focus_chunks, returned_session_id
+        if not filtered_and_ranked_chunks_denotations:
+            return relevant_chunks, returned_session_id
 
-            return (
-                filter_chunks_by_denotation(
-                    relevant_chunks + focus_chunks,
-                    filtered_and_ranked_chunks_denotations,
-                ),
-                returned_session_id,
-            )
-        else:
-            filtered_and_ranked_chunks = self.get_default_chunks(focus_chunks, relevant_chunks)
-            return filtered_and_ranked_chunks, None
+        return (
+            filter_chunks_by_denotation(
+                relevant_chunks,
+                filtered_and_ranked_chunks_denotations,
+            ),
+            returned_session_id,
+        )
 
     @classmethod
     def get_default_chunks(

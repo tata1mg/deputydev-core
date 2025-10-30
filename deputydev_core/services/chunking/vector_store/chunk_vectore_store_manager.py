@@ -65,7 +65,7 @@ class ChunkVectorStoreManager:
                             created_at=(custom_create_timestamp if custom_create_timestamp else now_time),
                             updated_at=(custom_update_timestamp if custom_update_timestamp else now_time),
                         ),
-                        vector=[],
+                        vector=chunk.embedding if chunk.embedding else [],
                     ),
                 )
                 all_chunk_files_to_store.append(
@@ -203,6 +203,7 @@ class ChunkVectorStoreManager:
                         start_line=chunk_file_chunk[0].start_line,
                         end_line=chunk_file_chunk[0].end_line,
                     ),
+                    embedding=chunk_file_chunk[2],
                     metadata=chunk_file_chunk[0].meta_info,
                 )
                 for chunk_file_chunk in chunk_files_chunks_and_vectors
