@@ -214,6 +214,8 @@ class Anthropic(BaseLLMProvider):
                         "input": turn_content.tool_input,
                     }
                 )
+        if conversation_turn.cache_breakpoint:
+            contents[-1]["cache_control"] = {"type": "ephemeral"}
         return ConversationTurn(role=ConversationRole.ASSISTANT, content=contents)
 
     def _get_anthropic_conversation_turn_from_tool_conversation_turn(
