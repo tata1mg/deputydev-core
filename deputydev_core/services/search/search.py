@@ -53,3 +53,23 @@ async def perform_search(
         )
 
     return sorted_chunks, input_tokens
+
+
+async def perform_semantic_search(
+    query: str,
+    whitelisted_file_commits: Dict[str, str],
+    max_chunks_to_return: int,
+    query_vector: List[float],
+    weaviate_client: WeaviateSyncAndAsyncClients,
+) -> List[ChunkInfo]:
+    sorted_chunks: List[ChunkInfo] = []
+    sorted_chunks, _ = await VectorDBBasedSearch.perform_search(
+        whitelisted_file_commits=whitelisted_file_commits,
+        query=query,
+        query_vector=query_vector,
+        weaviate_client=weaviate_client,
+        max_chunks_to_return=max_chunks_to_return,
+        include_import_only_chunks=False,
+    )
+
+    return sorted_chunks

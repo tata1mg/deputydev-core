@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo
 
@@ -8,10 +8,12 @@ class BaseChunkReranker(ABC):
     @abstractmethod
     async def rerank(
         self,
-        focus_chunks: List[ChunkInfo],
-        relevant_chunks: List[ChunkInfo],
         query: str,
-        is_llm_reranking_enabled: bool,
+        relevant_chunks: List[ChunkInfo],
+        focus_chunks: Optional[List[ChunkInfo]] = None,
+        is_llm_reranking_enabled: bool = False,
+        one_dev_client: Optional[Any] = None,
+        auth_token_key: Optional[str] = None,
     ) -> Tuple[List[ChunkInfo], Optional[int]]:
         """
         Reranks the focus chunks based on the related codebase chunks.
