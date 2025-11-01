@@ -39,7 +39,7 @@ class VectorDBChunker(BaseChunker):
         use_new_chunking: bool = True,
         use_async_refresh: bool = False,
         fetch_with_vector: bool = False,
-    ):
+    ) -> None:
         """
         Initializes the VectorDBChunker class.
         Args:
@@ -158,7 +158,7 @@ class VectorDBChunker(BaseChunker):
             all_file_wise_chunks.update(file_wise_chunks_for_batch)
         return all_file_wise_chunks
 
-    async def create_chunks_and_docs(self, enable_refresh=False) -> List[ChunkInfo]:
+    async def create_chunks_and_docs(self, enable_refresh: Optional[bool] = False) -> List[ChunkInfo]:
         """
         Converts the content of a list of files into chunks of code.
         Returns:
