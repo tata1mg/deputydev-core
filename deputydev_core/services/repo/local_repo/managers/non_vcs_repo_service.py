@@ -71,3 +71,25 @@ class NonVCSRepo(BaseLocalRepo):
         for file in file_list:
             file_hashes[file] = self._get_file_hash(file)
         return file_hashes
+
+    async def get_chunkable_files_and_commit_hashes_from_list(self, files: List[str]) -> Dict[str, str]:
+        """
+        Given a list of relative file paths, filter them to only include chunkable files,
+        and return a dict mapping each chunkable file to its hash.
+        """
+        # Ensure posix-style paths
+        rel_files = [Path(f).as_posix() for f in files if f]
+
+        # Filter to only chunkable files
+        chunkable_files = [f for f in rel_files if self._is_file_chunkable(f)]
+
+        # If a specific subset of chunkable_files is pre-specified, intersect
+        if self.chunkable_files:
+            chunkable_files = list(set(chunkable_files) & set(self.chunkable_files))
+
+        # Build file-hash mapping
+        file_hashes: Dict[str, str] = {}
+        for file in chunkable_files:
+            file_hashes[file] = self._get_file_hash(file)
+
+        return file_hashes
