@@ -8,12 +8,12 @@ from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepo
 from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
 from deputydev_core.services.repository.chunk_service import ChunkService
 from deputydev_core.services.tools.focussed_snippet_search.dataclass.main import (
+    AutoCompleteSearchParams,
     ChunkDetails,
     ChunkInfoAndHash,
     CodeSnippetDetails,
     DirectoryStructureParams,
     FocusChunksParams,
-    FocusChunksParams2,
 )
 from deputydev_core.services.tools.iterative_file_reader.iterative_file_reader import IterativeFileReader
 from deputydev_core.utils.app_logger import AppLogger
@@ -223,7 +223,7 @@ class RelevantChunks:
 
         return [chunk_info.model_dump(mode="json") for chunk_info in updated_chunk_info_list]
 
-    async def get_focus_chunks2(self, payload: FocusChunksParams2) -> ChunkInfo:
+    async def get_autocomplete_search_chunks(self, payload: AutoCompleteSearchParams) -> ChunkInfo:
         file_reader = IterativeFileReader(
             file_path=payload.search_item_path,
             repo_path=payload.repo_path,

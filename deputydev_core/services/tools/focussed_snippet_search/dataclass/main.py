@@ -47,7 +47,7 @@ class FocusChunksParams(BaseModel):
     chunks: List[ChunkDetails | CodeSnippetDetails]
 
 
-class FocusChunksParams2(BaseModel):
+class AutoCompleteSearchParams(BaseModel):
     repo_path: str
     search_item_name: str
     search_item_type: str
