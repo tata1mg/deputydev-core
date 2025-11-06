@@ -1,12 +1,18 @@
 import os
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from deputydev_core.services.chunking.chunk_info import ChunkInfo, ChunkSourceDetails
+from deputydev_core.services.chunking.chunking_manager import ChunkingManger
+from deputydev_core.services.embedding.base_embedding_manager import BaseEmbeddingManager
 from deputydev_core.services.initialization.initialization_service import InitializationManager
 from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepoFactory
 from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
 from deputydev_core.services.repository.chunk_service import ChunkService
+from deputydev_core.services.reranker.handlers.llm_reranker import RerankerService
+from deputydev_core.services.search.dataclasses.main import SearchTypes
+from deputydev_core.services.shared_chunks.shared_chunks_manager import SharedChunksManager
 from deputydev_core.services.tools.focussed_snippet_search.dataclass.main import (
     AutoCompleteSearchParams,
     ChunkDetails,
@@ -16,7 +22,10 @@ from deputydev_core.services.tools.focussed_snippet_search.dataclass.main import
     FocusChunksParams,
 )
 from deputydev_core.services.tools.iterative_file_reader.iterative_file_reader import IterativeFileReader
+from deputydev_core.services.tools.relevant_chunks.dataclass.main import RelevantChunksParams
 from deputydev_core.utils.app_logger import AppLogger
+from deputydev_core.utils.chunk_utils import jsonify_chunks
+from deputydev_core.utils.config_manager import ConfigManager
 from deputydev_core.utils.weaviate import (
     get_weaviate_client,
 )
@@ -26,6 +35,64 @@ class RelevantChunks:
     def __init__(self, repo_path: str, ripgrep_path: Optional[str]) -> None:
         self.repo_path = Path(repo_path)
         self.ripgrep_path = ripgrep_path
+
+    async def get_relevant_chunks(
+        self,
+        payload: RelevantChunksParams,
+        one_dev_client,  # noqa: ANN001
+        embedding_manager: BaseEmbeddingManager,
+        initialization_manager: InitializationManager,
+        process_executor: ProcessPoolExecutor,
+        auth_token_key: str,
+    ) -> Dict[str, Any]:
+        repo_path = payload.repo_path
+        query = payload.query
+        local_repo = LocalRepoFactory.get_local_repo(repo_path, ripgrep_path=self.ripgrep_path)
+        query_vector = await embedding_manager.embed_text_array(texts=[query], store_embeddings=False)
+        chunkable_files_and_hashes = await local_repo.get_chunkable_files_and_commit_hashes()
+        await SharedChunksManager.update_chunks(repo_path, chunkable_files_and_hashes)
+        weaviate_client = initialization_manager.weaviate_client
+
+        if not weaviate_client:
+            weaviate_client = await get_weaviate_client(initialization_manager)
+
+        if payload.perform_chunking and ConfigManager.configs["RELEVANT_CHUNKS"]["CHUNKING_ENABLED"]:
+            await initialization_manager.prefill_vector_store(chunkable_files_and_hashes)
+        max_relevant_chunks = ConfigManager.configs["CHUNKING"]["NUMBER_OF_CHUNKS"]
+        (
+            relevant_chunks,
+            input_tokens,
+            focus_chunks_details,
+        ) = await ChunkingManger.get_relevant_chunks(
+            query=query,
+            local_repo=local_repo,
+            embedding_manager=embedding_manager,
+            process_executor=process_executor,
+            max_chunks_to_return=max_relevant_chunks,
+            focus_files=payload.focus_files,
+            focus_chunks=payload.focus_chunks,
+            focus_directories=payload.focus_directories,
+            weaviate_client=weaviate_client,
+            chunkable_files_with_hashes=chunkable_files_and_hashes,
+            query_vector=query_vector[0][0],
+            search_type=SearchTypes.VECTOR_DB_BASED,
+            auth_token_key=auth_token_key,
+        )
+        reranked_chunks_data = await RerankerService(
+            session_id=payload.session_id, session_type=payload.session_type
+        ).rerank(
+            query=query,
+            relevant_chunks=relevant_chunks,
+            is_llm_reranking_enabled=ConfigManager.configs["CHUNKING"]["IS_LLM_RERANKING_ENABLED"],
+            focus_chunks=focus_chunks_details,
+            one_dev_client=one_dev_client,
+            auth_token_key=auth_token_key,
+        )
+
+        return {
+            "relevant_chunks": jsonify_chunks(reranked_chunks_data[0]),
+            "session_id": reranked_chunks_data[1],
+        }
 
     def get_file_chunk(self, file_path: str, start_line: int, end_line: int) -> str:
         abs_file_path = Path(self.repo_path) / file_path
