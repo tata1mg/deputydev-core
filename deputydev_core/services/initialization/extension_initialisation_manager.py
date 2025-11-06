@@ -77,7 +77,7 @@ class ExtensionInitialisationManager(InitializationManager):
             embedding_progress_bar=embedding_progressbar,
             chunkable_files_and_hashes=chunkable_files_and_hashes,
             file_indexing_progress_monitor=file_indexing_progress_monitor,
-        ).create_chunks_and_docs(enable_refresh=enable_refresh)
+        ).create_chunks_and_docs(chunkable_files_and_hashes, enable_refresh=enable_refresh)
 
         if enable_refresh:
             self.process_chunks_cleanup(all_chunks)

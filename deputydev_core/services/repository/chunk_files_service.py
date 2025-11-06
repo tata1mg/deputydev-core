@@ -158,7 +158,6 @@ class ChunkFilesService(BaseWeaviateRepository):
             for i in range(0, total, BATCH_SIZE):
                 batch = chunk_file_keys[i : i + BATCH_SIZE]
                 await asyncio.gather(*(safe_update(k) for k in batch))
-                AppLogger.log_debug(f"✅ Patched timestamps for {len(batch)} chunk_files ({i + len(batch)}/{total})")
 
         except Exception as ex:
             AppLogger.log_error(f"❌ Failed to update timestamps for {len(chunk_file_keys)} chunk_files, error: {ex}")
