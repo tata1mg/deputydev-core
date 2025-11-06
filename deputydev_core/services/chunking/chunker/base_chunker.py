@@ -1,4 +1,3 @@
-import asyncio
 from abc import ABC, abstractmethod
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
@@ -70,21 +69,15 @@ class FileChunkCreator:
 
         file_wise_chunks: Dict[str, List[ChunkInfo]] = {}
 
-        loop = asyncio.get_event_loop()
         for file, file_hash in file_paths_and_hashes.items():
-            chunks_from_file: List[ChunkInfo] = []
-            if process_executor is None:
-                chunks_from_file = FileChunkCreator.create_chunks(file, root_dir, file_hash, use_new_chunking)
-            else:
-                chunks_from_file = await loop.run_in_executor(
-                    process_executor,
-                    FileChunkCreator.create_chunks,
-                    file,
-                    root_dir,
-                    file_hash,
-                    use_new_chunking,
-                    ConfigManager.configs if set_config_in_new_process else None,
-                )
+            chunks_from_file: List[ChunkInfo] = FileChunkCreator.create_chunks(
+                file,
+                root_dir,
+                file_hash,
+                use_new_chunking,
+                ConfigManager.configs if set_config_in_new_process else None,
+            )
+
             if files_indexing_monitor:
                 files_indexing_monitor.update_status({file: {"file_path": file, "status": "COMPLETED"}})
             if progress_bar:

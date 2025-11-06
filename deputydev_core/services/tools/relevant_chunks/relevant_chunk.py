@@ -14,7 +14,7 @@ from deputydev_core.services.reranker.handlers.llm_reranker import RerankerServi
 from deputydev_core.services.search.dataclasses.main import SearchTypes
 from deputydev_core.services.shared_chunks.shared_chunks_manager import SharedChunksManager
 from deputydev_core.services.tools.focussed_snippet_search.dataclass.main import (
-    AutoCompleteSearchParams,
+    AutoCompleteSearchResultParams,
     ChunkDetails,
     ChunkInfoAndHash,
     CodeSnippetDetails,
@@ -290,7 +290,7 @@ class RelevantChunks:
 
         return [chunk_info.model_dump(mode="json") for chunk_info in updated_chunk_info_list]
 
-    async def get_autocomplete_search_chunks(self, payload: AutoCompleteSearchParams) -> ChunkInfo:
+    async def get_autocomplete_search_chunks(self, payload: AutoCompleteSearchResultParams) -> ChunkInfo:
         file_reader = IterativeFileReader(
             file_path=payload.search_item_path,
             repo_path=payload.repo_path,

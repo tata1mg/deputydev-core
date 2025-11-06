@@ -20,7 +20,7 @@ class AppLogger:
 
             app = Sanic.get_app()
             return True if app else False
-        except Exception:
+        except Exception:  # noqa : BLE001
             return False
 
     @classmethod
@@ -65,7 +65,7 @@ class AppLogger:
 
     @classmethod
     def log_warn(cls, message: str) -> None:
-        cls.__get_selected_logger().warn(cls.build_message(message))
+        cls.__get_selected_logger().warning(cls.build_message(message))
 
     @classmethod
     def log_debug(cls, message: str) -> None:
