@@ -60,7 +60,7 @@ class ReviewInitialisationManager(InitializationManager):
             weaviate_client=self.weaviate_client,
             embedding_manager=self.embedding_manager,
             chunkable_files_and_hashes=chunkable_files_and_hashes,
-        ).create_chunks_and_docs(enable_refresh=enable_refresh or False)
+        ).create_chunks_and_docs(chunkable_files_and_hashes, enable_refresh=enable_refresh or False)
 
         if enable_refresh:
             self.process_chunks_cleanup(all_chunks)

@@ -127,6 +127,7 @@ class ChunkVectorStoreManager:
     async def _get_file_wise_stored_chunk_files_chunks_and_vectors(
         self,
         file_path_commit_hash_map: Dict[str, str],
+        with_vector: bool,
     ) -> Dict[str, List[Tuple[ChunkFileDTO, ChunkDTO, List[float]]]]:
         """
         Get the stored chunk files, chunks, and vectors based on the file path and commit hash map.
@@ -140,12 +141,14 @@ class ChunkVectorStoreManager:
         if not chunk_files_in_db:
             return {}
 
-        stored_chunks_and_vectors = await ChunkService(weaviate_client=self.weaviate_client).get_chunks_by_chunk_hashes(
-            chunk_hashes=list({chunk_file.chunk_hash for chunk_file in chunk_files_in_db}),
+        chunk_hashes = list({cf.chunk_hash for cf in chunk_files_in_db})
+        stored = await ChunkService(weaviate_client=self.weaviate_client).get_chunks_by_chunk_hashes(
+            chunk_hashes=chunk_hashes,
+            with_vector=with_vector,
         )
 
         stored_chunks_and_vectors_chunk_dict = {
-            chunk_and_vector[0].chunk_hash: chunk_and_vector for chunk_and_vector in stored_chunks_and_vectors
+            chunk_and_vector[0].chunk_hash: chunk_and_vector for chunk_and_vector in stored
         }
 
         file_wise_stored_chunk_files_and_chunks: Dict[str, List[Tuple[ChunkFileDTO, ChunkDTO, List[float]]]] = {}
@@ -223,22 +226,52 @@ class ChunkVectorStoreManager:
         :param chunk_refresh_config: RefreshConfig
         :return: None
         """
+        import time
+
         if not chunk_refresh_config:
             return
+        ts = chunk_refresh_config.refresh_timestamp
 
-        refresh_task = asyncio.create_task(
-            self.add_differential_chunks_to_store(
-                file_wise_chunks,
-                custom_create_timestamp=chunk_refresh_config.refresh_timestamp,
-                custom_update_timestamp=chunk_refresh_config.refresh_timestamp,
+        # ✅ Prepare correct identifiers for each service
+        chunk_hashes: List[str] = []
+        chunk_file_keys: List[str] = []
+
+        for chunks in file_wise_chunks.values():
+            for ch in chunks:
+                if not ch or not hasattr(ch, "source_details"):
+                    continue
+
+                # For ChunkService (uses chunk_hash)
+                chunk_hashes.append(ch.content_hash)
+
+                # For ChunkFilesService (uses composite key)
+                file_path = ch.source_details.file_path
+                file_hash = ch.source_details.file_hash or ""
+                start = ch.source_details.start_line
+                end = ch.source_details.end_line
+                chunk_file_keys.append(f"{file_path}{file_hash}{start}{end}")
+
+        async def _do_patch(
+            chunk_hashes: List[str] = chunk_hashes, chunk_file_keys: List[str] = chunk_file_keys
+        ) -> None:
+            start = time.perf_counter()
+            await asyncio.gather(
+                ChunkService(self.weaviate_client).update_timestamps(chunk_hashes, updated_at=ts, created_at=ts),
+                ChunkFilesService(self.weaviate_client).update_timestamps(
+                    chunk_file_keys, updated_at=ts, created_at=ts
+                ),
             )
-        )
+            end = time.perf_counter()
+            AppLogger.log_info(
+                f"timestamp updated for {len(chunk_hashes)} chunks and {len(chunk_file_keys)} chunk files in {end - start:.2f} seconds"
+            )
 
+        # Run in background or wait depending on config
+        task = asyncio.create_task(_do_patch(chunk_hashes, chunk_file_keys))
         if chunk_refresh_config.async_refresh:
             return
-
-        await refresh_task
-        return refresh_task
+        await task
+        return task
 
     async def _remove_embeddings_after_refresh(
         self,
@@ -285,6 +318,7 @@ class ChunkVectorStoreManager:
             # get the stored chunk files, chunks, and vectors
             file_wise_chunk_files_chunks_and_vectors = await self._get_file_wise_stored_chunk_files_chunks_and_vectors(
                 dict(batch),
+                with_vector=with_vector,
             )
 
             # filter out invalid files
@@ -294,7 +328,7 @@ class ChunkVectorStoreManager:
 
             # create ChunkInfo objects from the chunk files, chunks, and vectors
             file_wise_chunk_info_objects = self._get_file_wise_chunk_info_objects_from_chunk_files_chunks_and_vectors(
-                valid_file_wise_chunk_files_chunks_and_vectors
+                valid_file_wise_chunk_files_chunks_and_vectors,
             )
             if enable_refresh:
                 # start the refresh process if needed
@@ -313,5 +347,4 @@ class ChunkVectorStoreManager:
 
             # update the final dict
             file_wise_chunks.update(file_wise_chunk_info_objects)
-
         return file_wise_chunks

@@ -141,13 +141,33 @@ class OneDevExtensionChunker(VectorDBChunker):
         asyncio.create_task(self._monitor_embedding_tasks(embedding_tasks, self.embedding_progress_bar))
         return all_file_wise_chunks
 
-    async def _monitor_embedding_tasks(self, tasks, embedding_progress_bar: Optional[CustomProgressBar]):  # noqa: ANN001, ANN202
-        while True:
-            if all(task.done() for task in tasks):
-                embedding_progress_bar.mark_finish()
-                break
-            else:
-                await asyncio.sleep(0.5)
+    async def _monitor_embedding_tasks(
+        self, tasks: List[asyncio.Task], embedding_progress_bar: Optional["CustomProgressBar"]
+    ) -> None:
+        """Monitor embedding tasks, updating progress bar as they complete."""
+
+        if not embedding_progress_bar:
+            # Wait for all tasks to complete without polling
+            await asyncio.gather(*tasks)
+            return
+
+        # Create a done-event to avoid busy waiting
+        done_event = asyncio.Event()
+
+        async def _wait_for_all() -> None:
+            """Wait for all embedding tasks to complete."""
+            await asyncio.gather(*tasks)
+            done_event.set()
+
+        # Start background waiter
+        asyncio.create_task(_wait_for_all())
+
+        # Monitor until done
+        while not done_event.is_set():
+            # Could optionally check progress here
+            await asyncio.wait_for(done_event.wait(), timeout=0.5)
+
+        embedding_progress_bar.mark_finish()
 
     async def add_chunk_embeddings(self, chunks: List[ChunkInfo]) -> None:
         """

@@ -27,7 +27,6 @@ class FocussedSnippetSearchResponse(BaseModel):
 class ChunkDetails(BaseModel):
     start_line: int
     end_line: int
-    chunk_hash: str
     file_path: str
     file_hash: str
     meta_info: Optional[ChunkMetadata] = None
@@ -46,6 +45,14 @@ class FocusChunksParams(BaseModel):
     search_item_type: Optional[str] = None
     search_item_path: Optional[str] = None
     chunks: List[ChunkDetails | CodeSnippetDetails]
+
+
+class AutoCompleteSearchResultParams(BaseModel):
+    repo_path: str
+    search_item_name: str
+    search_item_type: str
+    search_item_path: str
+    chunk: ChunkDetails | None = None
 
 
 class DirectoryStructureParams(BaseModel):

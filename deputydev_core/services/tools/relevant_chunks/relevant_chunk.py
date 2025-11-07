@@ -12,19 +12,17 @@ from deputydev_core.services.repository.chunk_files_service import ChunkFilesSer
 from deputydev_core.services.repository.chunk_service import ChunkService
 from deputydev_core.services.reranker.handlers.llm_reranker import RerankerService
 from deputydev_core.services.search.dataclasses.main import SearchTypes
-from deputydev_core.services.shared_chunks.shared_chunks_manager import (
-    SharedChunksManager,
-)
+from deputydev_core.services.shared_chunks.shared_chunks_manager import SharedChunksManager
 from deputydev_core.services.tools.focussed_snippet_search.dataclass.main import (
+    AutoCompleteSearchResultParams,
     ChunkDetails,
     ChunkInfoAndHash,
     CodeSnippetDetails,
     DirectoryStructureParams,
     FocusChunksParams,
 )
-from deputydev_core.services.tools.relevant_chunks.dataclass.main import (
-    RelevantChunksParams,
-)
+from deputydev_core.services.tools.iterative_file_reader.iterative_file_reader import IterativeFileReader
+from deputydev_core.services.tools.relevant_chunks.dataclass.main import RelevantChunksParams
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.chunk_utils import jsonify_chunks
 from deputydev_core.utils.config_manager import ConfigManager
@@ -146,7 +144,6 @@ class RelevantChunks:
         local_repo = LocalRepoFactory.get_local_repo(repo_path, ripgrep_path=self.ripgrep_path)
         chunkable_files_and_hashes = await local_repo.get_chunkable_files_and_commit_hashes()
 
-        await SharedChunksManager.update_chunks(repo_path, chunkable_files_and_hashes)
         weaviate_client = await get_weaviate_client(initialization_manager)
         if (
             payload.search_item_type != "directory"
@@ -292,6 +289,41 @@ class RelevantChunks:
         )
 
         return [chunk_info.model_dump(mode="json") for chunk_info in updated_chunk_info_list]
+
+    async def get_autocomplete_search_chunks(self, payload: AutoCompleteSearchResultParams) -> ChunkInfo:
+        file_reader = IterativeFileReader(
+            file_path=payload.search_item_path,
+            repo_path=payload.repo_path,
+        )
+        if payload.search_item_type == "file" or payload.chunk is None:
+            file_content = await file_reader.read_lines()
+
+            chunk = ChunkInfo(
+                content=file_content.chunk.content,
+                source_details=ChunkSourceDetails(
+                    file_path=payload.search_item_path,
+                    start_line=file_content.chunk.source_details.start_line,
+                    end_line=file_content.chunk.source_details.end_line,
+                ),
+                has_embedded_lines=file_content.was_summary,
+            )
+            return chunk
+
+        else:
+            file_content = await file_reader.read_lines(
+                start_line=payload.chunk.start_line, end_line=payload.chunk.end_line
+            )
+
+            chunk = ChunkInfo(
+                content=file_content.chunk.content,
+                source_details=ChunkSourceDetails(
+                    file_path=payload.chunk.file_path,
+                    start_line=file_content.chunk.source_details.start_line,
+                    end_line=file_content.chunk.source_details.end_line,
+                ),
+                has_embedded_lines=file_content.was_summary,
+            )
+            return chunk
 
     async def get_directory_structure(self, payload: DirectoryStructureParams) -> List[Dict[str, str]]:
         base_path = self.repo_path / (payload.directory_path or "")

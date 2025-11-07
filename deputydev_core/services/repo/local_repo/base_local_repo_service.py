@@ -57,3 +57,9 @@ class BaseLocalRepo(ABC):
     @abstractmethod
     async def get_chunkable_files(self) -> List[str]:
         raise NotImplementedError("get_chunkable_files method must be implemented in the child class")
+
+    @abstractmethod
+    async def get_chunkable_files_and_commit_hashes_from_list(self, files: List[str]) -> Dict[str, str]:
+        raise NotImplementedError(
+            "get_chunkable_files_and_commit_hashes_from_list method must be implemented in the child class"
+        )

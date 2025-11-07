@@ -1,5 +1,6 @@
+import asyncio
 from datetime import datetime
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from weaviate.classes.query import Filter, MetadataQuery
 from weaviate.util import generate_uuid5
@@ -56,7 +57,9 @@ class ChunkService(BaseWeaviateRepository):
             AppLogger.log_error("Failed to get chunk files by commit hashes")
             raise ex
 
-    async def get_chunks_by_chunk_hashes(self, chunk_hashes: List[str]) -> List[Tuple[ChunkDTO, List[float]]]:
+    async def get_chunks_by_chunk_hashes(
+        self, chunk_hashes: List[str], with_vector: bool = False
+    ) -> List[Tuple[ChunkDTO, List[float]]]:
         batch_size = 1000
         all_chunks: List[Tuple[ChunkDTO, List[float]]] = []
         max_results_per_query = 10000
@@ -69,7 +72,7 @@ class ChunkService(BaseWeaviateRepository):
                     filters=Filter.any_of(
                         [Filter.by_id().equal(generate_uuid5(chunk_hash)) for chunk_hash in batch_hashes]
                     ),
-                    include_vector=True,
+                    include_vector=with_vector,
                     limit=max_results_per_query,
                 )
                 # Break if no more results
@@ -141,6 +144,47 @@ class ChunkService(BaseWeaviateRepository):
                 )
             )
             AppLogger.log_debug(f"chunks deleted. successful - {result.successful}, failed - {result.failed}")
+
+    async def update_timestamps(
+        self,
+        chunk_hashes: List[str],
+        updated_at: datetime,
+        created_at: Optional[datetime] = None,
+    ) -> None:
+        """
+        Efficiently update timestamps for chunk_files without re-inserting full objects.
+        Uses Weaviate's async partial update (PATCH) API with concurrency control.
+        """
+        await self.ensure_collection_connections()
+
+        ts_updates = {"updated_at": updated_at.isoformat()}
+        if created_at is not None:
+            ts_updates["created_at"] = created_at.isoformat()
+
+        BATCH_SIZE = 500  # noqa: N806
+        MAX_CONCURRENCY = 50  # prevent httpcore.PoolTimeout by limiting simultaneous connections  # noqa: N806
+        sem = asyncio.Semaphore(MAX_CONCURRENCY)
+
+        async def safe_update(uuid_key: str) -> None:
+            """Update a single chunk safely with semaphore + error isolation."""
+            async with sem:
+                try:
+                    await self.async_collection.data.update(
+                        uuid=generate_uuid5(uuid_key),
+                        properties=ts_updates,
+                    )
+                except Exception as e:  # noqa: BLE001
+                    # Log but continue other updates
+                    AppLogger.log_warn(f"⚠️ Failed to update chunk_file {uuid_key}: {e}")
+
+        try:
+            for i in range(0, len(chunk_hashes), BATCH_SIZE):
+                batch = chunk_hashes[i : i + BATCH_SIZE]
+                await asyncio.gather(*(safe_update(ch) for ch in batch))
+
+        except Exception as ex:
+            AppLogger.log_error(f"❌ Failed to update timestamps for {len(chunk_hashes)} chunk_files, error: {ex}")
+            raise
 
     async def update_embedding(self, chunk: ChunkInfo) -> None:
         await self.ensure_collection_connections()

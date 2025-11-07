@@ -158,7 +158,9 @@ class VectorDBChunker(BaseChunker):
             all_file_wise_chunks.update(file_wise_chunks_for_batch)
         return all_file_wise_chunks
 
-    async def create_chunks_and_docs(self, enable_refresh: Optional[bool] = False) -> List[ChunkInfo]:
+    async def create_chunks_and_docs(
+        self, chunkable_files_and_hashes: Dict[str, str], enable_refresh: Optional[bool] = False
+    ) -> List[ChunkInfo]:
         """
         Converts the content of a list of files into chunks of code.
         Returns:
@@ -169,15 +171,11 @@ class VectorDBChunker(BaseChunker):
         chunking_timestamp = datetime.now().replace(tzinfo=timezone.utc)
 
         # get all the files and their commit hashes
-        file_path_commit_hash_map = self.chunkable_files_and_hashes
-        if not file_path_commit_hash_map:
-            file_path_commit_hash_map = await self.local_repo.get_chunkable_files_and_commit_hashes()
-
         # get all the chunk_files and chunks stored in the vector store
         existing_file_wise_chunks = await ChunkVectorStoreManager(
             weaviate_client=self.weaviate_client, local_repo=self.local_repo
         ).get_valid_file_wise_stored_chunks(
-            file_path_commit_hash_map,
+            chunkable_files_and_hashes,
             self.fetch_with_vector,
             chunk_refresh_config=RefreshConfig(
                 async_refresh=self.use_async_refresh,
@@ -196,17 +194,17 @@ class VectorDBChunker(BaseChunker):
         # get the files that need to be chunked
         files_to_chunk = {
             file: file_hash
-            for file, file_hash in file_path_commit_hash_map.items()
+            for file, file_hash in chunkable_files_and_hashes.items()
             if file not in existing_file_wise_chunks.keys()
         }
         count = 0
         # Handle missing embeddings
         for file, chunks in existing_file_wise_chunks.items():
-            if file in file_path_commit_hash_map:
+            if file in chunkable_files_and_hashes:
                 for chunk in chunks:
                     if not chunk.embedding:
                         count += 1
-                        files_to_chunk[file] = file_path_commit_hash_map[file]
+                        files_to_chunk[file] = chunkable_files_and_hashes[file]
         AppLogger.log_info(f"Missing chunks which do not have embedding: {count}")
         # batchify the files for insertion
         batchified_files_for_insertion = self.batchify_files_for_insertion(
