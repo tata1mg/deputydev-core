@@ -1,34 +1,33 @@
-from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 from deputydev_core.clients.http.service_clients.one_dev_client import OneDevClient
 from deputydev_core.services.embedding.base_embedding_manager import BaseEmbeddingManager
-from deputydev_core.services.initialization.initialization_service import InitializationManager
 from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepoFactory
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
+)
 from deputydev_core.services.reranker.handlers.llm_reranker import RerankerService
 from deputydev_core.services.search.search import perform_semantic_search
 from deputydev_core.services.tools.semantic_search.dataclass.main import SemanticSearchParams
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.chunk_utils import jsonify_chunks
 from deputydev_core.utils.config_manager import ConfigManager
-from deputydev_core.utils.weaviate import (
-    get_weaviate_client,
-)
 
 
 class SemanticSearch:
-    def __init__(self, repo_path: str, ripgrep_path: Optional[str]) -> None:
+    def __init__(
+        self, repo_path: str, ripgrep_path: Optional[str], weaviate_client: WeaviateSyncAndAsyncClients
+    ) -> None:
         self.repo_path = Path(repo_path)
         self.ripgrep_path = ripgrep_path
+        self.weaviate_client = weaviate_client
 
     async def get_relevant_chunks(
         self,
         params: SemanticSearchParams,
         dev_client: OneDevClient,
         embedding_manager: BaseEmbeddingManager,
-        init_manager: InitializationManager,
-        executor: ProcessPoolExecutor,
         auth_token_key: str,
     ) -> Dict[str, Any]:
         """Retrieve and rerank the most relevant chunks for a given semantic search query."""
@@ -47,11 +46,6 @@ class SemanticSearch:
             or (hasattr(query_vector[0], "size") and query_vector[0].size == 0)
         ):
             raise ValueError("Could not generate embedding vector for the search query.")
-
-        # Ensure we have a valid Weaviate client
-        weaviate_client = init_manager.weaviate_client
-        if not weaviate_client:
-            weaviate_client = await get_weaviate_client(init_manager)
 
         # --- Step 2: Filter files if focus directories are provided ---
         if params.focus_directories:
@@ -75,7 +69,7 @@ class SemanticSearch:
         relevant_chunks = await perform_semantic_search(
             query=params.query,
             max_chunks_to_return=max_chunks,
-            weaviate_client=weaviate_client,
+            weaviate_client=self.weaviate_client,
             whitelisted_file_commits=filtered_files,
             query_vector=query_vector[0][0],
         )

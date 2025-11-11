@@ -10,7 +10,7 @@ from deputydev_core.utils.context_value import ContextValue
 
 
 class BaseOneDevEmbeddingManager(BaseEmbeddingManager):
-    def __init__(self, one_dev_client: OneDevClient, auth_token_key: Optional[str] = None):
+    def __init__(self, one_dev_client: OneDevClient, auth_token_key: Optional[str] = None) -> None:
         self.auth_token_key = auth_token_key
         self.one_dev_client = one_dev_client
 
@@ -50,8 +50,8 @@ class BaseOneDevEmbeddingManager(BaseEmbeddingManager):
             embedding_result = await self.one_dev_client.create_embedding(
                 payload={"texts": batch, "store_embeddings": store_embeddings},
                 headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {ContextValue.get(self.auth_token_key)}",
+                    "content-type": "application/json",
+                    "authorization": f"Bearer {ContextValue.get(self.auth_token_key)}",
                 },
             )
             return (
@@ -59,6 +59,6 @@ class BaseOneDevEmbeddingManager(BaseEmbeddingManager):
                 embedding_result["tokens_used"],
                 batch,
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             AppLogger.log_error(f"Failed to get embeddings for batch: {e}")
             return None, 0, batch
