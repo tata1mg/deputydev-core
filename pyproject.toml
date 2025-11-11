@@ -33,6 +33,7 @@ dependencies = [
     "orjson>=3.11.4",
     "aiosqlite>=0.21.0",
     "cachetools>=6.2.1",
+    "fuzzywuzzy>=0.18.0",
 ]
 
 [dependency-groups]

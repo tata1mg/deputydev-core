@@ -10,6 +10,9 @@ from deputydev_core.services.initialization.initialization_service import Initia
 from deputydev_core.services.repo.local_repo.local_repo_factory import LocalRepoFactory
 from deputydev_core.services.repository.chunk_files_service import ChunkFilesService
 from deputydev_core.services.repository.chunk_service import ChunkService
+from deputydev_core.services.repository.dataclasses.main import (
+    WeaviateSyncAndAsyncClients,
+)
 from deputydev_core.services.reranker.handlers.llm_reranker import RerankerService
 from deputydev_core.services.search.dataclasses.main import SearchTypes
 from deputydev_core.services.shared_chunks.shared_chunks_manager import SharedChunksManager
@@ -26,15 +29,15 @@ from deputydev_core.services.tools.relevant_chunks.dataclass.main import Relevan
 from deputydev_core.utils.app_logger import AppLogger
 from deputydev_core.utils.chunk_utils import jsonify_chunks
 from deputydev_core.utils.config_manager import ConfigManager
-from deputydev_core.utils.weaviate import (
-    get_weaviate_client,
-)
 
 
 class RelevantChunks:
-    def __init__(self, repo_path: str, ripgrep_path: Optional[str]) -> None:
+    def __init__(
+        self, repo_path: str, ripgrep_path: Optional[str], weaviate_client: Optional[WeaviateSyncAndAsyncClients] = None
+    ) -> None:
         self.repo_path = Path(repo_path)
         self.ripgrep_path = ripgrep_path
+        self.weaviate_client = weaviate_client
 
     async def get_relevant_chunks(
         self,
@@ -47,15 +50,12 @@ class RelevantChunks:
     ) -> Dict[str, Any]:
         repo_path = payload.repo_path
         query = payload.query
+        if self.weaviate_client is None:
+            raise ValueError("Weaviate client is not initialized.")
         local_repo = LocalRepoFactory.get_local_repo(repo_path, ripgrep_path=self.ripgrep_path)
         query_vector = await embedding_manager.embed_text_array(texts=[query], store_embeddings=False)
         chunkable_files_and_hashes = await local_repo.get_chunkable_files_and_commit_hashes()
         await SharedChunksManager.update_chunks(repo_path, chunkable_files_and_hashes)
-        weaviate_client = initialization_manager.weaviate_client
-
-        if not weaviate_client:
-            weaviate_client = await get_weaviate_client(initialization_manager)
-
         if payload.perform_chunking and ConfigManager.configs["RELEVANT_CHUNKS"]["CHUNKING_ENABLED"]:
             await initialization_manager.prefill_vector_store(chunkable_files_and_hashes)
         max_relevant_chunks = ConfigManager.configs["CHUNKING"]["NUMBER_OF_CHUNKS"]
@@ -72,7 +72,7 @@ class RelevantChunks:
             focus_files=payload.focus_files,
             focus_chunks=payload.focus_chunks,
             focus_directories=payload.focus_directories,
-            weaviate_client=weaviate_client,
+            weaviate_client=self.weaviate_client,
             chunkable_files_with_hashes=chunkable_files_and_hashes,
             query_vector=query_vector[0][0],
             search_type=SearchTypes.VECTOR_DB_BASED,
@@ -137,14 +137,15 @@ class RelevantChunks:
         """
         return chunk_info_list
 
-    async def get_focus_chunks(
+    async def get_focus_chunks(  # noqa: C901
         self, payload: FocusChunksParams, initialization_manager: InitializationManager
     ) -> List[Dict[str, Any]]:
         repo_path = payload.repo_path
         local_repo = LocalRepoFactory.get_local_repo(repo_path, ripgrep_path=self.ripgrep_path)
         chunkable_files_and_hashes = await local_repo.get_chunkable_files_and_commit_hashes()
+        if self.weaviate_client is None:
+            raise ValueError("Weaviate client is not initialized.")
 
-        weaviate_client = await get_weaviate_client(initialization_manager)
         if (
             payload.search_item_type != "directory"
             and isinstance(payload.chunks[0], ChunkDetails)
@@ -152,7 +153,7 @@ class RelevantChunks:
             and payload.search_item_type
         ):
             revised_relevant_chunks = await ChunkFilesService(
-                weaviate_client=weaviate_client
+                weaviate_client=self.weaviate_client
             ).get_chunk_files_matching_exact_search_key(
                 search_key=(
                     payload.search_item_name
@@ -179,7 +180,7 @@ class RelevantChunks:
                 for chunk_file_obj in revised_relevant_chunks
             ]
 
-        chunks = await ChunkService(weaviate_client=weaviate_client).get_chunks_by_chunk_hashes(
+        chunks = await ChunkService(weaviate_client=self.weaviate_client).get_chunks_by_chunk_hashes(
             chunk_hashes=[chunk.chunk_hash for chunk in payload.chunks if isinstance(chunk, ChunkDetails)]
         )
 
@@ -241,12 +242,12 @@ class RelevantChunks:
             if chunk_info_and_hash.chunk_info.source_details.file_hash
         }
 
-        import_only_chunk_files = await ChunkFilesService(weaviate_client).get_only_import_chunk_files_by_commit_hashes(
-            file_to_commit_hashes=new_file_path_to_hash_map_for_import_only
-        )
+        import_only_chunk_files = await ChunkFilesService(
+            self.weaviate_client
+        ).get_only_import_chunk_files_by_commit_hashes(file_to_commit_hashes=new_file_path_to_hash_map_for_import_only)
         import_only_chunk_hashes = [chunk_file.chunk_hash for chunk_file in import_only_chunk_files]
 
-        import_only_chunk_dtos = await ChunkService(weaviate_client).get_chunks_by_chunk_hashes(
+        import_only_chunk_dtos = await ChunkService(self.weaviate_client).get_chunks_by_chunk_hashes(
             chunk_hashes=import_only_chunk_hashes,
         )
 
