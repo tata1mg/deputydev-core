@@ -12,7 +12,8 @@ class WeaviateSyncAndAsyncClients(BaseModel):
 
     async def is_ready(self) -> bool:
         try:
-            async_ready = self.async_client.is_ready()
+            async_ready = await self.async_client.is_ready()
+            # sync_client.is_ready() is probably synchronous — don’t await
             sync_ready = self.sync_client.is_ready()
             return async_ready and sync_ready
         except Exception:  # noqa: BLE001
