@@ -4,6 +4,13 @@ from typing import Any, Dict
 
 from deputydev_core.utils.context_vars import get_context_value, set_context_values
 
+# --- UTF-8 logging patch ---
+# Ensures stdout uses UTF-8 so emojis and Unicode don't break logging
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:  # noqa: BLE001
+    pass
+
 # Root logger as a safe default
 _root_logger = logging.getLogger()
 
@@ -30,13 +37,11 @@ class AppLogger:
     def __is_called_from_fastapi(cls) -> bool:
         """Best-effort check for FastAPI/Uvicorn runtime without hard dependency."""
         try:
-            # Fast path: FastAPI is importable and uvicorn/gunicorn present
             import fastapi  # noqa: F401
 
             if "uvicorn" in sys.modules or "gunicorn" in sys.modules:
                 return True
 
-            # Fallback: if FastAPI's logger has handlers, we assume FastAPI stack
             from fastapi.logger import logger as fastapi_logger  # lazy import
 
             return bool(fastapi_logger.handlers)
@@ -47,7 +52,6 @@ class AppLogger:
     @classmethod
     def __get_selected_logger(cls) -> logging.Logger:
         """Choose a framework-aware logger lazily, else return root logger."""
-        # Sanic logger if a Sanic app is active
         if cls.__is_called_from_sanic():
             try:
                 from sanic.log import logger as sanic_logger  # lazy import
@@ -56,9 +60,7 @@ class AppLogger:
             except Exception:  # noqa: BLE001
                 return _root_logger
 
-        # FastAPI / Uvicorn logger if running under FastAPI stack
         if cls.__is_called_from_fastapi():
-            # Prefer FastAPI’s bundled logger, fall back to Uvicorn’s error logger
             try:
                 from fastapi.logger import logger as fastapi_logger  # lazy import
 
@@ -66,7 +68,6 @@ class AppLogger:
             except Exception:  # noqa: BLE001
                 return logging.getLogger("uvicorn.error")
 
-        # Default
         return _root_logger
 
     # ---------- Context enrichment ----------
@@ -98,7 +99,6 @@ class AppLogger:
 
     @classmethod
     def log_error(cls, message: str) -> None:
-        # .exception logs stack trace if called inside an except block
         cls.__get_selected_logger().exception(cls.build_message(message))
 
     @classmethod
@@ -117,4 +117,7 @@ class AppLogger:
         }
         if stream is not None:
             config["stream"] = stream
+
+        # Ensure UTF-8 encoding even if Python default is ASCII
+        config["encoding"] = "utf-8"
         logging.basicConfig(**config)
