@@ -13,7 +13,7 @@ class BaseHTTPClient:
         limit: Optional[int] = None,
         limit_per_host: Optional[int] = None,
         ttl_dns_cache: Optional[int] = None,
-    ):
+    ) -> None:
         self._session_manager = SessionManager(limit=limit, limit_per_host=limit_per_host, ttl_dns_cache=ttl_dns_cache)
         self._timeout = timeout
 
@@ -54,7 +54,7 @@ class BaseHTTPClient:
         data: Optional[Dict[str, Any]] = None,
         json: Optional[Dict[str, Any]] = None,
         skip_auth_headers: bool = False,
-    ):
+    ) -> AiohttpToRequestsAdapter:
         headers = headers or {}
         if not skip_auth_headers:
             auth_headers = await self.auth_headers()
@@ -89,6 +89,7 @@ class BaseHTTPClient:
         self,
         url: str,
         data: Optional[Dict[str, Any]] = None,
+        params: Optional[Dict[str, str]] = None,
         json: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
         skip_auth_headers: bool = False,
@@ -96,6 +97,7 @@ class BaseHTTPClient:
         return await self.request(
             "POST",
             url,
+            params=params,
             headers=headers,
             data=data,
             json=json,
@@ -153,5 +155,5 @@ class BaseHTTPClient:
             skip_auth_headers=skip_auth_headers,
         )
 
-    async def close_session(self):
+    async def close_session(self) -> None:
         await self._session_manager.close()
