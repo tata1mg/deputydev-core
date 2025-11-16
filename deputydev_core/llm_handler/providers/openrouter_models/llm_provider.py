@@ -392,6 +392,8 @@ class OpenRouter(BaseLLMProvider):
             current_tool_name: Optional[str] = None
             text_block_open = False
             extended_thinking_open = False
+            tool_call_seen = False
+
             try:
                 async for chunk in response:
                     # Cancellation check
@@ -405,7 +407,9 @@ class OpenRouter(BaseLLMProvider):
                         prompt_tokens = chunk.usage.prompt_tokens or 0
                         completion_tokens = chunk.usage.completion_tokens or 0
                         usage += LLMUsage(
-                            input=prompt_tokens - cached_tokens, output=completion_tokens, cache_read=cached_tokens
+                            input=prompt_tokens - cached_tokens,
+                            output=completion_tokens,
+                            cache_read=cached_tokens,
                         )
                         if chunk.usage.cost is not None:
                             streaming_cost = chunk.usage.cost
@@ -417,9 +421,10 @@ class OpenRouter(BaseLLMProvider):
                     tool_calls = getattr(delta, "tool_calls", []) or []
                     reasoning_text = getattr(delta, "reasoning", None)
                     reasoning_details = getattr(delta, "reasoning_details", None)
+
                     # --- Extended Thinking Handling ---
+                    # Normalize encrypted reasoning: always ignore encrypted chunks
                     if reasoning_details:
-                        # Normalize for type safety
                         if isinstance(reasoning_details, dict):
                             reasoning_dict: Dict[str, Any] = reasoning_details
                             if reasoning_dict.get("type") == "reasoning.encrypted":
@@ -430,6 +435,10 @@ class OpenRouter(BaseLLMProvider):
                                 continue
 
                     if reasoning_text or reasoning_details:
+                        # After first tool-call, ignore all reasoning
+                        if tool_call_seen:
+                            continue
+
                         if not extended_thinking_open:
                             start_event = ExtendedThinkingBlockStart()
                             accumulated_events.append(start_event)
@@ -440,7 +449,7 @@ class OpenRouter(BaseLLMProvider):
                         details_list: List[Dict[str, Any]] = []
                         if reasoning_details:
                             if isinstance(reasoning_details, dict):
-                                details_list = [reasoning_details]  # wrap single dict
+                                details_list = [reasoning_details]
                             elif isinstance(reasoning_details, list):
                                 details_list = [d for d in reasoning_details if isinstance(d, dict)]
 
@@ -467,8 +476,11 @@ class OpenRouter(BaseLLMProvider):
                         yield end_event
                         extended_thinking_open = False
 
-                    # Tool-call event handling
+                    # --- Tool-call event handling ---
                     if tool_calls:
+                        tool_call_seen = True  # from now on, no text/reasoning is used
+
+                        # Close any active text block before tool calls
                         if text_block_open:
                             if buffer:
                                 yield reduce(lambda a, b: a + b, buffer)
@@ -484,6 +496,7 @@ class OpenRouter(BaseLLMProvider):
                             arguments = tool_call.function.arguments or ""
 
                             if tool_call.id and tool_call.function.name:
+                                # If a previous tool call is still open, end it
                                 if current_tool_id and tool_usage_state[current_tool_id]:
                                     end_event = ToolUseRequestEnd(type=StreamingEventType.TOOL_USE_REQUEST_END)
                                     accumulated_events.append(end_event)
@@ -494,7 +507,8 @@ class OpenRouter(BaseLLMProvider):
                                 start_event = ToolUseRequestStart(
                                     type=StreamingEventType.TOOL_USE_REQUEST_START,
                                     content=ToolUseRequestStartContent(
-                                        tool_name=current_tool_name, tool_use_id=current_tool_id
+                                        tool_name=current_tool_name,
+                                        tool_use_id=current_tool_id,
                                     ),
                                 )
                                 accumulated_events.append(start_event)
@@ -516,17 +530,24 @@ class OpenRouter(BaseLLMProvider):
                             tool_usage_state[current_tool_id] = False
                             current_tool_id = current_tool_name = None
 
-                        continue
+                        continue  # don’t drop into text flow
 
-                    # If switching from tool-call to text
-                    if current_tool_id and tool_usage_state[current_tool_id]:
+                    # If switching from tool-call to text:
+                    # With your new semantics, text after tool calls is ignored anyway,
+                    # but we still want to close any dangling tool state if that happens.
+                    if current_tool_id and tool_usage_state[current_tool_id] and text_part:
                         end_event = ToolUseRequestEnd(type=StreamingEventType.TOOL_USE_REQUEST_END)
                         accumulated_events.append(end_event)
                         yield end_event
                         tool_usage_state[current_tool_id] = False
                         current_tool_id = current_tool_name = None
+                        # text will be handled by logic below (or ignored if tool_call_seen True)
 
-                    # Text block streaming
+                    # --- Text block streaming ---
+                    # After first tool call: ignore ALL text completely
+                    if tool_call_seen and text_part:
+                        continue
+
                     if text_part and not text_block_open:
                         start_event = TextBlockStart(type=StreamingEventType.TEXT_BLOCK_START)
                         if buffer:
@@ -542,6 +563,7 @@ class OpenRouter(BaseLLMProvider):
                             content=TextBlockDeltaContent(text=text_part),
                         )
                         accumulated_events.append(delta_event)
+                        # batching for text deltas
                         if buffer and (type(buffer[0]) in non_combinable_types or len(buffer) >= batch_size):
                             yield reduce(lambda a, b: a + b, buffer)
                             buffer.clear()
@@ -557,7 +579,7 @@ class OpenRouter(BaseLLMProvider):
                         yield end_event
                         text_block_open = False
 
-                # Stream cleanup
+                # --- Stream cleanup ---
                 if text_block_open:
                     if buffer:
                         yield reduce(lambda a, b: a + b, buffer)

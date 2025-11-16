@@ -108,6 +108,9 @@ class LLMHandler(Generic[PromptFeatures]):
             LLModels.CLAUDE_4_POINT_5_SONNET: lambda checker: Anthropic(
                 checker=checker, config=self.config.get_anthropic_config()
             ),
+            LLModels.CLAUDE_4_POINT_5_HAIKU: lambda checker: Anthropic(
+                checker=checker, config=self.config.get_anthropic_config()
+            ),
             LLModels.GPT_4O: lambda checker: OpenAI(checker=checker, config=self.config.get_openai_config()),
             LLModels.GPT_40_MINI: lambda checker: OpenAI(checker=checker, config=self.config.get_openai_config()),
             LLModels.GEMINI_2_POINT_5_PRO: lambda checker: Google(
@@ -129,8 +132,14 @@ class LLMHandler(Generic[PromptFeatures]):
             LLModels.GPT_4_POINT_1_MINI: lambda checker: OpenAI(
                 checker=checker, config=self.config.get_openai_config()
             ),
+            LLModels.GPT_5_MINI: lambda checker: OpenAI(checker=checker, config=self.config.get_openai_config()),
             LLModels.GPT_O3_MINI: lambda checker: OpenAI(checker=checker, config=self.config.get_openai_config()),
-            LLModels.KIMI_K2: lambda checker: OpenRouter(checker=checker, config=self.config.get_openrouter_config()),
+            LLModels.KIMI_K2_THINKING: lambda checker: OpenRouter(
+                checker=checker, config=self.config.get_openrouter_config()
+            ),
+            LLModels.GLM_4_POINT_6: lambda checker: OpenRouter(
+                checker=checker, config=self.config.get_openrouter_config()
+            ),
             LLModels.QWEN_3_CODER: lambda checker: OpenRouter(
                 checker=checker, config=self.config.get_openrouter_config()
             ),
@@ -144,6 +153,12 @@ class LLMHandler(Generic[PromptFeatures]):
                 checker=checker, config=self.config.get_openrouter_config()
             ),
             LLModels.OPENROUTER_GPT_5_CODEX: lambda checker: OpenRouter(
+                checker=checker, config=self.config.get_openrouter_config()
+            ),
+            LLModels.OPENROUTER_GPT_5_POINT_1: lambda checker: OpenRouter(
+                checker=checker, config=self.config.get_openrouter_config()
+            ),
+            LLModels.OPENROUTER_GPT_5_POINT_1_CODEX: lambda checker: OpenRouter(
                 checker=checker, config=self.config.get_openrouter_config()
             ),
             LLModels.OPENROUTER_GPT_4_POINT_1: lambda checker: OpenRouter(
