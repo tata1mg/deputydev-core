@@ -125,6 +125,8 @@ class LLMHandler(Generic[PromptFeatures]):
             LLModels.GEMINI_2_POINT_5_FLASH_LITE: lambda checker: Google(
                 checker=checker, config=self.config.get_gemini_config()
             ),
+            LLModels.GEMINI_3_PRO: lambda checker: Google(checker=checker, config=self.config.get_gemini_config()),
+            LLModels.GEMINI_3_FLASH: lambda checker: Google(checker=checker, config=self.config.get_gemini_config()),
             LLModels.GPT_4_POINT_1: lambda checker: OpenAI(checker=checker, config=self.config.get_openai_config()),
             LLModels.GPT_4_POINT_1_NANO: lambda checker: OpenAI(
                 checker=checker, config=self.config.get_openai_config()

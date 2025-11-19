@@ -117,6 +117,7 @@ class StreamingEventType(Enum):
 
 
 class Reasoning(Enum):
+    NONE = "NONE"
     MINIMAL = "MINIMAL"
     LOW = "LOW"
     MEDIUM = "MEDIUM"
